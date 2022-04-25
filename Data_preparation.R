@@ -8,9 +8,9 @@ library(leaflet)
 library('rmapshaper')
 
 #Reading Kerncijfers gemeenten, wijken, buurten
-kerncijfers_gemeenten <- st_read("Data/WijkBuurtkaart_2021_v1/gemeente_2021_v1.shp")
-kerncijfers_wijken <- st_read("Data/WijkBuurtkaart_2021_v1/wijk_2021_v1.shp")
-kerncijfers_buurten <- st_read("Data/WijkBuurtkaart_2021_v1/buurt_2021_v1.shp")
+kerncijfers_gemeenten <- st_read("C:/Users/ImkeDekkers/OneDrive - Universiteit Utrecht/Applied Data Science/Thesis/Data/WijkBuurtkaart_2021_v1/gemeente_2021_v1.shp")
+kerncijfers_wijken <- st_read("C:/Users/ImkeDekkers/OneDrive - Universiteit Utrecht/Applied Data Science/Thesis/Data/WijkBuurtkaart_2021_v1/wijk_2021_v1.shp")
+kerncijfers_buurten <- st_read("C:/Users/ImkeDekkers/OneDrive - Universiteit Utrecht/Applied Data Science/Thesis/Data/WijkBuurtkaart_2021_v1/buurt_2021_v1.shp")
 
 #Cleaning Kerncijfers data
 kerncijfers_gemeenten <- kerncijfers_gemeenten[kerncijfers_gemeenten$H2O == "NEE", ]  
@@ -18,7 +18,7 @@ kerncijfers_wijken <- kerncijfers_wijken[kerncijfers_wijken$H2O == "NEE", ]
 kerncijfers_buurten <- kerncijfers_buurten[kerncijfers_buurten$H2O == "NEE", ]  
 
 #Read nabijheid voorzieningen data
-voorzieningen <- read.csv("Data/NabijheidVoorzieningen2020/NabijheidVoorzieningen.csv")
+voorzieningen <- read.csv("C:/Users/ImkeDekkers/OneDrive - Universiteit Utrecht/Applied Data Science/Thesis/Data/NabijheidVoorzieningen2020/NabijheidVoorzieningen.csv")
 voorzieningen <- voorzieningen %>%  #changes columns 6 to 115 from characters to numeric 
   mutate_at(c(6:115), as.numeric)
 voorzieningen <- voorzieningen[, which(colMeans(!is.na(voorzieningen)) > 0.01)] #Verwijdert columns met 99% of meer missing data (18 columns)

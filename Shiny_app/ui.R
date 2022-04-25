@@ -14,13 +14,13 @@ ui <- fluidPage(theme = shinytheme("yeti"),
             selectInput("niveau", "Niveau:", c("Gemeenten" = "Gemeenten",
                                                "Wijken" = "Wijken",
                                                "Buurten" = "Buurten")),
-            varSelectInput("variable", "Variable:", Filter(is.numeric, gemeenten))
+            varSelectInput("variable", "Variabele:", Filter(is.numeric, gemeenten))
         ),
         
         mainPanel(
             tabsetPanel(
-                tabPanel("Histogram", plotOutput("histogram")), 
-                tabPanel("Kaart", leafletOutput("map"))
+                tabPanel("Histogram", plotOutput("histogram"), textOutput("histogram_expl")), 
+                tabPanel("Kaart", leafletOutput("map"), textOutput("map_expl"))
             )
         )
     )
