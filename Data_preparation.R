@@ -8,9 +8,9 @@ library(leaflet)
 library('rmapshaper')
 
 #Reading Kerncijfers gemeenten, wijken, buurten 2020
-kerncijfers_gemeenten2020 <- st_read("C:/Users/ImkeDekkers/OneDrive - Universiteit Utrecht/Applied Data Science/Thesis/Data/WijkBuurtkaart_2020_v2/gemeente_2020_v2.shp")
-kerncijfers_wijken2020 <- st_read("C:/Users/ImkeDekkers/OneDrive - Universiteit Utrecht/Applied Data Science/Thesis/Data/WijkBuurtkaart_2020_v2/wijk_2020_v2.shp")
-kerncijfers_buurten2020 <- st_read("C:/Users/ImkeDekkers/OneDrive - Universiteit Utrecht/Applied Data Science/Thesis/Data/WijkBuurtkaart_2020_v2/buurt_2020_v2.shp")
+kerncijfers_gemeenten2020 <- st_read("../Data/WijkBuurtkaart_2020_v2/gemeente_2020_v2.shp")
+kerncijfers_wijken2020 <- st_read("../Data/WijkBuurtkaart_2020_v2/wijk_2020_v2.shp")
+kerncijfers_buurten2020 <- st_read("../Data/WijkBuurtkaart_2020_v2/buurt_2020_v2.shp")
 
 #Cleaning Kerncijfers data
 kerncijfers_gemeenten2020 <- kerncijfers_gemeenten2020[kerncijfers_gemeenten2020$H2O == "NEE", ]  
@@ -38,10 +38,10 @@ buurten <- rmapshaper::ms_simplify(buurten2020, keep = 0.05, keep_shapes = TRUE)
 ###Why are all geboorte en sterfte data 0??? WOZ is also all 0
 
 #reading all data about the postcodes
-postcodes <- read_excel("C:/Users/ImkeDekkers/OneDrive - Universiteit Utrecht/Applied Data Science/Thesis/Data/2020-cbs-pc6huisnr20200801-buurt/pc6-gwb2020.xlsx")
-gem_code <- read_excel("C:/Users/ImkeDekkers/OneDrive - Universiteit Utrecht/Applied Data Science/Thesis/Data/2020-cbs-pc6huisnr20200801-buurt/gem2020.xlsx")
-wijk_code <- read_excel("C:/Users/ImkeDekkers/OneDrive - Universiteit Utrecht/Applied Data Science/Thesis/Data/2020-cbs-pc6huisnr20200801-buurt/wijk2020.xlsx")
-buurt_code <- read_excel("C:/Users/ImkeDekkers/OneDrive - Universiteit Utrecht/Applied Data Science/Thesis/Data/2020-cbs-pc6huisnr20200801-buurt/brt2020.xlsx")
+postcodes <- read_excel("../Data/2020-cbs-pc6huisnr20200801-buurt/pc6-gwb2020.xlsx")
+gem_code <- read_excel("../Data/2020-cbs-pc6huisnr20200801-buurt/gem2020.xlsx")
+wijk_code <- read_excel("../Data/2020-cbs-pc6huisnr20200801-buurt/wijk2020.xlsx")
+buurt_code <- read_excel("../Data/2020-cbs-pc6huisnr20200801-buurt/brt2020.xlsx")
 
 #joining postcodes information
 postcodes_final <- left_join(postcodes, gem_code, by = c("Gemeente2020" = "Gemcode2020"))

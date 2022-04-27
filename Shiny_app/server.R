@@ -10,7 +10,7 @@ shinyServer(function(input, output) {
     output$postcode_info <- renderText(
       if(any(postcodes_final$PC6==input$postcode)){
         matching_postcode <- postcodes_final %>% filter_at(vars(PC6), any_vars(. %in% input$postcode))     
-        with(matching_postcode, sprintf('Uw gemeentenaame is %s, uw wijknaam is %s en uw buurtnaam is %s', Gemeentenaam2020, wijknaam2020, buurtnaam2020))
+        with(matching_postcode, sprintf('Uw gemeentenaam is %s, uw wijknaam is %s en uw buurtnaam is %s', Gemeentenaam2020, wijknaam2020, buurtnaam2020))
     } else {
         print("Uw postcode wordt niet herkend, probeer een andere postcode")
       }

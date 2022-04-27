@@ -6,7 +6,7 @@ library(shinythemes)
 
 ui <- fluidPage(theme = shinytheme("yeti"),
     
-    titlePanel("Histogram en kaart van verschillende variabelen op gemeente- wijk- of buurtniveau"),
+    titlePanel("Histogram en kaart van verschillende variabelen op gemeente-, wijk- of buurtniveau"),
     
     sidebarLayout(
         
