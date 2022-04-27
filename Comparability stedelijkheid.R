@@ -4,6 +4,7 @@
 ## Check what the stedelijkheid is and to which group it belongs
 ## Only display values of variable chosen for gemeente/wijk/buurt that has the same stedelijkheid
 
+## WORK IN PROGRESS
 
 hist(gemeenten$`Stedelijkheid (1=zeer sterk stedelijk, 5=niet stedelijk)`)
 
