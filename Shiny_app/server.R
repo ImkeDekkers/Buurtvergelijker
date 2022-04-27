@@ -20,7 +20,7 @@ shinyServer(function(input, output) {
     output$histogram <- renderPlot({
         if(input$niveau == "Gemeenten"){
            hist_data <- gemeenten
-        } else if (input$niveau == "Buurten"){
+        }else if (input$niveau == "Buurten"){
             hist_data <- buurten
         }else if (input$niveau == "Wijken"){
             hist_data <- wijken
@@ -45,7 +45,7 @@ shinyServer(function(input, output) {
             map_data <- wijken
             map_data$label <- map_data$WK_NAAM
         }else {
-            print("Select een niveau")
+            print("Selecteer een niveau")
         }
         
         map_data$variableplot <-map_data[[input$variable]]
