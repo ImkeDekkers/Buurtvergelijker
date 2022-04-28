@@ -20,7 +20,7 @@ shinyServer(function(input, output) {
     output$histogram <- renderPlot({
         if(input$niveau == "Gemeenten"){
           df_gemeenten <- as.data.frame(gemeenten)                                                                                      # Reshape data to data frame (not with shape files)
-          stedelijkheid_num_gem <- df_gemeenten[df_gemeenten$GM_NAAM==input$gemeentenaam, 5]                                # Stedelijkheid is the 5th column in the data
+          stedelijkheid_num_gem <- df_gemeenten[df_gemeenten$GM_NAAM==input$gemeente, 5]                                # Stedelijkheid is the 5th column in the data
           comparable_gemeenten <- gemeenten[gemeenten$`Stedelijkheid (1=zeer sterk stedelijk, 5=niet stedelijk)`== stedelijkheid_num_gem, ] # Create the right data based on the given stedelijkheid number
           hist_data <- comparable_gemeenten
         }else if (input$niveau == "Buurten"){
