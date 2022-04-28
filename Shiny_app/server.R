@@ -5,17 +5,17 @@ library(leaflet)
 
 
 shinyServer(function(input, output) {
-    
+  
     #Finding gemeente, wijk and buurt based on the input postcode
     output$postcode_info <- renderText(
       if(any(postcodes_final$PC6==input$postcode)){
         matching_postcode <- postcodes_final %>% filter_at(vars(PC6), any_vars(. %in% input$postcode))     
         with(matching_postcode, sprintf('Uw gemeentenaam is %s, uw wijknaam is %s en uw buurtnaam is %s', Gemeentenaam2020, wijknaam2020, buurtnaam2020))
     } else {
-        print("Uw postcode wordt niet herkend, probeer een andere postcode")
+        print("Er is (nog) geen geldige postcode ingevoerd.")
       }
     )
-  
+
     #histogram van de variabelen, op de 3 verschillende niveau's  
     output$histogram <- renderPlot({
         if(input$niveau == "Gemeenten"){
