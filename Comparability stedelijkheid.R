@@ -1,7 +1,7 @@
 # What to do
-## Create groups for stedelijkheid so that it is possible to check if the gemeente/buurt/wijk is in that list
 ## Select an input postal code 
-## Check what the stedelijkheid is and to which group it belongs
+## Check what the stedelijkheid is 
+## Use the stedelijkheid number to create subset of comparable gemeenten/wijken/buurten
 ## Only display values of variable chosen for gemeente/wijk/buurt that has the same stedelijkheid
 
 ### We have input for gemeenten, wijken, buurten
@@ -11,45 +11,39 @@
 ## WORK IN PROGRESS
 
 
-# Gemeenten
-## Create groups for stedelijkheid 
-gem_stedelijkheid1 <- gemeenten[gemeenten$`Stedelijkheid (1=zeer sterk stedelijk, 5=niet stedelijk)`== 1,]
-gem_stedelijkheid2 <- gemeenten[gemeenten$`Stedelijkheid (1=zeer sterk stedelijk, 5=niet stedelijk)`== 2,]
-gem_stedelijkheid3 <- gemeenten[gemeenten$`Stedelijkheid (1=zeer sterk stedelijk, 5=niet stedelijk)`== 3,]
-gem_stedelijkheid4 <- gemeenten[gemeenten$`Stedelijkheid (1=zeer sterk stedelijk, 5=niet stedelijk)`== 4,]
-gem_stedelijkheid5 <- gemeenten[gemeenten$`Stedelijkheid (1=zeer sterk stedelijk, 5=niet stedelijk)`== 5,]
+# GEMEENTEN
+# Reshape data to data frame (not with shape files)
+df_gemeenten <- as.data.frame(gemeenten)
 
-## Check if input is in one of the variables
+# Check stedelijkheid number for given gemeente
+## (maybe update this to find the name of the column)
+stedelijkheid_num_gem <- df_gemeenten[df_gemeenten$GM_NAAM=="Groningen", 5]               # Stedelijkheid is the 5th column in the data
 
-
-## Use the correct data for visualizations
+# Create the right data based on the given stedelijkheid number
+comparable_gemeenten <- gemeenten[gemeenten$`Stedelijkheid (1=zeer sterk stedelijk, 5=niet stedelijk)`== stedelijkheid_num, ]     # Should be input for visualizations
 
 
-# Wijken
-## Create groups for stedelijkheid
-wijk_stedelijkheid1 <- wijken[wijken$`Stedelijkheid (1=zeer sterk stedelijk, 5=niet stedelijk)`== 1,]
-wijk_stedelijkheid2 <- wijken[wijken$`Stedelijkheid (1=zeer sterk stedelijk, 5=niet stedelijk)`== 2,]
-wijk_stedelijkheid3 <- wijken[wijken$`Stedelijkheid (1=zeer sterk stedelijk, 5=niet stedelijk)`== 3,]
-wijk_stedelijkheid4 <- wijken[wijken$`Stedelijkheid (1=zeer sterk stedelijk, 5=niet stedelijk)`== 4,]
-wijk_stedelijkheid5 <- wijken[wijken$`Stedelijkheid (1=zeer sterk stedelijk, 5=niet stedelijk)`== 5,]
+# WIJKEN
+# Reshape data to data frame (not with shape files)
+df_wijken <- as.data.frame(wijken)
 
-## Check if input is in one of the variables
+# Check stedelijkheid number for given wijk
+## (maybe update this to find the name of the column)
+stedelijkheid_num_wijken <- df_wijken[df_wijken$WK_NAAM=="Fivelzigt", 8]                  # Stedelijkheid is the 8th column in the data
 
-
-## Use the correct data for visualizations
+# Create the right data based on the given stedelijkheid number
+comparable_wijken <- wijken[wijken$`Stedelijkheid (1=zeer sterk stedelijk, 5=niet stedelijk)`== stedelijkheid_num_wijken, ]      # Should be input for visualizations
 
 
-# Buurten
-## Create groups for stedelijkheid
-buurt_stedelijkheid1 <- buurten[buurten$`Stedelijkheid (1=zeer sterk stedelijk, 5=niet stedelijk)`== 1,]
-buurt_stedelijkheid2 <- buurten[buurten$`Stedelijkheid (1=zeer sterk stedelijk, 5=niet stedelijk)`== 2,]
-buurt_stedelijkheid3 <- buurten[buurten$`Stedelijkheid (1=zeer sterk stedelijk, 5=niet stedelijk)`== 3,]
-buurt_stedelijkheid4 <- buurten[buurten$`Stedelijkheid (1=zeer sterk stedelijk, 5=niet stedelijk)`== 4,]
-buurt_stedelijkheid4 <- buurten[buurten$`Stedelijkheid (1=zeer sterk stedelijk, 5=niet stedelijk)`== 5,]
+# BUURTEN
+# Reshape data to data frame (not with shape files)
+df_buurten <- as.data.frame(buurten)
 
-## Check if input is in one of the variables
+# Check stedelijkheid number for given gemeente
+## (maybe update this to find the name of the column)
+stedelijkheid_num_buurten <- df_buurten[df_buurten$BU_NAAM=="Appingedam-Centrum", 11]     # Stedelijkheid is the 11th column in the data
 
-
-## Use the correct data for visualizations
+# Create the right data based on the given stedelijkheid number 
+comparable_buurten <- buurten[buurten$`Stedelijkheid (1=zeer sterk stedelijk, 5=niet stedelijk)`== stedelijkheid_num_buurten, ]  # Should be input for visualizations
 
 
