@@ -35,7 +35,7 @@ gemeenten <- rmapshaper::ms_simplify(gemeenten2020, keep = 0.05, keep_shapes = T
 wijken <- rmapshaper::ms_simplify(wijken2020, keep = 0.05, keep_shapes = TRUE)
 buurten <- rmapshaper::ms_simplify(buurten2020, keep = 0.05, keep_shapes = TRUE)
 
-###Why are all geboorte en sterfte data 0??? WOZ is also all 0
+###Why are all geboorte en sterfte data 0??? WOZ (Gemiddelde woningwaarde (x1000 euro)) is also all 0. Just as all data about gas en elektriciteitsverbruik
 
 #reading all data about the postcodes
 postcodes <- read_excel("../Data/2020-cbs-pc6huisnr20200801-buurt/pc6-gwb2020.xlsx")
