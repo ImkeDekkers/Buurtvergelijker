@@ -35,6 +35,8 @@ ui <- dashboardPage(
                                                                    "Wijken" = "Wijken",
                                                                    "Buurten" = "Buurten")),
                                 selectInput("gemeente", "Gemeente:", choices=c(gemeenten$GM_NAAM)),
+                                selectInput("wijken", "Wijk:", choices=c(wijken$WK_NAAM)),
+                                selectInput("buurten", "Buurt:", choices=c(buurten$BU_NAAM)),
                                 varSelectInput("variable", "Variabele:", Filter(is.numeric, gemeenten)),
                                 submitButton("Indienen"))
                           ),
