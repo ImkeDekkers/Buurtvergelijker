@@ -23,6 +23,19 @@ ui <- fluidPage(theme = shinytheme("yeti"),
     sidebarLayout(
         
         sidebarPanel(
+            textInput("gemeentenaam", "Vul hier uw gemeente-, wijk- of buurtnaam in uit de vorige stap"),
+            submitButton("Zoek")
+        ),
+        
+        mainPanel(
+            tabPanel("Postcode informatie", textOutput("gemeentenaam"))
+        )
+    ),
+ 
+    
+    sidebarLayout(
+        
+        sidebarPanel(
             selectInput("niveau", "Niveau:", c("Gemeenten" = "Gemeenten",
                                                "Wijken" = "Wijken",
                                                "Buurten" = "Buurten")),

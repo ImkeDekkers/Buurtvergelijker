@@ -15,11 +15,14 @@ shinyServer(function(input, output) {
         print("Er is (nog) geen geldige postcode ingevoerd.")
       }
     )
-
+    
     #histogram van de variabelen, op de 3 verschillende niveau's  
     output$histogram <- renderPlot({
         if(input$niveau == "Gemeenten"){
-           hist_data <- gemeenten
+          df_gemeenten <- as.data.frame(gemeenten)                                                                                      # Reshape data to data frame (not with shape files)
+          stedelijkheid_num_gem <- df_gemeenten[df_gemeenten$GM_NAAM==input$gemeentenaam, 5]                                # Stedelijkheid is the 5th column in the data
+          comparable_gemeenten <- gemeenten[gemeenten$`Stedelijkheid (1=zeer sterk stedelijk, 5=niet stedelijk)`== stedelijkheid_num_gem, ] # Create the right data based on the given stedelijkheid number
+          hist_data <- comparable_gemeenten
         }else if (input$niveau == "Buurten"){
             hist_data <- buurten
         }else if (input$niveau == "Wijken"){

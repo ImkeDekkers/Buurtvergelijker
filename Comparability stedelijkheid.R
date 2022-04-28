@@ -20,7 +20,7 @@ df_gemeenten <- as.data.frame(gemeenten)
 stedelijkheid_num_gem <- df_gemeenten[df_gemeenten$GM_NAAM=="Groningen", 5]               # Stedelijkheid is the 5th column in the data
 
 # Create the right data based on the given stedelijkheid number
-comparable_gemeenten <- gemeenten[gemeenten$`Stedelijkheid (1=zeer sterk stedelijk, 5=niet stedelijk)`== stedelijkheid_num, ]     # Should be input for visualizations
+comparable_gemeenten <- gemeenten[gemeenten$`Stedelijkheid (1=zeer sterk stedelijk, 5=niet stedelijk)`== stedelijkheid_num_gem, ]     # Should be input for visualizations
 
 
 # WIJKEN
