@@ -11,7 +11,8 @@ ui <- fluidPage(theme = shinytheme("yeti"),
     sidebarLayout(
         
         sidebarPanel(
-            textInput("postcode", "Weet u niet uw exacte gemeente, wijk of buurt naam? Vul dan hier uw 6-cijferige postcode in")
+            textInput("postcode", "Weet u niet uw exacte gemeente, wijk of buurt naam? Vul dan hier uw 6-cijferige postcode in"),
+            submitButton("Zoek")
         ),
         
         mainPanel(
@@ -25,7 +26,8 @@ ui <- fluidPage(theme = shinytheme("yeti"),
             selectInput("niveau", "Niveau:", c("Gemeenten" = "Gemeenten",
                                                "Wijken" = "Wijken",
                                                "Buurten" = "Buurten")),
-            varSelectInput("variable", "Variabele:", Filter(is.numeric, gemeenten))
+            varSelectInput("variable", "Variabele:", Filter(is.numeric, gemeenten)),
+            submitButton("Indienen")
         ),
        
         mainPanel(
