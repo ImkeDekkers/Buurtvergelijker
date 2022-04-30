@@ -3,8 +3,7 @@ library(ggplot2)
 library(sf)
 library(leaflet)
 
-
-shinyServer(function(input, output) {
+shinyServer(function(input, output, session) {
   
     #Finding gemeente, wijk and buurt based on the input postcode
     output$postcode_info <- renderText(
@@ -15,6 +14,16 @@ shinyServer(function(input, output) {
         print("Er is (nog) geen geldige postcode ingevoerd.")
       }
     )
+    
+    # Make selection dependent on previous input
+    observeEvent(input$gemeente, {
+      updateSelectInput(session, 'wijken',
+                        choices = unique(postcodes_final$wijknaam2020[postcodes_final$Gemeentenaam2020 == input$gemeente]))                                               # Only display that are in the selected gemeente
+    })
+    observeEvent(input$wijken,{
+      updateSelectInput(session, 'buurten',
+                        choices = unique(postcodes_final$buurtnaam2020[postcodes_final$Gemeentenaam2020 == input$gemeente & postcodes_final$wijknaam2020==input$wijken])) # Only display buurten that are in the selected wijk
+    })
     
     #histogram van de variabelen, op de 3 verschillende niveau's  
     output$histogram <- renderPlot({
@@ -86,6 +95,7 @@ shinyServer(function(input, output) {
                 highlightOptions = highlightOptions(color='white',weight=0.5,fillOpacity = 0.7, bringToFront = TRUE),
                 label = labels
             ) %>%
+            addProviderTiles(providers$CartoDB.Positron) %>% 
           
             leaflet::addLegend(
                 pal = qpal, values = ~variableplot, opacity = 0.7, title = NULL, labFormat = function(type, cuts, p) {      #labformat function makes sure the actual values instead of the quantiles are displayed in the legend

@@ -24,7 +24,6 @@ ui <- dashboardPage(
                             h2("Histogram en kaart van verschillende variabelen op gemeente-, wijk- of buurtniveau"),
                             box(width = 3,
                                 textInput("postcode", "Weet u niet uw exacte gemeente, wijk of buurt naam? Vul dan hier uw 6-cijferige postcode in"),
-                                submitButton("Zoek"),
                                 br(),
                                 textOutput("postcode_info"))
                           ),
@@ -34,11 +33,11 @@ ui <- dashboardPage(
                                 selectInput("niveau", "Niveau:", c("Gemeenten" = "Gemeenten",
                                                                    "Wijken" = "Wijken",
                                                                    "Buurten" = "Buurten")),
-                                selectInput("gemeente", "Gemeente:", choices=c(gemeenten$GM_NAAM)),
-                                selectInput("wijken", "Wijk:", choices=c(wijken$WK_NAAM)),
-                                selectInput("buurten", "Buurt:", choices=c(buurten$BU_NAAM)),
-                                varSelectInput("variable", "Variabele:", Filter(is.numeric, gemeenten)),
-                                submitButton("Indienen"))
+                                selectInput("gemeente", "Gemeente:", choices=unique(gemeenten$GM_NAAM)),
+                                selectInput("wijken", "Wijk:", choices=NULL),
+                                selectInput("buurten", "Buurt:", choices=NULL),
+                                varSelectInput("variable", "Variabele:", Filter(is.numeric, gemeenten))
+                                )
                           ),
                           fluidRow(
                             box(title = "Histogram", 
