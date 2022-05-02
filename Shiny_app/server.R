@@ -2,13 +2,22 @@ library(shiny)
 library(ggplot2)
 library(sf)
 library(leaflet)
+library(stringr)
+
+gemeenten <- readRDS("../Data/gemeenten.rds")
+wijken <- readRDS("../Data/wijken.rds")
+buurten <- readRDS("../Data/buurten.rds")
+postcodes_final <- readRDS("../Data/postcodes_final.rds")
 
 shinyServer(function(input, output, session) {
-  
+
+    postcode1 <-  reactive({str_replace_all(input$postcode, fixed(" "), "")})
+    postcode <- reactive({toupper(postcode1())})
+      
     #Finding gemeente, wijk and buurt based on the input postcode
     output$postcode_info <- renderText(
-      if(any(postcodes_final$PC6==input$postcode)){
-        matching_postcode <- postcodes_final %>% filter_at(vars(PC6), any_vars(. %in% input$postcode))     
+      if(any(postcodes_final$PC6==postcode())){
+        matching_postcode <- postcodes_final %>% filter_at(vars(PC6), any_vars(. %in% postcode()))     
         with(matching_postcode, sprintf('Uw gemeentenaam is %s, uw wijknaam is %s en uw buurtnaam is %s', Gemeentenaam2020, wijknaam2020, buurtnaam2020))
     } else {
         print("Er is (nog) geen geldige postcode ingevoerd.")
@@ -57,8 +66,6 @@ shinyServer(function(input, output, session) {
         ggplot(hist_data, aes(!!input$variable)) + geom_histogram() + geom_vline(xintercept = area_line)
     })
     
-    output$histogram_expl <- renderText("Wanneer u een niveau en variabele heeft geselecteerd, kunt u in deze grafiek zien hoe de verdeling van deze variabele is op het geselecteerde niveau")
-
     #kaart met kleur gebaseerd op de gekozen variabelen. Mogelijk op de 3 verschillende niveau's
     output$map <- renderLeaflet({
         #Select de data en label van het gekozen niveau
@@ -113,6 +120,5 @@ shinyServer(function(input, output, session) {
                 }
             )
     })
-    output$map_expl <- renderText("Wanneer u een niveau en variabele heeft geselecteerd, kunt u op deze kaart zien welke waarde van deze variabele hoort bij elke gemeente/wijk/buurt")
-
+    
 })
