@@ -32,20 +32,29 @@ shinyServer(function(input, output, session) {
           stedelijkheid_num_gem <- df_gemeenten[df_gemeenten$GM_NAAM==input$gemeente, 5]                                                    # Stedelijkheid is the 5th column in the data
           comparable_gemeenten <- gemeenten[gemeenten$`Stedelijkheid (1=zeer sterk stedelijk, 5=niet stedelijk)`== stedelijkheid_num_gem, ] # Create the right data based on the given stedelijkheid number
           hist_data <- comparable_gemeenten                                                                                                 # Use the subset of the data with the same stedelijkheid number for visualizations
+          area_line <- gemeenten %>%
+            filter(GM_NAAM == input$gemeente) %>%
+            pull(input$variable)
         }else if (input$niveau == "Buurten"){
           df_buurten <- as.data.frame(buurten)
           stedelijkheid_num_buurten <- df_buurten[df_buurten$BU_NAAM==input$buurten, 11]
           comparable_buurten <- buurten[buurten$`Stedelijkheid (1=zeer sterk stedelijk, 5=niet stedelijk)`== stedelijkheid_num_buurten, ]  
           hist_data <- comparable_buurten
+          area_line <- buurten %>%
+            filter(GM_NAAM == input$gemeente & WK_NAAM == input$wijken & BU_NAAM == input$buurten) %>%
+            pull(input$variable)
         }else if (input$niveau == "Wijken"){
           df_wijken <- as.data.frame(wijken)
           stedelijkheid_num_wijken <- df_wijken[df_wijken$WK_NAAM==input$wijken, 8]
           comparable_wijken <- wijken[wijken$`Stedelijkheid (1=zeer sterk stedelijk, 5=niet stedelijk)`== stedelijkheid_num_wijken, ]
           hist_data <- comparable_wijken
+          area_line <- wijken %>%
+            filter(GM_NAAM == input$gemeente & WK_NAAM == input$wijken) %>%
+            pull(input$variable)
         }else {
             print("Select een niveau")
         }
-        ggplot(hist_data, aes(!!input$variable)) + geom_histogram()
+        ggplot(hist_data, aes(!!input$variable)) + geom_histogram() + geom_vline(xintercept = area_line)
     })
     
     output$histogram_expl <- renderText("Wanneer u een niveau en variabele heeft geselecteerd, kunt u in deze grafiek zien hoe de verdeling van deze variabele is op het geselecteerde niveau")

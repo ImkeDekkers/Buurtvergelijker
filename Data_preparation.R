@@ -5,6 +5,7 @@ library(sf)
 library("readxl")
 #devtools::install_github('rstudio/leaflet')
 library(leaflet)
+library(tidyverse)
 library('rmapshaper')
 
 #Reading Kerncijfers gemeenten, wijken, buurten 2020
@@ -47,3 +48,14 @@ buurt_code <- read_excel("../Data/2020-cbs-pc6huisnr20200801-buurt/brt2020.xlsx"
 postcodes_final <- left_join(postcodes, gem_code, by = c("Gemeente2020" = "Gemcode2020"))
 postcodes_final <- left_join(postcodes_final, wijk_code, by = c("Wijk2020" = "wijkcode2020"))
 postcodes_final <- left_join(postcodes_final, buurt_code, by = c("Buurt2020" = "buurtcode2020"))
+
+#Add WK_NAAM to buurten
+buurten <- as.data.frame(buurten)
+wijken <- as.data.frame(wijken)
+
+nameswijken <- wijken %>%
+  select(WK_CODE, WK_NAAM)
+
+buurten <- left_join(buurten, nameswijken, by = "WK_CODE",suffix = c("", "_new"))
+buurten <- st_as_sf(buurten)
+wijken <- st_as_sf(wijken)
