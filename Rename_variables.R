@@ -47,8 +47,8 @@ gemeenten <- rename(gemeenten, c("Omgevingsadressendichtheid (per km2)" = OAD,
                                  "Woningen in bezit woningcorporatie (%)" = P_HUURCORP,
                                  "Woningen in bezit overige verhuurders (%)" = P_HUUROVVH,
                                  "Woningen eigendom onbekend (%)" = P_HUKO_ONB,
-                                 "Woningen met boujaarklasse vanaf 2000 (%)" = P_WONV2000,
-                                 "Woningen met boujaarklasse tot 2000 (%)" = P_WONT2000,
+                                 "Woningen met bouwjaarklasse vanaf 2000 (%)" = P_WONV2000,
+                                 "Woningen met bouwjaarklasse tot 2000 (%)" = P_WONT2000,
                                  "Leegstaande woningen (%)" = P_LEEGSW,
                                  "Gemiddeld aardgasverbruik totaal (m3)" = G_GAS_TOT,
                                  "Gasverbruik appartement (m3)" = G_GAS_APP,
@@ -224,8 +224,8 @@ wijken <- rename(wijken, c("Omgevingsadressendichtheid (per km2)" = OAD,
                                  "Woningen in bezit woningcorporatie (%)" = P_HUURCORP,
                                  "Woningen in bezit overige verhuurders (%)" = P_HUUROVVH,
                                  "Woningen eigendom onbekend (%)" = P_HUKO_ONB,
-                                 "Woningen met boujaarklasse vanaf 2000 (%)" = P_WONV2000,
-                                 "Woningen met boujaarklasse tot 2000 (%)" = P_WONT2000,
+                                 "Woningen met bouwjaarklasse vanaf 2000 (%)" = P_WONV2000,
+                                 "Woningen met bouwjaarklasse tot 2000 (%)" = P_WONT2000,
                                  "Leegstaande woningen (%)" = P_LEEGSW,
                                  "Gemiddeld aardgasverbruik totaal (m3)" = G_GAS_TOT,
                                  "Gasverbruik appartement (m3)" = G_GAS_APP,
@@ -400,8 +400,8 @@ buurten <- rename(buurten, c("Omgevingsadressendichtheid (per km2)" = OAD,
                                  "Woningen in bezit woningcorporatie (%)" = P_HUURCORP,
                                  "Woningen in bezit overige verhuurders (%)" = P_HUUROVVH,
                                  "Woningen eigendom onbekend (%)" = P_HUKO_ONB,
-                                 "Woningen met boujaarklasse vanaf 2000 (%)" = P_WONV2000,
-                                 "Woningen met boujaarklasse tot 2000 (%)" = P_WONT2000,
+                                 "Woningen met bouwjaarklasse vanaf 2000 (%)" = P_WONV2000,
+                                 "Woningen met bouwjaarklasse tot 2000 (%)" = P_WONT2000,
                                  "Leegstaande woningen (%)" = P_LEEGSW,
                                  "Gemiddeld aardgasverbruik totaal (m3)" = G_GAS_TOT,
                                  "Gasverbruik appartement (m3)" = G_GAS_APP,
@@ -526,3 +526,12 @@ buurten <- rename(buurten, c("Omgevingsadressendichtheid (per km2)" = OAD,
                                  "Aantal musea binnen 20 km" = AV20MUSEUM
 )
 )
+
+# Write data to RDS file for faster data loading
+library(tidyverse)
+write_rds(gemeenten, "../Data/gemeenten.rds")
+write_rds(wijken, "../Data/wijken.rds")
+write_rds(buurten, "../Data/buurten.rds")
+write_rds(postcodes_final, "../Data/postcodes_final.rds")
+
+
