@@ -34,68 +34,52 @@ shinyServer(function(input, output, session) {
                         choices = unique(postcodes_final$buurtnaam2020[postcodes_final$Gemeentenaam2020 == input$gemeente & postcodes_final$wijknaam2020==input$wijken])) # Only display buurten that are in the selected wijk
     })
     
-    #histogram van de variabelen, op de 3 verschillende niveau's  
-    output$histogram <- renderPlot({
-        if(input$niveau == "Gemeenten"){
-          df_gemeenten <- as.data.frame(gemeenten)                                                                                          # Reshape data to data frame (not with shape files)
-          stedelijkheid_num_gem <- df_gemeenten[df_gemeenten$GM_NAAM==input$gemeente, 5]                                                    # Stedelijkheid is the 5th column in the data
-          comparable_gemeenten <- gemeenten[gemeenten$`Stedelijkheid (1=zeer sterk stedelijk, 5=niet stedelijk)`== stedelijkheid_num_gem, ] # Create the right data based on the given stedelijkheid number
-          hist_data <- comparable_gemeenten                                                                                                 # Use the subset of the data with the same stedelijkheid number for visualizations
-          area_line <- gemeenten %>%
-            filter(GM_NAAM == input$gemeente) %>%
-            pull(input$variable)
-        }else if (input$niveau == "Buurten"){
-          df_buurten <- as.data.frame(buurten)
-          stedelijkheid_num_buurten <- df_buurten[df_buurten$BU_NAAM==input$buurten, 11]
-          comparable_buurten <- buurten[buurten$`Stedelijkheid (1=zeer sterk stedelijk, 5=niet stedelijk)`== stedelijkheid_num_buurten, ]  
-          hist_data <- comparable_buurten
-          area_line <- buurten %>%
-            filter(GM_NAAM == input$gemeente & WK_NAAM == input$wijken & BU_NAAM == input$buurten) %>%
-            pull(input$variable)
-        }else if (input$niveau == "Wijken"){
-          df_wijken <- as.data.frame(wijken)
-          stedelijkheid_num_wijken <- df_wijken[df_wijken$WK_NAAM==input$wijken, 8]
-          comparable_wijken <- wijken[wijken$`Stedelijkheid (1=zeer sterk stedelijk, 5=niet stedelijk)`== stedelijkheid_num_wijken, ]
-          hist_data <- comparable_wijken
-          area_line <- wijken %>%
-            filter(GM_NAAM == input$gemeente & WK_NAAM == input$wijken) %>%
-            pull(input$variable)
-        }else {
-            print("Select een niveau")
-        }
-        ggplot(hist_data, aes(!!input$variable)) + geom_histogram() + geom_vline(xintercept = area_line)
+    #make used data reactive on the selected niveau
+    datasetInput <- reactive({
+      if(input$niveau == "Gemeenten"){
+        df_gemeenten <- as.data.frame(gemeenten)                                                                                          # Reshape data to data frame (not with shape files)
+        stedelijkheid_num_gem <- df_gemeenten[df_gemeenten$GM_NAAM==input$gemeente, 5]                                                    # Stedelijkheid is the 5th column in the data
+        comparable_gemeenten <- gemeenten[gemeenten$`Stedelijkheid (1=zeer sterk stedelijk, 5=niet stedelijk)`== stedelijkheid_num_gem, ] # Create the right data based on the given stedelijkheid number
+        area_value <- comparable_gemeenten %>%filter(GM_NAAM == input$gemeente) %>%pull(input$variable)
+        comparable_gemeenten$area_line <- area_value
+        dataset <- comparable_gemeenten
+        dataset$label <- dataset$GM_NAAM
+      }else if(input$niveau == "Wijken"){
+        df_wijken <- as.data.frame(wijken)
+        stedelijkheid_num_wijken <- df_wijken[df_wijken$WK_NAAM==input$wijken, 8]
+        comparable_wijken <- wijken[wijken$`Stedelijkheid (1=zeer sterk stedelijk, 5=niet stedelijk)`== stedelijkheid_num_wijken, ]
+        area_value <- comparable_wijken %>%filter(GM_NAAM == input$gemeente & WK_NAAM == input$wijken) %>%pull(input$variable)
+        comparable_wijken$area_line <- area_value
+        dataset <- comparable_wijken
+        dataset$label <- dataset$WK_NAAM
+      }else if (input$niveau == "Buurten"){
+        df_buurten <- as.data.frame(buurten)
+        stedelijkheid_num_buurten <- df_buurten[df_buurten$BU_NAAM==input$buurten, 11]
+        comparable_buurten <- buurten[buurten$`Stedelijkheid (1=zeer sterk stedelijk, 5=niet stedelijk)`== stedelijkheid_num_buurten, ]
+        area_value <- comparable_buurten %>%filter(GM_NAAM == input$gemeente & WK_NAAM == input$wijken & BU_NAAM == input$buurten) %>%pull(input$variable)
+        comparable_buurten$area_line <- area_value
+        dataset <- comparable_buurten
+        dataset$label <- dataset$BU_NAAM
+      }
+      return(dataset)
     })
     
-    #kaart met kleur gebaseerd op de gekozen variabelen. Mogelijk op de 3 verschillende niveau's
+    #histogram van de variabele with vertical line of the value from the gemeente/wijk/buurt that has een selected  
+    output$histogram <- renderPlot({
+      data_hist <- datasetInput()
+        ggplot(data_hist, aes(!!input$variable)) + geom_histogram(fill='steelblue3', color='#e9ecef', bins=20) + geom_vline(xintercept = data_hist$`area_line`) +
+          labs( y = "Aantal")
+    })
+    
+    #map with color based on the chosen variable
     output$map <- renderLeaflet({
-        #Select de data en label van het gekozen niveau
-        if(input$niveau == "Gemeenten"){
-          df_gemeenten <- as.data.frame(gemeenten)                                                                                          # Reshape data to data frame (not with shape files)
-          stedelijkheid_num_gem <- df_gemeenten[df_gemeenten$GM_NAAM==input$gemeente, 5]                                                    # Stedelijkheid is the 5th column in the data
-          comparable_gemeenten <- gemeenten[gemeenten$`Stedelijkheid (1=zeer sterk stedelijk, 5=niet stedelijk)`== stedelijkheid_num_gem, ] # Create the right data based on the given stedelijkheid number
-          map_data <- comparable_gemeenten
-          map_data$label <- map_data$GM_NAAM
-        } else if (input$niveau == "Buurten"){
-          df_buurten <- as.data.frame(buurten)
-          stedelijkheid_num_buurten <- df_buurten[df_buurten$WK_NAAM==input$wijken& df_buurten$GM_NAAM==input$gemeente &df_buurten$BU_NAAM==input$buurten, 11]
-          comparable_buurten <- buurten[buurten$`Stedelijkheid (1=zeer sterk stedelijk, 5=niet stedelijk)`== stedelijkheid_num_buurten, ]
-          map_data <- comparable_buurten
-          map_data$label <- map_data$BU_NAAM
-        }else if (input$niveau == "Wijken"){
-          df_wijken <- as.data.frame(wijken)
-          stedelijkheid_num_wijken <- df_wijken[df_wijken$WK_NAAM==input$wijken& df_wijken$GM_NAAM==input$gemeente,8]
-          comparable_wijken <- wijken[wijken$`Stedelijkheid (1=zeer sterk stedelijk, 5=niet stedelijk)`== stedelijkheid_num_wijken, ]
-          map_data <- comparable_wijken
-          map_data$label <- map_data$WK_NAAM
-        }else {
-            print("Selecteer een niveau")
-        }
-        
-        map_data$variableplot <-map_data[[input$variable]]
+      map_data  <- datasetInput()  
+      map_data$variableplot <- map_data[[input$variable]]
         # Change the colors based on the selected variable
         pal <- colorBin("YlOrRd", domain = map_data$variableplot)       #maps numeric input data to a fixed number of output colors using binning (slicing the input domain up by value)
         qpal <- colorQuantile("YlOrRd", map_data$variableplot, n = 6)    #maps numeric input data to a fixed number of output colors using quantiles (slicing the input domain into subsets with equal numbers of observations)
         
+        #for the colors in the map, colorQuantile is used, unless an error is given, then we use colorBin
         coloring <- tryCatch({
           qpal(map_data$variableplot)
         } , error = function(e) {
@@ -105,6 +89,9 @@ shinyServer(function(input, output, session) {
         # Change the labels that appear on hover based on the selected variable
         labels <- sprintf("%s: %g", map_data$label, map_data$variableplot) %>% 
             lapply(htmltools::HTML)
+        legend_title <- as.character(input$variable)
+        
+        #Different uses of legend, if there is the error of breaks not unique, then colorbin is used and the legend is established in a different manner
         coloring_legend <- tryCatch({
           leaflet(map_data) %>%
             addPolygons(
@@ -116,9 +103,8 @@ shinyServer(function(input, output, session) {
               label = labels
             ) %>%
             addProviderTiles(providers$CartoDB.Positron) %>% 
-            
             leaflet::addLegend(
-              pal = qpal, values = ~variableplot, opacity = 0.7, title = NULL, labFormat = function(type, cuts, p) {      #labformat function makes sure the actual values instead of the quantiles are displayed in the legend
+              pal = qpal, values = ~variableplot, opacity = 0.7, title = legend_title, labFormat = function(type, cuts, p) {      #labformat function makes sure the actual values instead of the quantiles are displayed in the legend
                 n = length(cuts)
                 paste0(cuts[-n], " &ndash; ", cuts[-1])
               }
@@ -134,9 +120,8 @@ shinyServer(function(input, output, session) {
               label = labels
             ) %>%
             addProviderTiles(providers$CartoDB.Positron) %>% 
-        
             leaflet::addLegend(
-              pal = pal, values = ~variableplot, opacity = 0.7, title = NULL
+              pal = pal, values = ~variableplot, opacity = 0.7, title = legend_title
             )
         })
    

@@ -18,11 +18,10 @@ ui <- dashboardPage(
                 tabItems(
                   # First tab content
                   tabItem(tabName = "dashboard",
+                          h2("Histogram en kaart van verschillende variabelen op gemeente-, wijk- of buurtniveau"),
                           fluidRow(
-                            h2("Histogram en kaart van verschillende variabelen op gemeente-, wijk- of buurtniveau"),
                             box(width = 3,
                                 textInput("postcode", "Weet u niet uw exacte gemeente, wijk of buurt naam? Vul dan hier uw 6-cijferige postcode in"),
-                                br(),
                                 textOutput("postcode_info"))
                           ),
                           
