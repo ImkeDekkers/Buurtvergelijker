@@ -13,10 +13,38 @@ kerncijfers_gemeenten2020 <- st_read("../Data/WijkBuurtkaart_2020_v2/gemeente_20
 kerncijfers_wijken2020 <- st_read("../Data/WijkBuurtkaart_2020_v2/wijk_2020_v2.shp")
 kerncijfers_buurten2020 <- st_read("../Data/WijkBuurtkaart_2020_v2/buurt_2020_v2.shp")
 
+#Reading missing kerncijfers data about inkomen, opleiding, geboorte
+ink_opl_geb <- read_xlsx("../Data/Inkomen_opleiding_geboorte.xlsx")
+ink_opl_geb <- select(ink_opl_geb, -c(ID))
+
 #Cleaning Kerncijfers data
 kerncijfers_gemeenten2020 <- kerncijfers_gemeenten2020[kerncijfers_gemeenten2020$H2O == "NEE", ]  
 kerncijfers_wijken2020 <- kerncijfers_wijken2020[kerncijfers_wijken2020$H2O == "NEE", ]  
-kerncijfers_buurten2020 <- kerncijfers_buurten2020[kerncijfers_buurten2020$H2O == "NEE", ]  
+kerncijfers_buurten2020 <- kerncijfers_buurten2020[kerncijfers_buurten2020$H2O == "NEE", ]
+
+#Removing columns with only zero values
+kerncijfers_gemeenten2020 <- as.data.frame(kerncijfers_gemeenten2020)
+gem_only_0<-dplyr::select_if(kerncijfers_gemeenten2020, is.numeric)
+gem_only_0 <- gem_only_0[,colSums(gem_only_0 != 0) ==0]
+kerncijfers_gemeenten2020 <- kerncijfers_gemeenten2020[, !colnames(kerncijfers_gemeenten2020) %in% colnames(gem_only_0)]
+kerncijfers_gemeenten2020 <- st_as_sf(kerncijfers_gemeenten2020)
+
+kerncijfers_wijken2020 <- as.data.frame(kerncijfers_wijken2020)
+buurt_only_0<-dplyr::select_if(kerncijfers_wijken2020, is.numeric)
+buurt_only_0 <- buurt_only_0[,colSums(buurt_only_0 != 0) ==0]
+kerncijfers_wijken2020 <- kerncijfers_wijken2020[, !colnames(kerncijfers_wijken2020) %in% colnames(buurt_only_0)]
+kerncijfers_wijken2020 <- st_as_sf(kerncijfers_wijken2020)
+
+kerncijfers_buurten2020 <- as.data.frame(kerncijfers_buurten2020)
+buurt_only_0<-dplyr::select_if(kerncijfers_buurten2020, is.numeric)
+buurt_only_0 <- buurt_only_0[,colSums(buurt_only_0 != 0) ==0]
+kerncijfers_buurten2020 <- kerncijfers_buurten2020[, !colnames(kerncijfers_buurten2020) %in% colnames(buurt_only_0)]
+kerncijfers_buurten2020 <- st_as_sf(kerncijfers_buurten2020)
+
+#Merging kerncijfers and ink_opl_geb
+kerncijfers_gemeenten2020 <- left_join(kerncijfers_gemeenten2020, ink_opl_geb, by = c("GM_CODE"= "WijkenEnBuurten"),suffix = c("", ""))
+kerncijfers_wijken2020 <- left_join(kerncijfers_wijken2020, ink_opl_geb, by = c("WK_CODE"= "WijkenEnBuurten"),suffix = c("", ""))
+kerncijfers_buurten2020 <- left_join(kerncijfers_buurten2020, ink_opl_geb, by = c("BU_CODE"= "WijkenEnBuurten"),suffix = c("", ""))
 
 #Transforming gemeenten, wijken en buurten dataset to CRS 4326 (om leaflet functie werkend te krijgen)
 gemeenten2020 <- st_transform(kerncijfers_gemeenten2020, "+init=epsg:4326")
