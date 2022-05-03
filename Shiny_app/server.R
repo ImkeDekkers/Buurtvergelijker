@@ -94,35 +94,20 @@ shinyServer(function(input, output, session) {
         #Different uses of legend, if there is the error of breaks not unique, then colorbin is used and the legend is established in a different manner
         coloring_legend <- tryCatch({
           leaflet(map_data) %>%
-            addPolygons(
-              fillColor = ~ coloring,
-              color = "black",
-              weight = 0.5,
-              fillOpacity = 0.7,
-              highlightOptions = highlightOptions(color='white',weight=0.5,fillOpacity = 0.7, bringToFront = TRUE),
-              label = labels
-            ) %>%
+            addPolygons(fillColor = ~ coloring, color = "black", weight = 0.5, fillOpacity = 0.7,
+              highlightOptions = highlightOptions(color='white',weight=0.5,fillOpacity = 0.7, bringToFront = TRUE), label = labels) %>%
             addProviderTiles(providers$CartoDB.Positron) %>% 
-            leaflet::addLegend(
-              pal = qpal, values = ~variableplot, opacity = 0.7, title = legend_title, labFormat = function(type, cuts, p) {      #labformat function makes sure the actual values instead of the quantiles are displayed in the legend
+            leaflet::addLegend(pal = qpal, values = ~variableplot, opacity = 0.7, title = legend_title, labFormat = function(type, cuts, p) {      #labformat function makes sure the actual values instead of the quantiles are displayed in the legend
                 n = length(cuts)
                 paste0(cuts[-n], " &ndash; ", cuts[-1])
               }
             )
         }, error = function(e) {
           leaflet(map_data) %>%
-            addPolygons(
-              fillColor = ~ coloring,
-              color = "black",
-              weight = 0.5,
-              fillOpacity = 0.7,
-              highlightOptions = highlightOptions(color='white',weight=0.5,fillOpacity = 0.7, bringToFront = TRUE),
-              label = labels
-            ) %>%
+            addPolygons(fillColor = ~ coloring, color = "black", weight = 0.5, fillOpacity = 0.7,
+              highlightOptions = highlightOptions(color='white',weight=0.5,fillOpacity = 0.7, bringToFront = TRUE), label = labels) %>%
             addProviderTiles(providers$CartoDB.Positron) %>% 
-            leaflet::addLegend(
-              pal = pal, values = ~variableplot, opacity = 0.7, title = legend_title
-            )
+            leaflet::addLegend(pal = pal, values = ~variableplot, opacity = 0.7, title = legend_title)
         })
    
         l <- coloring_legend
