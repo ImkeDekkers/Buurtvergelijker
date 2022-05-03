@@ -77,13 +77,13 @@ shinyServer(function(input, output, session) {
           map_data$label <- map_data$GM_NAAM
         } else if (input$niveau == "Buurten"){
           df_buurten <- as.data.frame(buurten)
-          stedelijkheid_num_buurten <- df_buurten[df_buurten$BU_NAAM==input$buurten, 11]
+          stedelijkheid_num_buurten <- df_buurten[df_buurten$WK_NAAM==input$wijken& df_buurten$GM_NAAM==input$gemeente &df_buurten$BU_NAAM==input$buurten, 11]
           comparable_buurten <- buurten[buurten$`Stedelijkheid (1=zeer sterk stedelijk, 5=niet stedelijk)`== stedelijkheid_num_buurten, ]
           map_data <- comparable_buurten
           map_data$label <- map_data$BU_NAAM
         }else if (input$niveau == "Wijken"){
           df_wijken <- as.data.frame(wijken)
-          stedelijkheid_num_wijken <- df_wijken[df_wijken$WK_NAAM==input$wijken, 8]
+          stedelijkheid_num_wijken <- df_wijken[df_wijken$WK_NAAM==input$wijken& df_wijken$GM_NAAM==input$gemeente,8]
           comparable_wijken <- wijken[wijken$`Stedelijkheid (1=zeer sterk stedelijk, 5=niet stedelijk)`== stedelijkheid_num_wijken, ]
           map_data <- comparable_wijken
           map_data$label <- map_data$WK_NAAM
@@ -93,32 +93,55 @@ shinyServer(function(input, output, session) {
         
         map_data$variableplot <-map_data[[input$variable]]
         # Change the colors based on the selected variable
-        #pal <- colorBin("YlOrRd", domain = map_data$variableplot)       #maps numeric input data to a fixed number of output colors using binning (slicing the input domain up by value)
+        pal <- colorBin("YlOrRd", domain = map_data$variableplot)       #maps numeric input data to a fixed number of output colors using binning (slicing the input domain up by value)
         qpal <- colorQuantile("YlOrRd", map_data$variableplot, n = 6)    #maps numeric input data to a fixed number of output colors using quantiles (slicing the input domain into subsets with equal numbers of observations)
         
+        coloring <- tryCatch({
+          qpal(map_data$variableplot)
+        } , error = function(e) {
+          pal(map_data$variableplot)
+        } )
         
         # Change the labels that appear on hover based on the selected variable
         labels <- sprintf("%s: %g", map_data$label, map_data$variableplot) %>% 
             lapply(htmltools::HTML)
-        
-        # Change the map based on selected variable
-        l <- leaflet(map_data) %>%
+        coloring_legend <- tryCatch({
+          leaflet(map_data) %>%
             addPolygons(
-                fillColor = ~ qpal(variableplot),
-                color = "black",
-                weight = 0.5,
-                fillOpacity = 0.7,
-                highlightOptions = highlightOptions(color='white',weight=0.5,fillOpacity = 0.7, bringToFront = TRUE),
-                label = labels
+              fillColor = ~ coloring,
+              color = "black",
+              weight = 0.5,
+              fillOpacity = 0.7,
+              highlightOptions = highlightOptions(color='white',weight=0.5,fillOpacity = 0.7, bringToFront = TRUE),
+              label = labels
             ) %>%
             addProviderTiles(providers$CartoDB.Positron) %>% 
-          
+            
             leaflet::addLegend(
-                pal = qpal, values = ~variableplot, opacity = 0.7, title = NULL, labFormat = function(type, cuts, p) {      #labformat function makes sure the actual values instead of the quantiles are displayed in the legend
-                  n = length(cuts)
-                  paste0(cuts[-n], " &ndash; ", cuts[-1])
-                }
+              pal = qpal, values = ~variableplot, opacity = 0.7, title = NULL, labFormat = function(type, cuts, p) {      #labformat function makes sure the actual values instead of the quantiles are displayed in the legend
+                n = length(cuts)
+                paste0(cuts[-n], " &ndash; ", cuts[-1])
+              }
             )
+        }, error = function(e) {
+          leaflet(map_data) %>%
+            addPolygons(
+              fillColor = ~ coloring,
+              color = "black",
+              weight = 0.5,
+              fillOpacity = 0.7,
+              highlightOptions = highlightOptions(color='white',weight=0.5,fillOpacity = 0.7, bringToFront = TRUE),
+              label = labels
+            ) %>%
+            addProviderTiles(providers$CartoDB.Positron) %>% 
+        
+            leaflet::addLegend(
+              pal = pal, values = ~variableplot, opacity = 0.7, title = NULL
+            )
+        })
+   
+        l <- coloring_legend
     })
     
 })
+
