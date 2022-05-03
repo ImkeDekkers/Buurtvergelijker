@@ -16,6 +16,7 @@ kerncijfers_buurten2020 <- st_read("../Data/WijkBuurtkaart_2020_v2/buurt_2020_v2
 #Reading missing kerncijfers data about inkomen, opleiding, geboorte
 ink_opl_geb <- read_xlsx("../Data/Inkomen_opleiding_geboorte.xlsx")
 ink_opl_geb <- select(ink_opl_geb, -c(ID))
+ink_opl_geb[, c(2:21)] <- sapply(ink_opl_geb[, c(2:21)], as.numeric)
 
 #Cleaning Kerncijfers data
 kerncijfers_gemeenten2020 <- kerncijfers_gemeenten2020[kerncijfers_gemeenten2020$H2O == "NEE", ]  
@@ -63,8 +64,6 @@ buurten2020 <- buurten2020 %>%
 gemeenten <- rmapshaper::ms_simplify(gemeenten2020, keep = 0.05, keep_shapes = TRUE)
 wijken <- rmapshaper::ms_simplify(wijken2020, keep = 0.05, keep_shapes = TRUE)
 buurten <- rmapshaper::ms_simplify(buurten2020, keep = 0.05, keep_shapes = TRUE)
-
-###Why are all geboorte en sterfte data 0??? WOZ (Gemiddelde woningwaarde (x1000 euro)) is also all 0. Just as all data about gas en elektriciteitsverbruik
 
 #reading all data about the postcodes
 postcodes <- read_excel("../Data/2020-cbs-pc6huisnr20200801-buurt/pc6-gwb2020.xlsx")

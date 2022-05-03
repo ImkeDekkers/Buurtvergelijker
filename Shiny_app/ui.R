@@ -5,8 +5,6 @@ library(leaflet)
 library(shinythemes)
 library(shinydashboard)
 
-#tags$head(tags$style(HTML('.box{box-shadow: none;border-style: none;}'))),
-
 ui <- dashboardPage(
   dashboardHeader(title = "Buurtvergelijker"),
   dashboardSidebar(
