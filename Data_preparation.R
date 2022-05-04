@@ -86,3 +86,63 @@ nameswijken <- wijken %>%
 buurten <- left_join(buurten, nameswijken, by = "WK_CODE",suffix = c("", "_new"))
 buurten <- st_as_sf(buurten)
 wijken <- st_as_sf(wijken)
+
+# Create quantiles for comparability based on income
+## Gemeenten
+quants_gem_ink <- quantile(gemeenten$HuishOnderOfRondSociaalMinimum_79)
+
+gemeenten <- gemeenten %>% 
+  mutate(inkomengroep = case_when(HuishOnderOfRondSociaalMinimum_79 >= quants_gem_ink[1] & 
+                                    HuishOnderOfRondSociaalMinimum_79 < quants_gem_ink[2] ~ 1,
+                                  HuishOnderOfRondSociaalMinimum_79 >= quants_gem_ink[2] & 
+                                    HuishOnderOfRondSociaalMinimum_79 < quants_gem_ink[3] ~ 2,
+                                  HuishOnderOfRondSociaalMinimum_79 >= quants_gem_ink[3] & 
+                                    HuishOnderOfRondSociaalMinimum_79 < quants_gem_ink[4] ~ 3,
+                                  HuishOnderOfRondSociaalMinimum_79 >= quants_gem_ink[4] & 
+                                    HuishOnderOfRondSociaalMinimum_79 <= quants_gem_ink[5] ~ 4))
+
+## Wijken 
+quants_wk_ink <- quantile(wijken$HuishOnderOfRondSociaalMinimum_79, na.rm = T)
+
+wijken <- wijken %>% 
+  mutate(inkomengroep = case_when(HuishOnderOfRondSociaalMinimum_79 >= quants_wk_ink[1] & 
+                                    HuishOnderOfRondSociaalMinimum_79 < quants_wk_ink[2] ~ 1,
+                                  HuishOnderOfRondSociaalMinimum_79 >= quants_wk_ink[2] & 
+                                    HuishOnderOfRondSociaalMinimum_79 < quants_wk_ink[3] ~ 2,
+                                  HuishOnderOfRondSociaalMinimum_79 >= quants_wk_ink[3] & 
+                                    HuishOnderOfRondSociaalMinimum_79 < quants_wk_ink[4] ~ 3,
+                                  HuishOnderOfRondSociaalMinimum_79 >= quants_wk_ink[4] & 
+                                    HuishOnderOfRondSociaalMinimum_79 <= quants_wk_ink[5] ~ 4))
+
+
+# Create quantiles for comparability based on education (opleiding)
+## Gemeenten
+quants_gem_opl <- quantile(gemeenten$perc_opleiding)
+
+gemeenten <- gemeenten %>% 
+  mutate(perc_opleiding = OpleidingsniveauLaag_64/AANT_INW*100)
+
+gemeenten <- gemeenten %>% 
+  mutate(opleidingsgroep = case_when(perc_opleiding >= quants_gem_opl[1] & 
+                                       perc_opleiding < quants_gem_opl[2] ~ 1,
+                                     perc_opleiding >= quants_gem_opl[2] & 
+                                       perc_opleiding < quants_gem_opl[3] ~ 2,
+                                     perc_opleiding >= quants_gem_opl[3] & 
+                                       perc_opleiding < quants_gem_opl[4] ~ 3,
+                                     perc_opleiding >= quants_gem_opl[4] & 
+                                       perc_opleiding <= quants_gem_opl[5] ~ 4))
+## Wijken
+wijken <- wijken %>% 
+  mutate(perc_opleiding = OpleidingsniveauLaag_64/AANT_INW*100)
+
+quants_wk_opl <- quantile(wijken$perc_opleiding, na.rm = T)
+
+wijken <- wijken %>% 
+  mutate(opleidingsgroep = case_when(perc_opleiding >= quants_wk_opl[1] & 
+                                       perc_opleiding < quants_wk_opl[2] ~ 1,
+                                     perc_opleiding >= quants_wk_opl[2] & 
+                                       perc_opleiding < quants_wk_opl[3] ~ 2,
+                                     perc_opleiding >= quants_wk_opl[3] & 
+                                       perc_opleiding < quants_wk_opl[4] ~ 3,
+                                     perc_opleiding >= quants_wk_opl[4] & 
+                                       perc_opleiding <= quants_wk_opl[5] ~ 4))
