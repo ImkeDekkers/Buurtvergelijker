@@ -21,7 +21,7 @@ ui <- dashboardPage(
                           h2("Histogram en kaart van verschillende variabelen op gemeente-, wijk- of buurtniveau"),
                           fluidRow(
                             box(width = 3,
-                                textInput("postcode", "Weet u niet uw exacte gemeente, wijk of buurt naam? Vul dan hier uw 6-cijferige postcode in"),
+                                textInput("postcode", "Weet u niet uw exacte gemeente, wijk of buurt naam? Vul dan hier uw postcode in:"),
                                 textOutput("postcode_info"))
                           ),
                           
@@ -45,6 +45,19 @@ ui <- dashboardPage(
                                 "Wanneer u een niveau en variabele heeft geselecteerd, kunt u op deze kaart zien welke waarde van deze variabele hoort bij elke gemeente/wijk/buurt", br(), 
                                 br(),
                                 leafletOutput("map"))
+                          ),
+                          fluidRow(
+                            tabBox(width = 12,
+                                   # The id lets us use input$tabset1 on the server to find the current tab
+                                   id = "tabset1", height = "250px",
+                                   tabPanel("Gezondheid en Welzijn", textOutput('table')),
+                                   tabPanel("Detailhandel"), textOutput('table'),
+                                   tabPanel("Horeca"),
+                                   tabPanel("Kinderopvang"),
+                                   tabPanel("Onderwijs"),
+                                   tabPanel("Verkeer en vervoer"),
+                                   tabPanel("Vrije tijd en cultuur")
+                            )
                           )
                   ),
                   

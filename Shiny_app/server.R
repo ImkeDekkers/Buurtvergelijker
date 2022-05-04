@@ -10,7 +10,8 @@ buurten <- readRDS("../Data/buurten.rds")
 postcodes_final <- readRDS("../Data/postcodes_final.rds")
 
 shinyServer(function(input, output, session) {
-
+    
+    #remove spaces and change lower case to upper case in postcode
     postcode1 <-  reactive({str_replace_all(input$postcode, fixed(" "), "")})
     postcode <- reactive({toupper(postcode1())})
       
@@ -113,7 +114,7 @@ shinyServer(function(input, output, session) {
             leaflet::addLegend(pal = qpal, values = ~variableplot, opacity = 0.7, title = legend_title, labFormat = function(type, cuts, p) {      #labformat function makes sure the actual values instead of the quantiles are displayed in the legend
                 n = length(cuts)
                 paste0(cuts[-n], " &ndash; ", cuts[-1])
-              }
+              }, labFormat = labelFormat(digits = 0)
             )
         }, error = function(e) {
           leaflet(map_data) %>%
