@@ -3,6 +3,7 @@ library(ggplot2)
 library(sf)
 library(leaflet)
 library(stringr)
+library(tidyverse)
 
 gemeenten <- readRDS("../Data/gemeenten.rds")
 wijken <- readRDS("../Data/wijken.rds")
@@ -26,62 +27,86 @@ shinyServer(function(input, output, session) {
     )
     
     # Make selection dependent on previous input
-    observeEvent(input$gemeente, {
-      updateSelectInput(session, 'wijken',
-                        choices = unique(postcodes_final$wijknaam2020[postcodes_final$Gemeentenaam2020 == input$gemeente]))                                               # Only display that are in the selected gemeente
+    observeEvent(input$gemeente2, {
+      updateSelectInput(session, 'wijken2',
+                        choices = unique(postcodes_final$wijknaam2020[postcodes_final$Gemeentenaam2020 == input$gemeente2]))  # Only display that are in the selected gemeente
     })
-    observeEvent(input$wijken,{
-      updateSelectInput(session, 'buurten',
-                        choices = unique(postcodes_final$buurtnaam2020[postcodes_final$Gemeentenaam2020 == input$gemeente & postcodes_final$wijknaam2020==input$wijken])) # Only display buurten that are in the selected wijk
+    observeEvent(input$gemeente3, {
+      updateSelectInput(session, 'wijken3',
+                        choices = unique(postcodes_final$wijknaam2020[postcodes_final$Gemeentenaam2020 == input$gemeente3]))  # Only display that are in the selected gemeente
+    })
+    observeEvent(input$wijken3,{
+      updateSelectInput(session, 'buurten3',
+                        choices = unique(postcodes_final$buurtnaam2020[postcodes_final$Gemeentenaam2020 == input$gemeente3 & 
+                                                                         postcodes_final$wijknaam2020==input$wijken3]))       # Only display buurten that are in the selected wijk
     })
     
     #make used data reactive on the selected niveau
     datasetInput <- reactive({
       if(input$niveau == "Gemeenten"){
-        df_gemeenten <- as.data.frame(gemeenten)                                                                                          # Reshape data to data frame (not with shape files)
-        stedelijkheid_num_gem <- df_gemeenten[df_gemeenten$GM_NAAM==input$gemeente, 5]                                                    # Stedelijkheid is the 5th column in the data
-        comparable_gemeenten <- gemeenten[gemeenten$`Stedelijkheid (1=zeer sterk stedelijk, 5=niet stedelijk)`== stedelijkheid_num_gem, ] # Create the right data based on the given stedelijkheid number
-        area_value <- comparable_gemeenten %>%filter(GM_NAAM == input$gemeente) %>%pull(input$variable)
+        df_gemeenten <- as.data.frame(gemeenten)                                                                                             # Reshape data to data frame (not with shape files)
+        # Comparable based on stedelijkheid
+        if(input$vergelijkbaar1 == "Stedelijkheidsniveau"){
+          stedelijkheid_num_gem <- df_gemeenten[df_gemeenten$GM_NAAM==input$gemeente1, 5]                                                    # Stedelijkheid is the 5th column in the data
+          comparable_gemeenten <- gemeenten[gemeenten$`Stedelijkheid (1=zeer sterk stedelijk, 5=niet stedelijk)`== stedelijkheid_num_gem, ]  # Create the right data based on the given stedelijkheid number
+        } else if (input$vergelijkbaar1 == "Inkomensniveau"){
+          inkomen_num_gem <- df_gemeenten[df_gemeenten$GM_NAAM==input$gemeente1, 180]
+          comparable_gemeenten <- gemeenten[gemeenten$inkomengroep == inkomen_num_gem, ]
+        } else if (input$vergelijkbaar1 == "Opleidingsniveau"){
+          opleiding_num_gem <- df_gemeenten[df_gemeenten$GM_NAAM == input$gemeente1, 182]
+          comparable_gemeenten <- gemeenten[gemeenten$opleidingsgroep == opleiding_num_gem, ]
+        }
+        area_value <- comparable_gemeenten %>%filter(GM_NAAM == input$gemeente1) %>%pull(input$variable)
         comparable_gemeenten$area_line <- area_value
         dataset <- comparable_gemeenten
         dataset$label <- dataset$GM_NAAM
-        selected_polygon <- gemeenten %>% filter(GM_NAAM == input$gemeente)
+        selected_polygon <- gemeenten %>% filter(GM_NAAM == input$gemeente1)
         selected_centroid <- st_coordinates(st_centroid(selected_polygon))
         dataset$centroidx <- selected_centroid[1,1]
         dataset$centroidy <- selected_centroid[1,2]
         dataset$code <- dataset$GM_CODE
-        dataset$selected_area_code <- dataset %>% filter(GM_NAAM == input$gemeente) %>%pull(code)
-        dataset$selected_area_label <- dataset %>% filter(GM_NAAM == input$gemeente) %>%pull(label)
+        dataset$selected_area_code <- dataset %>% filter(GM_NAAM == input$gemeente1) %>%pull(code)
+        dataset$selected_area_label <- dataset %>% filter(GM_NAAM == input$gemeente1) %>%pull(label)
       }else if(input$niveau == "Wijken"){
         df_wijken <- as.data.frame(wijken)
-        stedelijkheid_num_wijken <- df_wijken[df_wijken$WK_NAAM==input$wijken & df_wijken$GM_NAAM == input$gemeente, 8]
-        comparable_wijken <- wijken[wijken$`Stedelijkheid (1=zeer sterk stedelijk, 5=niet stedelijk)`== stedelijkheid_num_wijken, ]
-        area_value <- wijken %>%filter(GM_NAAM == input$gemeente & WK_NAAM == input$wijken) %>%pull(input$variable)
+        if(input$vergelijkbaar2 == "Stedelijkheidsniveau"){
+          stedelijkheid_num_wk <- df_wijken[df_wijken$WK_NAAM==input$wijken2 & df_wijken$GM_NAAM == input$gemeente2, 8]
+          comparable_wijken <- wijken[wijken$`Stedelijkheid (1=zeer sterk stedelijk, 5=niet stedelijk)`== stedelijkheid_num_wk, ]
+        } # Not working yet
+          else if (input$vergelijkbaar2 == "Inkomensniveau"){
+          inkomen_num_wk <- df_wijken[df_wijken$WK_NAAM==input$wijken2 & df_wijken$GM_NAAM == input$gemeente2, 180]
+          comparable_wijken <- wijken[wijken$inkomengroep == inkomen_num_wk, ]
+        } # Not working yet
+          else if (input$vergelijkbaar2 == "Opleidingsniveau"){
+          opleiding_num_wk <- df_wijken[df_wijken$WK_NAAM==input$wijken2 & df_wijken$GM_NAAM == input$gemeente2, 182]
+          comparable_wijken <- wijken[wijken$opleidingsgroep == opleiding_num_wk, ]
+        }
+        area_value <- wijken %>%filter(GM_NAAM == input$gemeente2 & WK_NAAM == input$wijken2) %>%pull(input$variable)
         comparable_wijken$area_line <- area_value
         dataset <- comparable_wijken
         dataset$label <- dataset$WK_NAAM
-        selected_polygon <- wijken %>% filter(GM_NAAM == input$gemeente & WK_NAAM == input$wijken)
+        selected_polygon <- wijken %>% filter(GM_NAAM == input$gemeente2 & WK_NAAM == input$wijken2)
         selected_centroid <- st_coordinates(st_centroid(selected_polygon))
         dataset$centroidx <- selected_centroid[1,1]
         dataset$centroidy <- selected_centroid[1,2]
         dataset$code <- dataset$WK_CODE
-        dataset$selected_area_code <- dataset %>% filter(GM_NAAM == input$gemeente & WK_NAAM == input$wijken) %>%pull(code)
-        dataset$selected_area_label <- dataset %>% filter(GM_NAAM == input$gemeente & WK_NAAM == input$wijken) %>%pull(label)
+        dataset$selected_area_code <- dataset %>% filter(GM_NAAM == input$gemeente2 & WK_NAAM == input$wijken2) %>%pull(code)
+        dataset$selected_area_label <- dataset %>% filter(GM_NAAM == input$gemeente2 & WK_NAAM == input$wijken2) %>%pull(label)
       }else if (input$niveau == "Buurten"){
         df_buurten <- as.data.frame(buurten)
-        stedelijkheid_num_buurten <- df_buurten[df_buurten$BU_NAAM==input$buurten & df_buurten$GM_NAAM == input$gemeente & df_buurten$WK_NAAM == input$wijken, 11]
+        stedelijkheid_num_buurten <- df_buurten[df_buurten$BU_NAAM==input$buurten3 & df_buurten$GM_NAAM == input$gemeente3 & df_buurten$WK_NAAM == input$wijken3, 11]
         comparable_buurten <- buurten[buurten$`Stedelijkheid (1=zeer sterk stedelijk, 5=niet stedelijk)`== stedelijkheid_num_buurten, ]
-        area_value <- comparable_buurten %>%filter(GM_NAAM == input$gemeente & WK_NAAM == input$wijken & BU_NAAM == input$buurten) %>%pull(input$variable)
+        area_value <- comparable_buurten %>%filter(GM_NAAM == input$gemeente3 & WK_NAAM == input$wijken3 & BU_NAAM == input$buurten3) %>%pull(input$variable)
         comparable_buurten$area_line <- area_value
         dataset <- comparable_buurten
         dataset$label <- dataset$BU_NAAM
-        selected_polygon <- buurten %>% filter(GM_NAAM == input$gemeente & WK_NAAM == input$wijken & BU_NAAM == input$buurten)
+        selected_polygon <- buurten %>% filter(GM_NAAM == input$gemeente3 & WK_NAAM == input$wijken3 & BU_NAAM == input$buurten3)
         selected_centroid <- st_coordinates(st_centroid(selected_polygon))
         dataset$centroidx <- selected_centroid[1,1]
         dataset$centroidy <- selected_centroid[1,2]
         dataset$code <- dataset$BU_CODE
-        dataset$selected_area_code <- dataset %>% filter(GM_NAAM == input$gemeente & WK_NAAM == input$wijken & BU_NAAM == input$buurten) %>%pull(code)
-        dataset$selected_area_label <- dataset %>% filter(GM_NAAM == input$gemeente & WK_NAAM == input$wijken & BU_NAAM == input$buurten) %>%pull(label)
+        dataset$selected_area_code <- dataset %>% filter(GM_NAAM == input$gemeente3 & WK_NAAM == input$wijken3 & BU_NAAM == input$buurten3) %>%pull(code)
+        dataset$selected_area_label <- dataset %>% filter(GM_NAAM == input$gemeente3 & WK_NAAM == input$wijken3 & BU_NAAM == input$buurten3) %>%pull(label)
       }
       return(dataset)
     })

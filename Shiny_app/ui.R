@@ -30,22 +30,44 @@ ui <- dashboardPage(
                                 selectInput("niveau", "Niveau:", c("Gemeenten" = "Gemeenten",
                                                                    "Wijken" = "Wijken",
                                                                    "Buurten" = "Buurten")),
-                                selectInput("gemeente", "Gemeente:", choices=unique(gemeenten$GM_NAAM)),
-                                selectInput("wijken", "Wijk:", choices=NULL),
-                                selectInput("buurten", "Buurt:", choices=NULL),
-                                varSelectInput("variable", "Variabele:", Filter(is.numeric, gemeenten))
+                                conditionalPanel(
+                                  condition = "input.niveau == 'Gemeenten'",
+                                  selectInput("gemeente1", "Gemeente:", choices=unique(gemeenten$GM_NAAM)),
+                                  selectInput("vergelijkbaar1", "Vergelijkbaarheid:", c("Stedelijkheidsniveau" = "Stedelijkheidsniveau",
+                                                                                        "Inkomensniveau" = "Inkomensniveau",
+                                                                                        "Opleidingsniveau" = "Opleidingsniveau"))
+                                ),
+                                conditionalPanel(
+                                  condition = "input.niveau == 'Wijken'",
+                                  selectInput("gemeente2", "Gemeente:", choices=unique(gemeenten$GM_NAAM)),
+                                  selectInput("wijken2", "Wijk:", choices=NULL),
+                                  selectInput("vergelijkbaar2", "Vergelijkbaarheid:", c("Stedelijkheidsniveau" = "Stedelijkheidsniveau",
+                                                                                        "Inkomensniveau" = "Inkomensniveau",
+                                                                                        "Opleidingsniveau" = "Opleidingsniveau"))
+                                ),
+                                conditionalPanel(
+                                  condition = "input.niveau == 'Buurten'",
+                                  selectInput("gemeente3", "Gemeente:", choices=unique(gemeenten$GM_NAAM)),
+                                  selectInput("wijken3", "Wijk:", choices=NULL),
+                                  selectInput("buurten3", "Buurt:", choices=NULL),
+                                  selectInput("vergelijkbaar3", "Vergelijkbaarheid:", c("Stedelijkheidsniveau" = "Stedelijkheidsniveau"))
                                 )
+                                ,
+                                # Outcomment this, because thema's
+                                varSelectInput("variable", "Variabele:", Filter(is.numeric, gemeenten))
+                            )
                           ),
-                          fluidRow(
-                            box(title = "Histogram", 
-                                "Wanneer u een niveau en variabele heeft geselecteerd, kunt u in deze grafiek zien hoe de verdeling van deze variabele is op het geselecteerde niveau", br(), 
-                                br(),
-                                plotOutput("histogram")),
-                            box(title = "Kaart", 
-                                "Wanneer u een niveau en variabele heeft geselecteerd, kunt u op deze kaart zien welke waarde van deze variabele hoort bij elke gemeente/wijk/buurt", br(), 
-                                br(),
-                                leafletOutput("map"))
-                          ),
+                          # I think we don't need this fluidRow
+                          #fluidRow(
+                            #box(title = "Histogram", 
+                                #"Wanneer u een niveau en variabele heeft geselecteerd, kunt u in deze grafiek zien hoe de verdeling van deze variabele is op het geselecteerde niveau", br(), 
+                                #br(),
+                                #plotOutput("histogram")),
+                            #box(title = "Kaart", 
+                                #"Wanneer u een niveau en variabele heeft geselecteerd, kunt u op deze kaart zien welke waarde van deze variabele hoort bij elke gemeente/wijk/buurt", br(), 
+                                #br(),
+                                #leafletOutput("map"))
+                          #),
                           fluidRow(
                             tabBox(
                                    # The id lets us use input$tabset1 on the server to find the current tab
