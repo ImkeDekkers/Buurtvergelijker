@@ -44,22 +44,34 @@ shinyServer(function(input, output, session) {
         comparable_gemeenten$area_line <- area_value
         dataset <- comparable_gemeenten
         dataset$label <- dataset$GM_NAAM
+        selected_polygon <- gemeenten %>% filter(GM_NAAM == input$gemeente)
+        selected_centroid <- st_coordinates(st_centroid(selected_polygon))
+        dataset$centroidx <- selected_centroid[1,1]
+        dataset$centroidy <- selected_centroid[1,2]
       }else if(input$niveau == "Wijken"){
         df_wijken <- as.data.frame(wijken)
-        stedelijkheid_num_wijken <- df_wijken[df_wijken$WK_NAAM==input$wijken, 8]
+        stedelijkheid_num_wijken <- df_wijken[df_wijken$WK_NAAM==input$wijken & df_wijken$GM_NAAM == input$gemeente, 8]
         comparable_wijken <- wijken[wijken$`Stedelijkheid (1=zeer sterk stedelijk, 5=niet stedelijk)`== stedelijkheid_num_wijken, ]
-        area_value <- comparable_wijken %>%filter(GM_NAAM == input$gemeente & WK_NAAM == input$wijken) %>%pull(input$variable)
+        area_value <- wijken %>%filter(GM_NAAM == input$gemeente & WK_NAAM == input$wijken) %>%pull(input$variable)
         comparable_wijken$area_line <- area_value
         dataset <- comparable_wijken
         dataset$label <- dataset$WK_NAAM
+        selected_polygon <- wijken %>% filter(GM_NAAM == input$gemeente & WK_NAAM == input$wijken)
+        selected_centroid <- st_coordinates(st_centroid(selected_polygon))
+        dataset$centroidx <- selected_centroid[1,1]
+        dataset$centroidy <- selected_centroid[1,2]
       }else if (input$niveau == "Buurten"){
         df_buurten <- as.data.frame(buurten)
-        stedelijkheid_num_buurten <- df_buurten[df_buurten$BU_NAAM==input$buurten, 11]
+        stedelijkheid_num_buurten <- df_buurten[df_buurten$BU_NAAM==input$buurten & df_buurten$GM_NAAM == input$gemeente & df_buurten$WK_NAAM == input$wijken, 11]
         comparable_buurten <- buurten[buurten$`Stedelijkheid (1=zeer sterk stedelijk, 5=niet stedelijk)`== stedelijkheid_num_buurten, ]
         area_value <- comparable_buurten %>%filter(GM_NAAM == input$gemeente & WK_NAAM == input$wijken & BU_NAAM == input$buurten) %>%pull(input$variable)
         comparable_buurten$area_line <- area_value
         dataset <- comparable_buurten
         dataset$label <- dataset$BU_NAAM
+        selected_polygon <- buurten %>% filter(GM_NAAM == input$gemeente & WK_NAAM == input$wijken & BU_NAAM == input$buurten)
+        selected_centroid <- st_coordinates(st_centroid(selected_polygon))
+        dataset$centroidx <- selected_centroid[1,1]
+        dataset$centroidy <- selected_centroid[1,2]
       }
       return(dataset)
     })
@@ -97,6 +109,7 @@ shinyServer(function(input, output, session) {
             addPolygons(fillColor = ~ coloring, color = "black", weight = 0.5, fillOpacity = 0.7,
               highlightOptions = highlightOptions(color='white',weight=0.5,fillOpacity = 0.7, bringToFront = TRUE), label = labels) %>%
             addProviderTiles(providers$CartoDB.Positron) %>% 
+            addCircleMarkers(lng = map_data$centroidx, lat = map_data$centroidy, color = "black", weight = 3, opacity = 0.75, fillOpacity = 0)%>%
             leaflet::addLegend(pal = qpal, values = ~variableplot, opacity = 0.7, title = legend_title, labFormat = function(type, cuts, p) {      #labformat function makes sure the actual values instead of the quantiles are displayed in the legend
                 n = length(cuts)
                 paste0(cuts[-n], " &ndash; ", cuts[-1])
@@ -107,6 +120,7 @@ shinyServer(function(input, output, session) {
             addPolygons(fillColor = ~ coloring, color = "black", weight = 0.5, fillOpacity = 0.7,
               highlightOptions = highlightOptions(color='white',weight=0.5,fillOpacity = 0.7, bringToFront = TRUE), label = labels) %>%
             addProviderTiles(providers$CartoDB.Positron) %>% 
+            addCircleMarkers(lng = map_data$centroidx, lat = map_data$centroidy, color = "black", weight = 3, opacity = 0.75, fillOpacity = 0)%>%
             leaflet::addLegend(pal = pal, values = ~variableplot, opacity = 0.7, title = legend_title)
         })
    
