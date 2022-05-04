@@ -49,6 +49,9 @@ shinyServer(function(input, output, session) {
         selected_centroid <- st_coordinates(st_centroid(selected_polygon))
         dataset$centroidx <- selected_centroid[1,1]
         dataset$centroidy <- selected_centroid[1,2]
+        dataset$code <- dataset$GM_CODE
+        dataset$selected_area_code <- dataset %>% filter(GM_NAAM == input$gemeente) %>%pull(code)
+        dataset$selected_area_label <- dataset %>% filter(GM_NAAM == input$gemeente) %>%pull(label)
       }else if(input$niveau == "Wijken"){
         df_wijken <- as.data.frame(wijken)
         stedelijkheid_num_wijken <- df_wijken[df_wijken$WK_NAAM==input$wijken & df_wijken$GM_NAAM == input$gemeente, 8]
@@ -61,6 +64,9 @@ shinyServer(function(input, output, session) {
         selected_centroid <- st_coordinates(st_centroid(selected_polygon))
         dataset$centroidx <- selected_centroid[1,1]
         dataset$centroidy <- selected_centroid[1,2]
+        dataset$code <- dataset$WK_CODE
+        dataset$selected_area_code <- dataset %>% filter(GM_NAAM == input$gemeente & WK_NAAM == input$wijken) %>%pull(code)
+        dataset$selected_area_label <- dataset %>% filter(GM_NAAM == input$gemeente & WK_NAAM == input$wijken) %>%pull(label)
       }else if (input$niveau == "Buurten"){
         df_buurten <- as.data.frame(buurten)
         stedelijkheid_num_buurten <- df_buurten[df_buurten$BU_NAAM==input$buurten & df_buurten$GM_NAAM == input$gemeente & df_buurten$WK_NAAM == input$wijken, 11]
@@ -73,6 +79,9 @@ shinyServer(function(input, output, session) {
         selected_centroid <- st_coordinates(st_centroid(selected_polygon))
         dataset$centroidx <- selected_centroid[1,1]
         dataset$centroidy <- selected_centroid[1,2]
+        dataset$code <- dataset$BU_CODE
+        dataset$selected_area_code <- dataset %>% filter(GM_NAAM == input$gemeente & WK_NAAM == input$wijken & BU_NAAM == input$buurten) %>%pull(code)
+        dataset$selected_area_label <- dataset %>% filter(GM_NAAM == input$gemeente & WK_NAAM == input$wijken & BU_NAAM == input$buurten) %>%pull(label)
       }
       return(dataset)
     })
@@ -126,6 +135,191 @@ shinyServer(function(input, output, session) {
         })
    
         l <- coloring_legend
+    })
+    
+    #Function that takes four column names and creates a barplot of the selected area and the mean of comparable areas
+    plot4 <- function(column1, column2, column3, column4){
+      
+      #Calculating the mean values of the input columns
+      df <- as.data.frame(datasetInput())
+      df_gem <- select(df, column1, column2, column3, column4)
+      df_gem <- as.data.frame(colMeans(df_gem, na.rm = TRUE))
+      df_gem <-  rownames_to_column(df_gem)
+      df_gem$groep <- "Gemiddelde vergelijkbare gebieden"
+      df_gem <- rename(df_gem, c(Variabele = 1, Waarde = 2, groep=3))
+      
+      #Looking for the values of the input columns from the selected areas
+      selected_area_code <- df[1, "selected_area_code"]
+      selected_area_label <- df[1, "selected_area_label"]
+      df_selected <- df %>% subset(code == selected_area_code) %>% select(column1, column2, column3, column4)
+      df_selected <- rownames_to_column(as.data.frame(t(df_selected)))
+      df_selected$groep <- selected_area_label
+      df_selected <- rename(df_selected, c(Variabele = 1, Waarde = 2, groep = 3))
+      
+      #adding mean and selected together
+      df_final <- rbind(df_gem, df_selected)
+      
+      #Plot
+      ggplot(df_final, aes(x = Variabele, y = Waarde, fill = groep)) + geom_col(position = "dodge") + 
+        scale_x_discrete(labels = function(x) 
+          stringr::str_wrap(x, width = 15))
+    }
+    
+    #Plot_4 of huisartsenpraktijken
+    output$plot_huisarts <- renderPlot({
+      plot4("Afstand tot huisartsenpraktijk (km)", "Aantal huisartsenpraktijken binnen 1 km", "Aantal huisartsenpraktijken binnen 3 km", "Aantal huisartsenpraktijken binnen 5 km")
+    })
+    
+    #Plot_4 of Ziekenhuis (incl. buitenpolikliniek)
+    output$plot_ziekenhuis_incl <- renderPlot({
+      plot4("Afstand tot ziekenhuis incl. buitenpolikliniek (km)",                             
+            "Aantal ziekenhuizen incl. buitenpolikliniek binnen 5 km" ,                        
+            "Aantal ziekenhuizen incl. buitenpolikliniek binnen 10 km" ,                       
+            "Aantal ziekenhuizen incl. buitenpolikliniek binnen 20 km")
+    })
+    
+    #Plot_4 of Ziekenhuis (excl. buitenpolikliniek)
+    output$plot_ziekenhuis_excl <- renderPlot({
+      plot4("Afstand tot ziekenhuis excl. Buitenpolikliniek (km)",                             
+            "Aantal ziekenhuizen excl. Buitenpolikliniek binnen 5 km" ,                        
+            "Aantal ziekenhuizen excl. Buitenpolikliniek binnen 10 km" ,                       
+            "Aantal ziekenhuizen excl. Buitenpolikliniek binnen 20 km")
+    })
+    
+    #Plot_4 of Grote supermarkten
+    output$plot_supermarkt <- renderPlot({
+      plot4("Afstand tot grote supermarkt (km)",                                               
+            "Aantal  grote supermarkten binnen 1 km",                                         
+            "Aantal  grote supermarkten binnen 3 km",                                          
+            "Aantal  grote supermarkten binnen 5 km")
+    })
+    
+    #Plot_4 of overige dagelijkse levensmiddelen
+    output$plot_ov_levensm <- renderPlot({
+      plot4("Afstand tot overige dagelijkse levensmiddelen (km)",                              
+            "Aantal winkels overige dagelijkse levensmiddelen binnen 1 km",                    
+            "Aantal winkels overige dagelijkse levensmiddelen binnen 3 km",                    
+            "Aantal winkels overige dagelijkse levensmiddelen binnen 5 km")
+    })
+    
+    #Plot_4 of warenhuis
+    output$plot_warenhuis <- renderPlot({
+      plot4("Afstand tot warenhuis (km)",                                                      
+            "Aantal warenhuizen binnen 5 km",                                                  
+            "Aantal warenhuizen binnen 10 km" ,                                                
+            "Aantal warenhuizen binnen 20 km")
+    })
+    
+    #Plot_4 of cafes
+    output$plot_cafes <- renderPlot({
+      plot4("Afstand tot café (km)" ,                                                          
+            "Aantal cafés binnen 1 km" ,                                                       
+            "Aantal cafés binnen 3 km" ,                                                       
+            "Aantal cafés binnen 5 km")
+    })
+    
+    #Plot_4 of cafetaria
+    output$plot_cafetaria <- renderPlot({
+      plot4("Afstand tot cafetaria (km)",                                                      
+            "Aantal cafetaria's binnen 1 km",                                                  
+            "Aantal cafetaria's binnen 3 km",                                                  
+            "Aantal cafetaria's binnen 5 km")
+    })
+    
+    #Plot_4 of reastaurants
+    output$plot_restaurants <- renderPlot({
+      plot4("Afstand tot restaurant (km)",                                                     
+            "Aantal restaurants binnen 1 km",                                                  
+            "Aantal restaurants binnen 3 km",                                                  
+            "Aantal restaurants binnen 5 km")
+    })
+    
+    #Plot_4 of hotels
+    output$plot_hotels <- renderPlot({
+      plot4("Afstand tot hotel (km)",                                                     
+            "Aantal hotel binnen 5 km",                                                  
+            "Aantal hotel binnen 10 km",                                                  
+            "Aantal hotel binnen 20 km")
+    })
+    
+    #Plot_4 of kinderdagverblijf  
+    output$plot_kinderdagverblijf   <- renderPlot({
+      plot4("Afstand tot kinderdagverblijf  (km)",                                                     
+            "Aantal kinderdagverblijf  binnen 1 km",                                                  
+            "Aantal kinderdagverblijf  binnen 3 km",                                                  
+            "Aantal kinderdagverblijf  binnen 5 km")
+    })
+    
+    #Plot_4 of buitenschoolse opvang  
+    output$plot_opvang   <- renderPlot({
+      plot4("Afstand tot buitenschoolse opvang  (km)",                                                     
+            "Aantal buitenschoolse opvang  binnen 1 km",                                                  
+            "Aantal buitenschoolse opvang  binnen 3 km",                                                  
+            "Aantal buitenschoolse opvang  binnen 5 km")
+    })
+    
+    #Plot_4 of basisscholen  
+    output$plot_basisscholen   <- renderPlot({
+      plot4("Afstand tot basisscholen (km)",                                                     
+            "Aantal basisscholen binnen 1 km",                                                  
+            "Aantal basisscholen binnen 3 km",                                                  
+            "Aantal basisscholen binnen 5 km")
+    })
+    
+    #Plot_4 of voortgezet onderwijs  
+    output$plot_vo   <- renderPlot({
+      plot4("Afstand tot voortgezet onderwijs (km)",                                                     
+            "Aantal voortgezet onderwijs binnen 3 km",                                                  
+            "Aantal voortgezet onderwijs binnen 5 km",                                                  
+            "Aantal voortgezet onderwijs binnen 10 km")
+    })
+    
+    #Plot_4 of scholen VMBO  
+    output$plot_VMBO   <- renderPlot({
+      plot4("Afstand tot scholen VMBO (km)",                                                     
+            "Aantal scholen VMBO binnen 3 km",                                                  
+            "Aantal scholen VMBO binnen 5 km",                                                  
+            "Aantal scholen VMBO binnen 10 km")
+    })
+    
+    #Plot_4 of scholen HAVO/VWO  
+    output$plot_HAVO_VWO   <- renderPlot({
+      plot4("Afstand tot scholen HAVO/VWO (km)",                                                     
+            "Aantal scholen HAVO/VWO binnen 3 km",                                                  
+            "Aantal scholen HAVO/VWO binnen 5 km",                                                  
+            "Aantal scholen HAVO/VWO binnen 10 km")
+    })
+    
+    #Plot_4 of bioscoop   
+    output$plot_bioscoop   <- renderPlot({
+      plot4("Afstand tot bioscoop (km)",                                                     
+            "Aantal bioscoop binnen 5 km",                                                  
+            "Aantal bioscoop binnen 10 km",                                                  
+            "Aantal bioscoop binnen 20 km")
+    })
+    
+    #Plot_4 of attracties   
+    output$plot_attractie  <- renderPlot({
+      plot4("Afstand tot attractie (km)",                                                     
+            "Aantal attracties binnen 10 km",                                                  
+            "Aantal attracties binnen 20 km",                                                  
+            "Aantal attracties binnen 50 km")
+    })
+    
+    #Plot_4 of podiumkunsten   
+    output$plot_podiumkunsten  <- renderPlot({
+      plot4("Afstand tot podiumkunsten (km)",                                                     
+            "Aantal podiumkunsten binnen 5 km",                                                  
+            "Aantal podiumkunsten binnen 10 km",                                                  
+            "Aantal podiumkunsten binnen 20 km")
+    })
+    
+    #Plot_4 of musea   
+    output$plot_musea  <- renderPlot({
+      plot4("Afstand tot museum (km)",                                                     
+            "Aantal musea binnen 5 km",                                                  
+            "Aantal musea binnen 10 km",                                                  
+            "Aantal musea binnen 20 km")
     })
     
 })

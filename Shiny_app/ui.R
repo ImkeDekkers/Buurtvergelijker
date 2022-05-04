@@ -47,16 +47,16 @@ ui <- dashboardPage(
                                 leafletOutput("map"))
                           ),
                           fluidRow(
-                            tabBox(width = 12,
+                            tabBox(
                                    # The id lets us use input$tabset1 on the server to find the current tab
                                    id = "tabset1", height = "250px",
-                                   tabPanel("Gezondheid en Welzijn", textOutput('table')),
-                                   tabPanel("Detailhandel"), textOutput('table'),
-                                   tabPanel("Horeca"),
-                                   tabPanel("Kinderopvang"),
-                                   tabPanel("Onderwijs"),
+                                   tabPanel("Gezondheid en Welzijn", plotOutput('plot_huisarts'), plotOutput('plot_ziekenhuis_incl'), plotOutput('plot_ziekenhuis_excl')),
+                                   tabPanel("Detailhandel", plotOutput('plot_supermarkt'), plotOutput('plot_ov_levensm'), plotOutput('plot_warenhuis')), 
+                                   tabPanel("Horeca", plotOutput('plot_cafes'), plotOutput('plot_cafetaria'), plotOutput('plot_restaurants'), plotOutput('plot_hotels')),
+                                   tabPanel("Kinderopvang", plotOutput('plot_kinderdagverblijf'), plotOutput('plot_opvang')),
+                                   tabPanel("Onderwijs", plotOutput('plot_basisscholen'), plotOutput('plot_vo'), plotOutput('plot_VMBO'), plotOutput('plot_HAVO_VWO')),
                                    tabPanel("Verkeer en vervoer"),
-                                   tabPanel("Vrije tijd en cultuur")
+                                   tabPanel("Vrije tijd en cultuur", plotOutput('plot_bioscoop'), plotOutput('plot_attractie'), plotOutput('plot_podiumkunsten'), plotOutput('plot_musea'))
                             )
                           )
                   ),
