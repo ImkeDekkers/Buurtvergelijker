@@ -52,9 +52,8 @@ ui <- dashboardPage(
                                   selectInput("buurten3", "Buurt:", choices=NULL),
                                   selectInput("vergelijkbaar3", "Vergelijkbaarheid:", c("Stedelijkheidsniveau" = "Stedelijkheidsniveau"))
                                 )
-                                ,
-                                # Outcomment this, because thema's
-                                varSelectInput("variable", "Variabele:", Filter(is.numeric, gemeenten))
+                                #,
+                                #varSelectInput("variable", "Variabele:", Filter(is.numeric, gemeenten))
                             )
                           ),
                           # I think we don't need this fluidRow

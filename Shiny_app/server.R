@@ -44,20 +44,20 @@ shinyServer(function(input, output, session) {
     #make used data reactive on the selected niveau
     datasetInput <- reactive({
       if(input$niveau == "Gemeenten"){
-        df_gemeenten <- as.data.frame(gemeenten)                                                                                             # Reshape data to data frame (not with shape files)
-        # Comparable based on stedelijkheid
+        df_gemeenten <- as.data.frame(gemeenten)   # Reshape data to data frame (not with shape files)
+        # Comparable based on stedelijkheid, inkomen and opleiding
         if(input$vergelijkbaar1 == "Stedelijkheidsniveau"){
-          stedelijkheid_num_gem <- df_gemeenten[df_gemeenten$GM_NAAM==input$gemeente1, 5]                                                    # Stedelijkheid is the 5th column in the data
-          comparable_gemeenten <- gemeenten[gemeenten$`Stedelijkheid (1=zeer sterk stedelijk, 5=niet stedelijk)`== stedelijkheid_num_gem, ]  # Create the right data based on the given stedelijkheid number
+          stedelijkheid_num_gem <- df_gemeenten[df_gemeenten$GM_NAAM == input$gemeente1, 5]      # Stedelijkheid is the 5th column in the data
+          comparable_gemeenten <- gemeenten[gemeenten$`Stedelijkheid (1=zeer sterk stedelijk, 5=niet stedelijk)`== stedelijkheid_num_gem, ]  
         } else if (input$vergelijkbaar1 == "Inkomensniveau"){
-          inkomen_num_gem <- df_gemeenten[df_gemeenten$GM_NAAM==input$gemeente1, 180]
+          inkomen_num_gem <- df_gemeenten[df_gemeenten$GM_NAAM == input$gemeente1, 180]          # Inkomensniveau (calculated) is 180th column
           comparable_gemeenten <- gemeenten[gemeenten$inkomengroep == inkomen_num_gem, ]
         } else if (input$vergelijkbaar1 == "Opleidingsniveau"){
-          opleiding_num_gem <- df_gemeenten[df_gemeenten$GM_NAAM == input$gemeente1, 182]
+          opleiding_num_gem <- df_gemeenten[df_gemeenten$GM_NAAM == input$gemeente1, 182]        # Opleidingsniveau (calculated) is 182nd column
           comparable_gemeenten <- gemeenten[gemeenten$opleidingsgroep == opleiding_num_gem, ]
         }
-        area_value <- comparable_gemeenten %>%filter(GM_NAAM == input$gemeente1) %>%pull(input$variable)
-        comparable_gemeenten$area_line <- area_value
+        #area_value <- comparable_gemeenten %>% filter(GM_NAAM == input$gemeente1) %>% pull(input$variable)
+        #comparable_gemeenten$area_line <- area_value
         dataset <- comparable_gemeenten
         dataset$label <- dataset$GM_NAAM
         selected_polygon <- gemeenten %>% filter(GM_NAAM == input$gemeente1)
@@ -65,8 +65,8 @@ shinyServer(function(input, output, session) {
         dataset$centroidx <- selected_centroid[1,1]
         dataset$centroidy <- selected_centroid[1,2]
         dataset$code <- dataset$GM_CODE
-        dataset$selected_area_code <- dataset %>% filter(GM_NAAM == input$gemeente1) %>%pull(code)
-        dataset$selected_area_label <- dataset %>% filter(GM_NAAM == input$gemeente1) %>%pull(label)
+        dataset$selected_area_code <- dataset %>% filter(GM_NAAM == input$gemeente1) %>% pull(code)
+        dataset$selected_area_label <- dataset %>% filter(GM_NAAM == input$gemeente1) %>% pull(label)
       }else if(input$niveau == "Wijken"){
         df_wijken <- as.data.frame(wijken)
         if(input$vergelijkbaar2 == "Stedelijkheidsniveau"){
@@ -81,8 +81,8 @@ shinyServer(function(input, output, session) {
           opleiding_num_wk <- df_wijken[df_wijken$WK_NAAM==input$wijken2 & df_wijken$GM_NAAM == input$gemeente2, 182]
           comparable_wijken <- wijken[wijken$opleidingsgroep == opleiding_num_wk, ]
         }
-        area_value <- wijken %>%filter(GM_NAAM == input$gemeente2 & WK_NAAM == input$wijken2) %>%pull(input$variable)
-        comparable_wijken$area_line <- area_value
+        #area_value <- wijken %>%filter(GM_NAAM == input$gemeente2 & WK_NAAM == input$wijken2) %>%pull(input$variable)
+        #comparable_wijken$area_line <- area_value
         dataset <- comparable_wijken
         dataset$label <- dataset$WK_NAAM
         selected_polygon <- wijken %>% filter(GM_NAAM == input$gemeente2 & WK_NAAM == input$wijken2)
@@ -96,8 +96,8 @@ shinyServer(function(input, output, session) {
         df_buurten <- as.data.frame(buurten)
         stedelijkheid_num_buurten <- df_buurten[df_buurten$BU_NAAM==input$buurten3 & df_buurten$GM_NAAM == input$gemeente3 & df_buurten$WK_NAAM == input$wijken3, 11]
         comparable_buurten <- buurten[buurten$`Stedelijkheid (1=zeer sterk stedelijk, 5=niet stedelijk)`== stedelijkheid_num_buurten, ]
-        area_value <- comparable_buurten %>%filter(GM_NAAM == input$gemeente3 & WK_NAAM == input$wijken3 & BU_NAAM == input$buurten3) %>%pull(input$variable)
-        comparable_buurten$area_line <- area_value
+        #area_value <- comparable_buurten %>%filter(GM_NAAM == input$gemeente3 & WK_NAAM == input$wijken3 & BU_NAAM == input$buurten3) %>%pull(input$variable)
+        #comparable_buurten$area_line <- area_value
         dataset <- comparable_buurten
         dataset$label <- dataset$BU_NAAM
         selected_polygon <- buurten %>% filter(GM_NAAM == input$gemeente3 & WK_NAAM == input$wijken3 & BU_NAAM == input$buurten3)
@@ -111,56 +111,66 @@ shinyServer(function(input, output, session) {
       return(dataset)
     })
     
+    ###################
+    # I THINK THIS IS NOT NEEDED ANYMORE 
+    ###################
+    
     #histogram van de variabele with vertical line of the value from the gemeente/wijk/buurt that has een selected  
-    output$histogram <- renderPlot({
-      data_hist <- datasetInput()
-        ggplot(data_hist, aes(!!input$variable)) + geom_histogram(fill='steelblue3', color='#e9ecef', bins=20) + geom_vline(xintercept = data_hist$`area_line`) +
-          labs( y = "Aantal")
-    })
+    #output$histogram <- renderPlot({
+      #data_hist <- datasetInput()
+        #ggplot(data_hist, aes(!!input$variable)) + 
+          #geom_histogram(fill='steelblue3', color='#e9ecef', bins=20) + 
+          #geom_vline(xintercept = data_hist$`area_line`) +
+          #labs( y = "Aantal")
+    #})
     
     #map with color based on the chosen variable
-    output$map <- renderLeaflet({
-      map_data  <- datasetInput()  
-      map_data$variableplot <- map_data[[input$variable]]
+    #output$map <- renderLeaflet({
+      #map_data  <- datasetInput()  
+      #map_data$variableplot <- map_data[[input$variable]]
         # Change the colors based on the selected variable
-        pal <- colorBin("YlOrRd", domain = map_data$variableplot)       #maps numeric input data to a fixed number of output colors using binning (slicing the input domain up by value)
-        qpal <- colorQuantile("YlOrRd", map_data$variableplot, n = 6)    #maps numeric input data to a fixed number of output colors using quantiles (slicing the input domain into subsets with equal numbers of observations)
+        #pal <- colorBin("YlOrRd", domain = map_data$variableplot)       #maps numeric input data to a fixed number of output colors using binning (slicing the input domain up by value)
+        #qpal <- colorQuantile("YlOrRd", map_data$variableplot, n = 6)    #maps numeric input data to a fixed number of output colors using quantiles (slicing the input domain into subsets with equal numbers of observations)
         
         #for the colors in the map, colorQuantile is used, unless an error is given, then we use colorBin
-        coloring <- tryCatch({
-          qpal(map_data$variableplot)
-        } , error = function(e) {
-          pal(map_data$variableplot)
-        } )
+        #coloring <- tryCatch({
+          #qpal(map_data$variableplot)
+        #} , error = function(e) {
+          #pal(map_data$variableplot)
+        #} )
         
         # Change the labels that appear on hover based on the selected variable
-        labels <- sprintf("%s: %g", map_data$label, map_data$variableplot) %>% 
-            lapply(htmltools::HTML)
-        legend_title <- as.character(input$variable)
+        #labels <- sprintf("%s: %g", map_data$label, map_data$variableplot) %>% 
+            #lapply(htmltools::HTML)
+        #legend_title <- as.character(input$variable)
         
         #Different uses of legend, if there is the error of breaks not unique, then colorbin is used and the legend is established in a different manner
-        coloring_legend <- tryCatch({
-          leaflet(map_data) %>%
-            addPolygons(fillColor = ~ coloring, color = "black", weight = 0.5, fillOpacity = 0.7,
-              highlightOptions = highlightOptions(color='white',weight=0.5,fillOpacity = 0.7, bringToFront = TRUE), label = labels) %>%
-            addProviderTiles(providers$CartoDB.Positron) %>% 
-            addCircleMarkers(lng = map_data$centroidx, lat = map_data$centroidy, color = "black", weight = 3, opacity = 0.75, fillOpacity = 0)%>%
-            leaflet::addLegend(pal = qpal, values = ~variableplot, opacity = 0.7, title = legend_title, labFormat = function(type, cuts, p) {      #labformat function makes sure the actual values instead of the quantiles are displayed in the legend
-                n = length(cuts)
-                paste0(cuts[-n], " &ndash; ", cuts[-1])
-              }, labFormat = labelFormat(digits = 0)
-            )
-        }, error = function(e) {
-          leaflet(map_data) %>%
-            addPolygons(fillColor = ~ coloring, color = "black", weight = 0.5, fillOpacity = 0.7,
-              highlightOptions = highlightOptions(color='white',weight=0.5,fillOpacity = 0.7, bringToFront = TRUE), label = labels) %>%
-            addProviderTiles(providers$CartoDB.Positron) %>% 
-            addCircleMarkers(lng = map_data$centroidx, lat = map_data$centroidy, color = "black", weight = 3, opacity = 0.75, fillOpacity = 0)%>%
-            leaflet::addLegend(pal = pal, values = ~variableplot, opacity = 0.7, title = legend_title)
-        })
+        #coloring_legend <- tryCatch({
+          #leaflet(map_data) %>%
+            #addPolygons(fillColor = ~ coloring, color = "black", weight = 0.5, fillOpacity = 0.7,
+              #highlightOptions = highlightOptions(color='white',weight=0.5,fillOpacity = 0.7, bringToFront = TRUE), label = labels) %>%
+            #addProviderTiles(providers$CartoDB.Positron) %>% 
+            #addCircleMarkers(lng = map_data$centroidx, lat = map_data$centroidy, color = "black", weight = 3, opacity = 0.75, fillOpacity = 0)%>%
+            #leaflet::addLegend(pal = qpal, values = ~variableplot, opacity = 0.7, title = legend_title, labFormat = function(type, cuts, p) {      #labformat function makes sure the actual values instead of the quantiles are displayed in the legend
+                #n = length(cuts)
+                #paste0(cuts[-n], " &ndash; ", cuts[-1])
+              #}, labFormat = labelFormat(digits = 0)
+            #)
+        #}, error = function(e) {
+          #leaflet(map_data) %>%
+            #addPolygons(fillColor = ~ coloring, color = "black", weight = 0.5, fillOpacity = 0.7,
+              #highlightOptions = highlightOptions(color='white',weight=0.5,fillOpacity = 0.7, bringToFront = TRUE), label = labels) %>%
+            #addProviderTiles(providers$CartoDB.Positron) %>% 
+            #addCircleMarkers(lng = map_data$centroidx, lat = map_data$centroidy, color = "black", weight = 3, opacity = 0.75, fillOpacity = 0)%>%
+            #leaflet::addLegend(pal = pal, values = ~variableplot, opacity = 0.7, title = legend_title)
+        #})
    
-        l <- coloring_legend
-    })
+        #l <- coloring_legend
+    #})
+    
+    ###################
+    # I THINK THIS IS NOT NEEDED ANYMORE 
+    ###################
     
     #Function that takes four column names and creates a barplot of the selected area and the mean of comparable areas
     plot4 <- function(column1, column2, column3, column4){
