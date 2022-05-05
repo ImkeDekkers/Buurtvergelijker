@@ -117,10 +117,10 @@ wijken <- wijken %>%
 
 # Create quantiles for comparability based on education (opleiding)
 ## Gemeenten
-quants_gem_opl <- quantile(gemeenten$perc_opleiding)
-
 gemeenten <- gemeenten %>% 
   mutate(perc_opleiding = OpleidingsniveauLaag_64/AANT_INW*100)
+
+quants_gem_opl <- quantile(gemeenten$perc_opleiding)
 
 gemeenten <- gemeenten %>% 
   mutate(opleidingsgroep = case_when(perc_opleiding >= quants_gem_opl[1] & 
