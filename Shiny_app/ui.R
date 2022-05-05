@@ -43,7 +43,9 @@ ui <- dashboardPage(
                                   selectInput("wijken2", "Wijk:", choices=NULL),
                                   selectInput("vergelijkbaar2", "Vergelijkbaarheid:", c("Stedelijkheidsniveau" = "Stedelijkheidsniveau",
                                                                                         "Inkomensniveau" = "Inkomensniveau",
-                                                                                        "Opleidingsniveau" = "Opleidingsniveau"))
+                                                                                        "Opleidingsniveau" = "Opleidingsniveau")),
+                                  textOutput('ink_vergelijkbaarheid'),
+                                  textOutput('opl_vergelijkbaarheid')
                                 ),
                                 conditionalPanel(
                                   condition = "input.niveau == 'Buurten'",

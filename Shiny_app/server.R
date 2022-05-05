@@ -78,6 +78,9 @@ shinyServer(function(input, output, session) {
         else if (input$vergelijkbaar2 == "Inkomensniveau"){
           if(is.na(inkomen_num_wk)){
             comparable_wijken <- wijken
+            output$ink_vergelijkbaarheid <- renderText(
+              print("Let op, door een missende waarde van het inkomensniveau voor uw wijk, wordt er nu met heel Nederland vergeleken.")
+            )
           } #  WANTED TO MAKE SURE THAT IF OPLEIDINGSGROEP IS MISSING, THAT THE WHOLE DATASET IS USED TO GENERATE PLOTS
           else{
             comparable_wijken <- wijken[wijken$inkomengroep == inkomen_num_wk, ]
@@ -87,9 +90,13 @@ shinyServer(function(input, output, session) {
         else if (input$vergelijkbaar2 == "Opleidingsniveau"){
           if(is.na(opleiding_num_wk)){
             comparable_wijken <- wijken
+            output$opl_vergelijkbaarheid <- renderText(
+              print("Let op, door een missende waarde van het opleidingsniveau voor uw wijk, wordt er nu met heel Nederland vergeleken.")
+            )
           }#  WANTED TO MAKE SURE THAT IF OPLEIDINGSGROEP IS MISSING, THAT THE WHOLE DATASET IS USED TO GENERATE PLOTS
           else{
             comparable_wijken <- wijken[wijken$opleidingsgroep == opleiding_num_wk, ]
+            
           }
         }
         #area_value <- wijken %>%filter(GM_NAAM == input$gemeente2 & WK_NAAM == input$wijken2) %>%pull(input$variable)
