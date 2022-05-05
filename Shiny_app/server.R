@@ -74,11 +74,11 @@ shinyServer(function(input, output, session) {
           comparable_wijken <- wijken[wijken$`Stedelijkheid (1=zeer sterk stedelijk, 5=niet stedelijk)`== stedelijkheid_num_wk, ]
         } # Not working yet
           else if (input$vergelijkbaar2 == "Inkomensniveau"){
-          inkomen_num_wk <- df_wijken[df_wijken$WK_NAAM==input$wijken2 & df_wijken$GM_NAAM == input$gemeente2, 180]
+          inkomen_num_wk <- df_wijken[df_wijken$WK_NAAM==input$wijken2 & df_wijken$GM_NAAM == input$gemeente2, 183]
           comparable_wijken <- wijken[wijken$inkomengroep == inkomen_num_wk, ]
         } # Not working yet
           else if (input$vergelijkbaar2 == "Opleidingsniveau"){
-          opleiding_num_wk <- df_wijken[df_wijken$WK_NAAM==input$wijken2 & df_wijken$GM_NAAM == input$gemeente2, 182]
+          opleiding_num_wk <- df_wijken[df_wijken$WK_NAAM==input$wijken2 & df_wijken$GM_NAAM == input$gemeente2, 185]
           comparable_wijken <- wijken[wijken$opleidingsgroep == opleiding_num_wk, ]
         }
         #area_value <- wijken %>%filter(GM_NAAM == input$gemeente2 & WK_NAAM == input$wijken2) %>%pull(input$variable)
