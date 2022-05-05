@@ -69,17 +69,27 @@ shinyServer(function(input, output, session) {
         dataset$selected_area_label <- dataset %>% filter(GM_NAAM == input$gemeente1) %>% pull(label)
       }else if(input$niveau == "Wijken"){
         df_wijken <- as.data.frame(wijken)
+        stedelijkheid_num_wk <- df_wijken[df_wijken$WK_NAAM==input$wijken2 & df_wijken$GM_NAAM == input$gemeente2, "Stedelijkheid (1=zeer sterk stedelijk, 5=niet stedelijk)"]
+        inkomen_num_wk <- df_wijken[df_wijken$WK_NAAM==input$wijken2 & df_wijken$GM_NAAM == input$gemeente2, "inkomengroep"]
+        opleiding_num_wk <- df_wijken[df_wijken$WK_NAAM==input$wijken2 & df_wijken$GM_NAAM == input$gemeente2, "opleidingsgroep"]
         if(input$vergelijkbaar2 == "Stedelijkheidsniveau"){
-          stedelijkheid_num_wk <- df_wijken[df_wijken$WK_NAAM==input$wijken2 & df_wijken$GM_NAAM == input$gemeente2, "Stedelijkheid (1=zeer sterk stedelijk, 5=niet stedelijk)"]
           comparable_wijken <- wijken[wijken$`Stedelijkheid (1=zeer sterk stedelijk, 5=niet stedelijk)`== stedelijkheid_num_wk, ]
-        } # Not working yet
+        }
           else if (input$vergelijkbaar2 == "Inkomensniveau"){
-          inkomen_num_wk <- df_wijken[df_wijken$WK_NAAM==input$wijken2 & df_wijken$GM_NAAM == input$gemeente2, 'inkomengroep']
-          comparable_wijken <- wijken[wijken$inkomengroep == inkomen_num_wk, ]
-        } # Not working yet
+          if(is.numeric(inkomen_num_wk)){
+            comparable_wijken <- wijken[wijken$inkomengroep == inkomen_num_wk, ]
+          } #  WANTED TO MAKE SURE THAT IF OPLEIDINGSGROEP IS MISSING, THAT THE WHOLE DATASET IS USED TO GENERATE PLOTS
+            else{
+              comparable_wijken <- wijken
+            }  
+        } 
           else if (input$vergelijkbaar2 == "Opleidingsniveau"){
-          opleiding_num_wk <- df_wijken[df_wijken$WK_NAAM==input$wijken2 & df_wijken$GM_NAAM == input$gemeente2, 'opleidingsgroep']
-          comparable_wijken <- wijken[wijken$opleidingsgroep == opleiding_num_wk, ]
+          if(is.numeric(opleiding_num_wk)){
+            comparable_wijken <- wijken[wijken$opleidingsgroep == opleiding_num_wk, ]
+          }#  WANTED TO MAKE SURE THAT IF OPLEIDINGSGROEP IS MISSING, THAT THE WHOLE DATASET IS USED TO GENERATE PLOTS
+            else{
+            comparable_wijken <- wijken
+          }
         }
         #area_value <- wijken %>%filter(GM_NAAM == input$gemeente2 & WK_NAAM == input$wijken2) %>%pull(input$variable)
         #comparable_wijken$area_line <- area_value
