@@ -14,7 +14,7 @@ ui <- dashboardPage(
     )
   ),
   
-  dashboardBody(tags$head(tags$style(HTML('.box{box-shadow: none;border-style: none;}'))),
+  dashboardBody(tags$head(tags$style(HTML('.box{box-shadow: none;border-style: none;}.content-wrapper { overflow: auto; }'))),
                 tabItems(
                   # First tab content
                   tabItem(tabName = "dashboard",

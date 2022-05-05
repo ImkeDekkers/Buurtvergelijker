@@ -47,13 +47,13 @@ shinyServer(function(input, output, session) {
         df_gemeenten <- as.data.frame(gemeenten)   # Reshape data to data frame (not with shape files)
         # Comparable based on stedelijkheid, inkomen and opleiding
         if(input$vergelijkbaar1 == "Stedelijkheidsniveau"){
-          stedelijkheid_num_gem <- df_gemeenten[df_gemeenten$GM_NAAM == input$gemeente1, 5]      # Stedelijkheid is the 5th column in the data
+          stedelijkheid_num_gem <- df_gemeenten[df_gemeenten$GM_NAAM == input$gemeente1, "Stedelijkheid (1=zeer sterk stedelijk, 5=niet stedelijk)"]      # Stedelijkheid is the 5th column in the data
           comparable_gemeenten <- gemeenten[gemeenten$`Stedelijkheid (1=zeer sterk stedelijk, 5=niet stedelijk)`== stedelijkheid_num_gem, ]  
         } else if (input$vergelijkbaar1 == "Inkomensniveau"){
-          inkomen_num_gem <- df_gemeenten[df_gemeenten$GM_NAAM == input$gemeente1, 180]          # Inkomensniveau (calculated) is 180th column
+          inkomen_num_gem <- df_gemeenten[df_gemeenten$GM_NAAM == input$gemeente1, 'inkomengroep']          # Inkomensniveau (calculated) is 180th column
           comparable_gemeenten <- gemeenten[gemeenten$inkomengroep == inkomen_num_gem, ]
         } else if (input$vergelijkbaar1 == "Opleidingsniveau"){
-          opleiding_num_gem <- df_gemeenten[df_gemeenten$GM_NAAM == input$gemeente1, 182]        # Opleidingsniveau (calculated) is 182nd column
+          opleiding_num_gem <- df_gemeenten[df_gemeenten$GM_NAAM == input$gemeente1, 'opleidingsgroep']        # Opleidingsniveau (calculated) is 182nd column
           comparable_gemeenten <- gemeenten[gemeenten$opleidingsgroep == opleiding_num_gem, ]
         }
         #area_value <- comparable_gemeenten %>% filter(GM_NAAM == input$gemeente1) %>% pull(input$variable)
@@ -70,15 +70,15 @@ shinyServer(function(input, output, session) {
       }else if(input$niveau == "Wijken"){
         df_wijken <- as.data.frame(wijken)
         if(input$vergelijkbaar2 == "Stedelijkheidsniveau"){
-          stedelijkheid_num_wk <- df_wijken[df_wijken$WK_NAAM==input$wijken2 & df_wijken$GM_NAAM == input$gemeente2, 8]
+          stedelijkheid_num_wk <- df_wijken[df_wijken$WK_NAAM==input$wijken2 & df_wijken$GM_NAAM == input$gemeente2, "Stedelijkheid (1=zeer sterk stedelijk, 5=niet stedelijk)"]
           comparable_wijken <- wijken[wijken$`Stedelijkheid (1=zeer sterk stedelijk, 5=niet stedelijk)`== stedelijkheid_num_wk, ]
         } # Not working yet
           else if (input$vergelijkbaar2 == "Inkomensniveau"){
-          inkomen_num_wk <- df_wijken[df_wijken$WK_NAAM==input$wijken2 & df_wijken$GM_NAAM == input$gemeente2, 183]
+          inkomen_num_wk <- df_wijken[df_wijken$WK_NAAM==input$wijken2 & df_wijken$GM_NAAM == input$gemeente2, 'inkomengroep']
           comparable_wijken <- wijken[wijken$inkomengroep == inkomen_num_wk, ]
         } # Not working yet
           else if (input$vergelijkbaar2 == "Opleidingsniveau"){
-          opleiding_num_wk <- df_wijken[df_wijken$WK_NAAM==input$wijken2 & df_wijken$GM_NAAM == input$gemeente2, 185]
+          opleiding_num_wk <- df_wijken[df_wijken$WK_NAAM==input$wijken2 & df_wijken$GM_NAAM == input$gemeente2, 'opleidingsgroep']
           comparable_wijken <- wijken[wijken$opleidingsgroep == opleiding_num_wk, ]
         }
         #area_value <- wijken %>%filter(GM_NAAM == input$gemeente2 & WK_NAAM == input$wijken2) %>%pull(input$variable)
