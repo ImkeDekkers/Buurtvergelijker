@@ -73,13 +73,13 @@ ui <- dashboardPage(
                             tabBox(
                                    # The id lets us use input$tabset1 on the server to find the current tab
                                    id = "tabset1", height = "250px",
-                                   tabPanel("Gezondheid en Welzijn", plotOutput('plot_huisarts'), plotOutput('plot_ziekenhuis_incl'), plotOutput('plot_ziekenhuis_excl')),
-                                   tabPanel("Detailhandel", plotOutput('plot_supermarkt'), plotOutput('plot_ov_levensm'), plotOutput('plot_warenhuis')), 
-                                   tabPanel("Horeca", plotOutput('plot_cafes'), plotOutput('plot_cafetaria'), plotOutput('plot_restaurants'), plotOutput('plot_hotels')),
-                                   tabPanel("Kinderopvang", plotOutput('plot_kinderdagverblijf'), plotOutput('plot_opvang')),
-                                   tabPanel("Onderwijs", plotOutput('plot_basisscholen'), plotOutput('plot_vo'), plotOutput('plot_VMBO'), plotOutput('plot_HAVO_VWO')),
+                                   tabPanel("Gezondheid en Welzijn", plotOutput('plot_huisarts'), leafletOutput('map_huisarts'), plotOutput('plot_ziekenhuis_incl'), leafletOutput("map_ziekenhuizen_incl"), plotOutput('plot_ziekenhuis_excl'), leafletOutput("map_ziekenhuizen_excl")),
+                                   tabPanel("Detailhandel", plotOutput('plot_supermarkt'), leafletOutput('map_supermarkt'), plotOutput('plot_ov_levensm'), leafletOutput('map_ov_levensm'), plotOutput('plot_warenhuis'), leafletOutput('map_warenhuis')), 
+                                   tabPanel("Horeca", plotOutput('plot_cafes'), leafletOutput('map_cafes'), plotOutput('plot_cafetaria'), leafletOutput('map_cafetaria'), plotOutput('plot_restaurants'), leafletOutput('map_restaurants'), plotOutput('plot_hotels'), leafletOutput('map_hotels')),
+                                   tabPanel("Kinderopvang", plotOutput('plot_kinderdagverblijf'), leafletOutput('map_kinderdagverblijf'), plotOutput('plot_opvang'), leafletOutput('map_opvang')),
+                                   tabPanel("Onderwijs", plotOutput('plot_basisscholen'), leafletOutput('map_basisscholen'), plotOutput('plot_vo'), leafletOutput('map_vo'), plotOutput('plot_VMBO'), leafletOutput('map_VMBO'), plotOutput('plot_HAVO_VWO'), leafletOutput('map_HAVO_VWO')),
                                    tabPanel("Verkeer en vervoer"),
-                                   tabPanel("Vrije tijd en cultuur", plotOutput('plot_bioscoop'), plotOutput('plot_attractie'), plotOutput('plot_podiumkunsten'), plotOutput('plot_musea'))
+                                   tabPanel("Vrije tijd en cultuur", plotOutput('plot_bioscoop'), leafletOutput('map_bioscoop'), plotOutput('plot_attractie'), leafletOutput('map_attractie'), plotOutput('plot_podiumkunsten'), leafletOutput('map_podiumkunsten'), plotOutput('plot_musea'), leafletOutput('map_musea'))
                             )
                           )
                   ),

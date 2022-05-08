@@ -44,6 +44,8 @@ shinyServer(function(input, output, session) {
     #make used data reactive on the selected niveau
     datasetInput <- reactive({
       if(input$niveau == "Gemeenten"){
+        selected_niveau <- gemeenten
+        selected_niveau$label <- gemeenten$GM_NAAM
         df_gemeenten <- as.data.frame(gemeenten)   # Reshape data to data frame (not with shape files)
         # Comparable based on stedelijkheid, inkomen and opleiding
         if(input$vergelijkbaar1 == "Stedelijkheidsniveau"){
@@ -68,6 +70,8 @@ shinyServer(function(input, output, session) {
         dataset$selected_area_code <- dataset %>% filter(GM_NAAM == input$gemeente1) %>% pull(code)
         dataset$selected_area_label <- dataset %>% filter(GM_NAAM == input$gemeente1) %>% pull(label)
       }else if(input$niveau == "Wijken"){
+        selected_niveau <- wijken
+        selected_niveau$label <- wijken$WK_NAAM
         df_wijken <- as.data.frame(wijken)
         stedelijkheid_num_wk <- df_wijken[df_wijken$WK_NAAM==input$wijken2 & df_wijken$GM_NAAM == input$gemeente2, "Stedelijkheid (1=zeer sterk stedelijk, 5=niet stedelijk)"]
         inkomen_num_wk <- df_wijken[df_wijken$WK_NAAM==input$wijken2 & df_wijken$GM_NAAM == input$gemeente2, "inkomengroep"]
@@ -112,6 +116,8 @@ shinyServer(function(input, output, session) {
         dataset$selected_area_label <- dataset %>% filter(GM_NAAM == input$gemeente2 & WK_NAAM == input$wijken2) %>%pull(label)
       }else if (input$niveau == "Buurten"){
         df_buurten <- as.data.frame(buurten)
+        selected_niveau <- buurten
+        selected_niveau$label <- buurten$BU_NAAM
         stedelijkheid_num_buurten <- df_buurten[df_buurten$BU_NAAM==input$buurten3 & df_buurten$GM_NAAM == input$gemeente3 & df_buurten$WK_NAAM == input$wijken3, 11]
         comparable_buurten <- buurten[buurten$`Stedelijkheid (1=zeer sterk stedelijk, 5=niet stedelijk)`== stedelijkheid_num_buurten, ]
         #area_value <- comparable_buurten %>%filter(GM_NAAM == input$gemeente3 & WK_NAAM == input$wijken3 & BU_NAAM == input$buurten3) %>%pull(input$variable)
@@ -190,6 +196,39 @@ shinyServer(function(input, output, session) {
     # I THINK THIS IS NOT NEEDED ANYMORE 
     ###################
     
+    #Function that makes map of the selected variable 
+    make_map <- function(variable){
+      #function to get values of selected variable 
+      map_variable <- function(variable1){
+        df <- as.data.frame(datasetInput())
+        df_selec_var <- df[[variable1]] 
+        return(df_selec_var)
+      }
+      #get input for the map
+      input_map <- map_variable(variable)
+      map_data <- datasetInput()
+      
+      #define colors for polygons and legend 
+      qpal <- colorQuantile("YlOrRd", input_map, n = 6)
+      #for the colors in the map, colorQuantile is used, unless an error is given, then we use colorBin
+      coloring <- qpal(input_map)
+      labels <- sprintf("%s: %g", map_data$label, input_map) %>% 
+        lapply(htmltools::HTML)
+      
+      
+      #map
+      output_map <- leaflet(map_data)%>%
+        addPolygons(fillColor = ~coloring, color = "black", weight = 0.5, fillOpacity = 0.7,
+                    highlightOptions = highlightOptions(color='white',weight=0.5,fillOpacity = 0.7, bringToFront = TRUE), label = labels)%>%
+        addProviderTiles(providers$CartoDB.Positron)%>%
+        addCircleMarkers(lng = map_data$centroidx, lat = map_data$centroidy, color = "black", weight = 3, opacity = 0.75, fillOpacity = 0)
+      
+      return(output_map)
+    }
+    
+   
+    
+  
     #Function that takes four column names and creates a barplot of the selected area and the mean of comparable areas
     plot4 <- function(column1, column2, column3, column4){
       
@@ -375,5 +414,104 @@ shinyServer(function(input, output, session) {
             "Aantal musea binnen 20 km")
     })
     
+    #map of huisartsen 
+    output$map_huisarts <- renderLeaflet({
+      make_map("Afstand tot huisartsenpraktijk (km)")
+    })
+    
+    #map of ziekenhuizen incl
+    output$map_ziekenhuizen_incl <- renderLeaflet({
+      make_map("Afstand tot ziekenhuis incl. buitenpolikliniek (km)")
+    })
+    
+    #map of ziekenhuizen excl
+    output$map_ziekenhuizen_excl <- renderLeaflet({
+      make_map("Afstand tot ziekenhuis excl. Buitenpolikliniek (km)")
+    })
+   
+    #map of supermarkt 
+    output$map_supermarkt <- renderLeaflet({
+      make_map("Afstand tot grote supermarkt (km)")
+    })
+    
+    #map of overige dagelijkse levensmiddelen 
+    output$map_ov_levensm <- renderLeaflet({
+      make_map("Afstand tot overige dagelijkse levensmiddelen (km)")
+    })
+    
+    #map of warenhuis
+    output$map_warenhuis <- renderLeaflet({
+      make_map("Afstand tot warenhuis (km)")
+    })
+    
+    #map of cafes
+    output$map_cafes <- renderLeaflet({
+      make_map("Afstand tot café (km)")
+    })
+    
+    #map of cafetarias 
+    output$map_cafetaria <- renderLeaflet({
+      make_map("Afstand tot cafetaria (km)")
+    })
+    
+    #map of restaurant
+    output$map_restaurants <- renderLeaflet({
+      make_map("Afstand tot restaurant (km)")
+    })
+    
+    #map of hotel
+    output$map_hotels <- renderLeaflet({
+      make_map("Afstand tot hotel (km)")
+    })
+    
+    #map of kinderdagverblijf
+    output$map_kinderdagverblijf <- renderLeaflet({
+      make_map("Afstand tot kinderdagverblijf  (km)")
+    })
+    
+    #map of buitenschoolse opvang 
+    output$map_opvang <- renderLeaflet({
+      make_map("Afstand tot buitenschoolse opvang  (km)")
+    })
+    
+    #map of basisscholen
+    output$map_basisscholen <- renderLeaflet({
+      make_map("Afstand tot basisscholen (km)")
+    })
+    
+    #map of voorgezetonderwijs  
+    output$map_vo <- renderLeaflet({
+      make_map("Afstand tot voortgezet onderwijs (km)")
+    })
+    
+    #map of VMBO
+    output$map_VMBO <- renderLeaflet({
+      make_map("Afstand tot scholen VMBO (km)")
+    })
+    
+    #map of HAVO/VWO 
+    output$map_HAVO_VWO <- renderLeaflet({
+      make_map("Afstand tot scholen HAVO/VWO (km)")
+    })
+    
+    #map of bioscoop
+    output$map_bioscoop <- renderLeaflet({
+      make_map("Afstand tot bioscoop (km)")
+    })
+    
+    #map of attractie 
+    output$map_attractie <- renderLeaflet({
+      make_map("Afstand tot attractie (km)")
+    })
+    
+    #map of podiumkunsten  
+    output$map_podiumkunsten <- renderLeaflet({
+      make_map("Afstand tot podiumkunsten (km)")
+    })
+    
+    #map of musea
+    output$map_musea <- renderLeaflet({
+      make_map("Afstand tot museum (km)")
+    })
 })
 
