@@ -209,23 +209,42 @@ shinyServer(function(input, output, session) {
       map_data <- datasetInput()
       
       #define colors for polygons and legend 
+      pal <- colorBin("YlOrRd", domain = input_map)
       qpal <- colorQuantile("YlOrRd", input_map, n = 6)
       #for the colors in the map, colorQuantile is used, unless an error is given, then we use colorBin
-      coloring <- qpal(input_map)
+      coloring <- tryCatch({
+        qpal(input_map)
+      } , error = function(e) {
+        pal(input_map)
+      } )
+      legend_title <- as.character(variable)
       labels <- sprintf("%s: %g", map_data$label, input_map) %>% 
         lapply(htmltools::HTML)
       
-      
       #map
-      output_map <- leaflet(map_data)%>%
-        addPolygons(fillColor = ~coloring, color = "black", weight = 0.5, fillOpacity = 0.7,
-                    highlightOptions = highlightOptions(color='white',weight=0.5,fillOpacity = 0.7, bringToFront = TRUE), label = labels)%>%
-        addProviderTiles(providers$CartoDB.Positron)%>%
-        addCircleMarkers(lng = map_data$centroidx, lat = map_data$centroidy, color = "black", weight = 3, opacity = 0.75, fillOpacity = 0)
+      output_map <- tryCatch({
+        leaflet(map_data)%>%
+          addPolygons(fillColor = ~coloring, color = "black", weight = 0.5, fillOpacity = 0.7,
+                      highlightOptions = highlightOptions(color='white',weight=0.5,fillOpacity = 0.7, bringToFront = TRUE), label = labels)%>%
+          addProviderTiles(providers$CartoDB.Positron)%>%
+          addCircleMarkers(lng = map_data$centroidx, lat = map_data$centroidy, color = "black", weight = 3, opacity = 0.75, fillOpacity = 0)%>%
+          leaflet::addLegend(pal = qpal, values = ~input_map, opacity = 0.7, title = legend_title, labFormat = function(type, cuts, p) {      #labformat function makes sure the actual values instead of the quantiles are displayed in the legend
+            n = length(cuts)
+            paste0(cuts[-n], " &ndash; ", cuts[-1])
+            }, labFormat = labelFormat(digits = 0))
+        
+      }, error = function(e) {
+        leaflet(map_data) %>%
+          addPolygons(fillColor = ~ coloring, color = "black", weight = 0.5, fillOpacity = 0.7,
+                    highlightOptions = highlightOptions(color='white',weight=0.5,fillOpacity = 0.7, bringToFront = TRUE), label = labels) %>%
+          addProviderTiles(providers$CartoDB.Positron) %>% 
+          addCircleMarkers(lng = map_data$centroidx, lat = map_data$centroidy, color = "black", weight = 3, opacity = 0.75, fillOpacity = 0)%>%
+          leaflet::addLegend(pal = pal, values = ~input_map, opacity = 0.7, title = legend_title)
+      })
       
       return(output_map)
+      
     }
-    
    
     
   
