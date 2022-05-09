@@ -146,3 +146,13 @@ wijken <- wijken %>%
                                        perc_opleiding < quants_wk_opl[4] ~ 3,
                                      perc_opleiding >= quants_wk_opl[4] & 
                                        perc_opleiding <= quants_wk_opl[5] ~ 4))
+
+#Bind rows from gemeenten, wijken en buurten together 
+gemeenten_test <- gemeenten  %>% add_column(Niveau = 'Gemeenten', CODE=gemeenten$GM_CODE, NAAM = gemeenten$GM_NAAM, .before = 'H2O')
+wijken_test <- wijken %>% add_column(Niveau = 'Wijken', CODE = wijken$WK_CODE, NAAM = wijken$WK_NAAM,  .before = 'H2O') 
+buurten_test <- buurten %>% add_column(Niveau = 'Buurten', CODE = buurten$BU_CODE, NAAM = buurten$BU_NAAM,  .before = 'H2O')
+
+full_data <- bind_rows(buurten_test, wijken_test, gemeenten_test)
+write_rds(full_data, "Data/full_data.rds")
+
+

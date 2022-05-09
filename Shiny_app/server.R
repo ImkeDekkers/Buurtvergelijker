@@ -9,6 +9,7 @@ gemeenten <- readRDS("../Data/gemeenten.rds")
 wijken <- readRDS("../Data/wijken.rds")
 buurten <- readRDS("../Data/buurten.rds")
 postcodes_final <- readRDS("../Data/postcodes_final.rds")
+full_data <- readRDS("../Data/full_data.rds")
 
 shinyServer(function(input, output, session) {
     
@@ -43,95 +44,62 @@ shinyServer(function(input, output, session) {
     
     #make used data reactive on the selected niveau
     datasetInput <- reactive({
-      if(input$niveau == "Gemeenten"){
-        selected_niveau <- gemeenten
-        selected_niveau$label <- gemeenten$GM_NAAM
-        df_gemeenten <- as.data.frame(gemeenten)   # Reshape data to data frame (not with shape files)
-        # Comparable based on stedelijkheid, inkomen and opleiding
+      df <- as.data.frame(full_data)
+      df <- df[df$Niveau == input$niveau,]
+      if(input$niveau == 'Gemeenten'){
         if(input$vergelijkbaar1 == "Stedelijkheidsniveau"){
-          stedelijkheid_num_gem <- df_gemeenten[df_gemeenten$GM_NAAM == input$gemeente1, "Stedelijkheid (1=zeer sterk stedelijk, 5=niet stedelijk)"]      # Stedelijkheid is the 5th column in the data
-          comparable_gemeenten <- gemeenten[gemeenten$`Stedelijkheid (1=zeer sterk stedelijk, 5=niet stedelijk)`== stedelijkheid_num_gem, ]  
+          stedelijkheid_num <- df[df$GM_NAAM == input$gemeente1, "Stedelijkheid (1=zeer sterk stedelijk, 5=niet stedelijk)"]      # Stedelijkheid is the 5th column in the data
+          comparable_df <- df[df$`Stedelijkheid (1=zeer sterk stedelijk, 5=niet stedelijk)`== stedelijkheid_num, ]
         }else if (input$vergelijkbaar1 == "Inkomensniveau"){
-          inkomen_num_gem <- df_gemeenten[df_gemeenten$GM_NAAM == input$gemeente1, 'inkomengroep']          # Inkomensniveau (calculated) is 180th column
-          comparable_gemeenten <- gemeenten[gemeenten$inkomengroep == inkomen_num_gem, ]
+          inkomen_num <- df[df$GM_NAAM == input$gemeente1, 'inkomengroep']          # Inkomensniveau (calculated) is 180th column
+          comparable_df <- df[df$inkomengroep == inkomen_num, ]
         }else if (input$vergelijkbaar1 == "Opleidingsniveau"){
-          opleiding_num_gem <- df_gemeenten[df_gemeenten$GM_NAAM == input$gemeente1, 'opleidingsgroep']        # Opleidingsniveau (calculated) is 182nd column
-          comparable_gemeenten <- gemeenten[gemeenten$opleidingsgroep == opleiding_num_gem, ]
+          opleiding_num <- df[df$GM_NAAM == input$gemeente1, 'opleidingsgroep']        # Opleidingsniveau (calculated) is 182nd column
+          comparable_df <- df[df$opleidingsgroep == opleiding_num, ]
         }
-        #area_value <- comparable_gemeenten %>% filter(GM_NAAM == input$gemeente1) %>% pull(input$variable)
-        #comparable_gemeenten$area_line <- area_value
-        dataset <- comparable_gemeenten
-        dataset$label <- dataset$GM_NAAM
+        comparable_df$selected_area_code <- comparable_df %>% filter(GM_NAAM == input$gemeente1) %>% pull(CODE)
+        comparable_df$selected_area_label <- comparable_df %>% filter(GM_NAAM == input$gemeente1) %>% pull(NAAM)
         selected_polygon <- gemeenten %>% filter(GM_NAAM == input$gemeente1)
-        selected_centroid <- st_coordinates(st_centroid(selected_polygon))
-        dataset$centroidx <- selected_centroid[1,1]
-        dataset$centroidy <- selected_centroid[1,2]
-        dataset$code <- dataset$GM_CODE
-        dataset$selected_area_code <- dataset %>% filter(GM_NAAM == input$gemeente1) %>% pull(code)
-        dataset$selected_area_label <- dataset %>% filter(GM_NAAM == input$gemeente1) %>% pull(label)
-      }else if(input$niveau == "Wijken"){
-        selected_niveau <- wijken
-        selected_niveau$label <- wijken$WK_NAAM
-        df_wijken <- as.data.frame(wijken)
-        stedelijkheid_num_wk <- df_wijken[df_wijken$WK_NAAM==input$wijken2 & df_wijken$GM_NAAM == input$gemeente2, "Stedelijkheid (1=zeer sterk stedelijk, 5=niet stedelijk)"]
-        inkomen_num_wk <- df_wijken[df_wijken$WK_NAAM==input$wijken2 & df_wijken$GM_NAAM == input$gemeente2, "inkomengroep"]
-        opleiding_num_wk <- df_wijken[df_wijken$WK_NAAM==input$wijken2 & df_wijken$GM_NAAM == input$gemeente2, "opleidingsgroep"]
+      }else if(input$niveau == 'Wijken'){
         if(input$vergelijkbaar2 == "Stedelijkheidsniveau"){
-          comparable_wijken <- wijken[wijken$`Stedelijkheid (1=zeer sterk stedelijk, 5=niet stedelijk)`== stedelijkheid_num_wk, ]
-        }
-        else if (input$vergelijkbaar2 == "Inkomensniveau"){
-          if(is.na(inkomen_num_wk)){
-            comparable_wijken <- wijken
+          stedelijkheid_num <- df[df$WK_NAAM == input$wijken2 & df$GM_NAAM == input$gemeente2, "Stedelijkheid (1=zeer sterk stedelijk, 5=niet stedelijk)"]      # Stedelijkheid is the 5th column in the data
+          comparable_df <- df[df$`Stedelijkheid (1=zeer sterk stedelijk, 5=niet stedelijk)`== stedelijkheid_num, ]
+        }else if (input$vergelijkbaar2 == "Inkomensniveau"){
+          inkomen_num <- df[df$WK_NAAM == input$wijken2 & df$GM_NAAM == input$gemeente2, 'inkomengroep']          # Inkomensniveau (calculated) is 180th column
+          if(is.na(inkomen_num)){
+            comparable_df <- df[df$Niveau == input$niveau,]
             output$ink_vergelijkbaarheid <- renderText(
               print("Let op, door een missende waarde van het inkomensniveau voor uw wijk, wordt er nu met heel Nederland vergeleken.")
             )
-          } #  WANTED TO MAKE SURE THAT IF OPLEIDINGSGROEP IS MISSING, THAT THE WHOLE DATASET IS USED TO GENERATE PLOTS
-          else{
-            comparable_wijken <- wijken[wijken$inkomengroep == inkomen_num_wk, ]
-              
-            }  
-        } 
-        else if (input$vergelijkbaar2 == "Opleidingsniveau"){
-          if(is.na(opleiding_num_wk)){
-            comparable_wijken <- wijken
+          }else{
+            comparable_df <- df[df$inkomengroep == inkomen_num, ]
+          }
+        }else if (input$vergelijkbaar2 == "Opleidingsniveau"){
+          opleiding_num <- df[df$WK_NAAM == input$wijken2 & df$GM_NAAM == input$gemeente2, 'opleidingsgroep']        # Opleidingsniveau (calculated) is 182nd column
+          if(is.na(opleiding_num)){
+            comparable_df <- df[df$Niveau == input$niveau,]
             output$opl_vergelijkbaarheid <- renderText(
               print("Let op, door een missende waarde van het opleidingsniveau voor uw wijk, wordt er nu met heel Nederland vergeleken.")
             )
-          }#  WANTED TO MAKE SURE THAT IF OPLEIDINGSGROEP IS MISSING, THAT THE WHOLE DATASET IS USED TO GENERATE PLOTS
-          else{
-            comparable_wijken <- wijken[wijken$opleidingsgroep == opleiding_num_wk, ]
-            
+          }else{
+            comparable_df <- df[df$opleidingsgroep == opleiding_num, ]
           }
         }
-        #area_value <- wijken %>%filter(GM_NAAM == input$gemeente2 & WK_NAAM == input$wijken2) %>%pull(input$variable)
-        #comparable_wijken$area_line <- area_value
-        dataset <- comparable_wijken
-        dataset$label <- dataset$WK_NAAM
+        comparable_df$selected_area_code <- comparable_df %>% filter(GM_NAAM == input$gemeente2 & WK_NAAM == input$wijken2) %>%pull(CODE)
+        comparable_df$selected_area_label <- comparable_df %>% filter(GM_NAAM == input$gemeente2 & WK_NAAM == input$wijken2) %>%pull(NAAM)
         selected_polygon <- wijken %>% filter(GM_NAAM == input$gemeente2 & WK_NAAM == input$wijken2)
-        selected_centroid <- st_coordinates(st_centroid(selected_polygon))
-        dataset$centroidx <- selected_centroid[1,1]
-        dataset$centroidy <- selected_centroid[1,2]
-        dataset$code <- dataset$WK_CODE
-        dataset$selected_area_code <- dataset %>% filter(GM_NAAM == input$gemeente2 & WK_NAAM == input$wijken2) %>%pull(code)
-        dataset$selected_area_label <- dataset %>% filter(GM_NAAM == input$gemeente2 & WK_NAAM == input$wijken2) %>%pull(label)
-      }else if (input$niveau == "Buurten"){
-        df_buurten <- as.data.frame(buurten)
-        selected_niveau <- buurten
-        selected_niveau$label <- buurten$BU_NAAM
-        stedelijkheid_num_buurten <- df_buurten[df_buurten$BU_NAAM==input$buurten3 & df_buurten$GM_NAAM == input$gemeente3 & df_buurten$WK_NAAM == input$wijken3, 11]
-        comparable_buurten <- buurten[buurten$`Stedelijkheid (1=zeer sterk stedelijk, 5=niet stedelijk)`== stedelijkheid_num_buurten, ]
-        #area_value <- comparable_buurten %>%filter(GM_NAAM == input$gemeente3 & WK_NAAM == input$wijken3 & BU_NAAM == input$buurten3) %>%pull(input$variable)
-        #comparable_buurten$area_line <- area_value
-        dataset <- comparable_buurten
-        dataset$label <- dataset$BU_NAAM
+      }else if(input$niveau == 'Buurten'){
+        stedelijkheid_num <- df[df$BU_NAAM==input$buurten3 & df$GM_NAAM == input$gemeente3 & df$WK_NAAM == input$wijken3, "Stedelijkheid (1=zeer sterk stedelijk, 5=niet stedelijk)"]
+        comparable_df <- df[df$`Stedelijkheid (1=zeer sterk stedelijk, 5=niet stedelijk)`== stedelijkheid_num, ]
+        comparable_df$selected_area_code <- comparable_df %>% filter(GM_NAAM == input$gemeente3 & WK_NAAM == input$wijken3 & BU_NAAM == input$buurten3) %>%pull(CODE)
+        comparable_df$selected_area_label <- comparable_df %>% filter(GM_NAAM == input$gemeente3 & WK_NAAM == input$wijken3 & BU_NAAM == input$buurten3) %>%pull(NAAM)
         selected_polygon <- buurten %>% filter(GM_NAAM == input$gemeente3 & WK_NAAM == input$wijken3 & BU_NAAM == input$buurten3)
-        selected_centroid <- st_coordinates(st_centroid(selected_polygon))
-        dataset$centroidx <- selected_centroid[1,1]
-        dataset$centroidy <- selected_centroid[1,2]
-        dataset$code <- dataset$BU_CODE
-        dataset$selected_area_code <- dataset %>% filter(GM_NAAM == input$gemeente3 & WK_NAAM == input$wijken3 & BU_NAAM == input$buurten3) %>%pull(code)
-        dataset$selected_area_label <- dataset %>% filter(GM_NAAM == input$gemeente3 & WK_NAAM == input$wijken3 & BU_NAAM == input$buurten3) %>%pull(label)
       }
+      dataset <- st_as_sf(comparable_df)
+      selected_centroid <- st_coordinates(st_centroid(selected_polygon))
+      dataset$centroidx <- selected_centroid[1,1]
+      dataset$centroidy <- selected_centroid[1,2]
+      
       return(dataset)
     })
     
@@ -218,7 +186,7 @@ shinyServer(function(input, output, session) {
         pal(input_map)
       } )
       legend_title <- as.character(variable)
-      labels <- sprintf("%s: %g", map_data$label, input_map) %>% 
+      labels <- sprintf("%s: %g", map_data$NAAM, input_map) %>% 
         lapply(htmltools::HTML)
       
       #map
@@ -246,8 +214,6 @@ shinyServer(function(input, output, session) {
       
     }
    
-    
-  
     #Function that takes four column names and creates a barplot of the selected area and the mean of comparable areas
     plot4 <- function(column1, column2, column3, column4){
       
@@ -262,7 +228,7 @@ shinyServer(function(input, output, session) {
       #Looking for the values of the input columns from the selected areas
       selected_area_code <- df[1, "selected_area_code"]
       selected_area_label <- df[1, "selected_area_label"]
-      df_selected <- df %>% subset(code == selected_area_code) %>% select(column1, column2, column3, column4)
+      df_selected <- df %>% subset(CODE == selected_area_code) %>% select(column1, column2, column3, column4)
       df_selected <- rownames_to_column(as.data.frame(t(df_selected)))
       df_selected$groep <- selected_area_label
       df_selected <- rename(df_selected, c(Variabele = 1, Waarde = 2, groep = 3))
