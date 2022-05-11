@@ -2,92 +2,96 @@ library(shiny)
 library(ggplot2)
 library(sf)
 library(leaflet)
+library(stringr)
+library(tidyverse)
 library(shinythemes)
 library(shinydashboard)
+library(htmltools)
 
 ui <- dashboardPage(
   dashboardHeader(title = "Buurtvergelijker"),
   dashboardSidebar(
     sidebarMenu(
-      menuItem("Dashboard", tabName = "dashboard", icon = icon("dashboard")),
-      menuItem("Tab2", tabName = "Tab2", icon = icon("th"))
-    )
-  ),
-  
+      menuItem("Dashboard", tabName = "Dashboard", icon = icon("dashboard")),
+      menuItem("Gezondheidszorg", tabName = "Gezondheidszorg", icon = icon("th")),
+      menuItem("Onderwijs", tabName = "Onderwijs", icon = icon("th")),
+      menuItem("Huizenmarkt", tabName = "Huizenmarkt", icon = icon("th")))
+  ), # Dashboard sidebar
   dashboardBody(tags$head(tags$style(HTML('.box{box-shadow: none;border-style: none;}.content-wrapper { overflow: auto; }'))),
                 tabItems(
-                  # First tab content
-                  tabItem(tabName = "dashboard",
-                          h2("Histogram en kaart van verschillende variabelen op gemeente-, wijk- of buurtniveau"),
-                          fluidRow(
-                            box(width = 3,
-                                textInput("postcode", "Weet u niet uw exacte gemeente, wijk of buurt naam? Vul dan hier uw postcode in:"),
-                                textOutput("postcode_info"))
-                          ),
-                          
-                          fluidRow(
-                            box(width = 3,
-                                selectInput("niveau", "Niveau:", c("Gemeenten" = "Gemeenten",
-                                                                   "Wijken" = "Wijken",
-                                                                   "Buurten" = "Buurten")),
-                                conditionalPanel(
-                                  condition = "input.niveau == 'Gemeenten'",
-                                  selectInput("gemeente1", "Gemeente:", choices=unique(gemeenten$GM_NAAM)),
-                                  selectInput("vergelijkbaar1", "Vergelijkbaarheid:", c("Stedelijkheidsniveau" = "Stedelijkheidsniveau",
-                                                                                        "Inkomensniveau" = "Inkomensniveau",
-                                                                                        "Opleidingsniveau" = "Opleidingsniveau"))
-                                ),
-                                conditionalPanel(
-                                  condition = "input.niveau == 'Wijken'",
-                                  selectInput("gemeente2", "Gemeente:", choices=unique(gemeenten$GM_NAAM)),
-                                  selectInput("wijken2", "Wijk:", choices=NULL),
-                                  selectInput("vergelijkbaar2", "Vergelijkbaarheid:", c("Stedelijkheidsniveau" = "Stedelijkheidsniveau",
-                                                                                        "Inkomensniveau" = "Inkomensniveau",
-                                                                                        "Opleidingsniveau" = "Opleidingsniveau")),
-                                  textOutput('ink_vergelijkbaarheid'),
-                                  textOutput('opl_vergelijkbaarheid')
-                                ),
-                                conditionalPanel(
-                                  condition = "input.niveau == 'Buurten'",
-                                  selectInput("gemeente3", "Gemeente:", choices=unique(gemeenten$GM_NAAM)),
-                                  selectInput("wijken3", "Wijk:", choices=NULL),
-                                  selectInput("buurten3", "Buurt:", choices=NULL),
-                                  selectInput("vergelijkbaar3", "Vergelijkbaarheid:", c("Stedelijkheidsniveau" = "Stedelijkheidsniveau"))
-                                )
-                                #,
-                                #varSelectInput("variable", "Variabele:", Filter(is.numeric, gemeenten))
-                            )
-                          ),
-                          # I think we don't need this fluidRow
-                          #fluidRow(
-                            #box(title = "Histogram", 
-                                #"Wanneer u een niveau en variabele heeft geselecteerd, kunt u in deze grafiek zien hoe de verdeling van deze variabele is op het geselecteerde niveau", br(), 
-                                #br(),
-                                #plotOutput("histogram")),
-                            #box(title = "Kaart", 
-                                #"Wanneer u een niveau en variabele heeft geselecteerd, kunt u op deze kaart zien welke waarde van deze variabele hoort bij elke gemeente/wijk/buurt", br(), 
-                                #br(),
-                                #leafletOutput("map"))
-                          #),
-                          fluidRow(
-                            tabBox(
-                                   # The id lets us use input$tabset1 on the server to find the current tab
-                                   id = "tabset1", height = "250px",
-                                   tabPanel("Gezondheid en Welzijn", plotOutput('plot_huisarts'), leafletOutput('map_huisarts'), plotOutput('plot_ziekenhuis_incl'), leafletOutput("map_ziekenhuizen_incl"), plotOutput('plot_ziekenhuis_excl'), leafletOutput("map_ziekenhuizen_excl")),
-                                   tabPanel("Detailhandel", plotOutput('plot_supermarkt'), leafletOutput('map_supermarkt'), plotOutput('plot_ov_levensm'), leafletOutput('map_ov_levensm'), plotOutput('plot_warenhuis'), leafletOutput('map_warenhuis')), 
-                                   tabPanel("Horeca", plotOutput('plot_cafes'), leafletOutput('map_cafes'), plotOutput('plot_cafetaria'), leafletOutput('map_cafetaria'), plotOutput('plot_restaurants'), leafletOutput('map_restaurants'), plotOutput('plot_hotels'), leafletOutput('map_hotels')),
-                                   tabPanel("Kinderopvang", plotOutput('plot_kinderdagverblijf'), leafletOutput('map_kinderdagverblijf'), plotOutput('plot_opvang'), leafletOutput('map_opvang')),
-                                   tabPanel("Onderwijs", plotOutput('plot_basisscholen'), leafletOutput('map_basisscholen'), plotOutput('plot_vo'), leafletOutput('map_vo'), plotOutput('plot_VMBO'), leafletOutput('map_VMBO'), plotOutput('plot_HAVO_VWO'), leafletOutput('map_HAVO_VWO')),
-                                   tabPanel("Verkeer en vervoer"),
-                                   tabPanel("Vrije tijd en cultuur", plotOutput('plot_bioscoop'), leafletOutput('map_bioscoop'), plotOutput('plot_attractie'), leafletOutput('map_attractie'), plotOutput('plot_podiumkunsten'), leafletOutput('map_podiumkunsten'), plotOutput('plot_musea'), leafletOutput('map_musea'))
-                            )
-                          )
-                  ),
+                  tabItem(
+                    tabName = "Dashboard",
+                    h2("Histogram en kaart van verschillende variabelen op gemeente-, wijk- of buurtniveau"),
+                    fluidRow(
+                      column(width = 3,
+                             box(title = "Postcode zoeken?", width = NULL, status = "primary", solidHeader = T,
+                                 textInput("postcode", "Weet u niet uw exacte gemeente, wijk of buurt? Vul dan hier uw postcode in:"),
+                                 textOutput("postcode_info")), # Box postcode zoeken
+                             box(title = "Thema", width = NULL, status = "primary", solidHeader = T,
+                                 selectInput("thema", "Thema:", c("Gezondheid en welzijn", "Detailhandel", "Horeca", 
+                                                                 "Kinderopvang", "Onderwijs", "Verkeer en vervoer", 
+                                                                 "Vrije tijd en cultuur"))), # Box thema
+                      ), # Column
+                      box(title = "Selecteer een niveau", width = 3, status = "primary", solidHeader = T,
+                          selectInput("niveau", "Niveau:", c("Gemeenten" = "Gemeenten",
+                                                            "Wijken" = "Wijken",
+                                                            "Buurten" = "Buurten")), # Select input niveau
+                          conditionalPanel(
+                            condition = "input.niveau == 'Gemeenten'",
+                            selectInput("gemeente1", "Gemeente:", choices = unique(gemeenten$GM_NAAM)), # Select input gemeente1
+                            selectInput("vergelijkbaar1", "Vergelijkbaar:", c("Stedelijkheidsniveau" = "Stedelijkheidsniveau",
+                                                                              "Inkomensniveau" = "Inkomensniveau",
+                                                                              "Opleidingsniveau" = "Opleidingsniveau",
+                                                                              "Nederland" = "Nederland")) # Select input vergelijkbaar1
+                          ), # Conditional panel 1 gemeenten
+                          conditionalPanel(
+                            condition = "input.niveau == 'Wijken'",
+                            selectInput("gemeente2", "Gemeente:", choices = unique(gemeenten$GM_NAAM)), # Select input gemeente2
+                            selectInput("wijken2", "Wijk:", choices = NULL), # Select input wijken2,
+                            selectInput("vergelijkbaar2", "Vergelijkbaar:", c("Stedelijkheidsiveau" = "Stedelijkheidsniveau",
+                                                                              "Inkomensniveau" = "Inkomensniveau",
+                                                                              "Opleidingsniveau" = "Opleidingsniveau",
+                                                                              "Nederland" = "Nederland")), # Select input vergelijkbaar 2
+                          ), # Conditional panel 2 wijken
+                          conditionalPanel(
+                            condition = "input.niveau == 'Buurten'",
+                            selectInput("gemeente3", "Gemeente:", choices = unique(gemeenten$GM_NAAM)), # Select input gemeente3
+                            selectInput("wijken3", "Wijk:", choices = NULL), # Select input wijken3
+                            selectInput("buurten3", "Buurt:", choices = NULL), # Select input buurten3
+                            selectInput("vergelijkbaar3", "Vergelijkbaar:", c("Stedelijkheidsniveau" = "Stedelijkheidsniveau",
+                                                                              "Nederland" = "Nederland")) # Select input vergelijkbaar3
+                          ) # Conditional panel 3 buurten
+                      ), # Box selecteer niveau
+                      box(title = "Geselecteerde plek op de kaart", width = 4, status = "warning", solidHeader = T,
+                          "Hier komt de prime map van leaflet met pointer naar centroid van de geselecteerde g/w/b",
+                          leafletOutput("prime_map")), # Box geselecteerde plek
+                      box(title = "Top 5 algemeen", width = 2, background = "red", 
+                          "Hier komt de algemene top 5 zonder geselecteerd thema") # Box top 5 algemeen
+                    ), # Fluid row 1 postcode, thema, algemene top 5, niveau, geselecteerde plek
+                    fluidRow(
+                      box(title = "Kaart van Nederland", width = 6, status = "warning", solidHeader = T,
+                          "Hier komt de kaart van Nederland met geselecteerde vergelijkbare g/w/b op bepaalde variabele",
+                          leafletOutput("map_huisarts")), # Box kaart
+                      box(title = "Top 5 geselecteerd thema", width = 2, background = "red",
+                          "Hier komt de top 5 van vergelijkbare g/w/b voor een bepaald thema"), # Box top 5 thema
+                      box(title = "Staafdiagram", width = 4, status = "warning", solidHeader = T,
+                          "Hier komt een staafdiagram om je wijk te vergelijken met het gemiddelde van vergelijkbare wijken",
+                          plotOutput("plot_huisarts")) # Box staafdiagram
+                    ) # Fluid row 2 histogram, kaart, thema top 5
+                  ), # Tab item dashboard
                   
-                  # Second tab content
-                  tabItem(tabName = "Tab2",
-                          h2("Voor eventueel ander tab ")
-                  )
-                )
-  )
-)
+                  tabItem(tabName = "Gezondheidszorg",
+                          h2("Eventueel voor gezondheidszorg")
+                  ), # tab item gezondheidszorg
+                  
+                  tabItem(tabName = "Onderwijs",
+                          h2("Eventueel voor onderwijs")
+                  ), # Tab item onderwijs
+                  
+                  tabItem(tabName = "Huizenmarkt",
+                          h2("Eventueel voor huizenmarkt")
+                  ) # Tab Item huizenmarkt
+                ) # TabItems
+  ) # Dashboard body
+) # Dashboard page
+

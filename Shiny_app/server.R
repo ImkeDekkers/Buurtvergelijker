@@ -4,6 +4,9 @@ library(sf)
 library(leaflet)
 library(stringr)
 library(tidyverse)
+library(shinythemes)
+library(shinydashboard)
+library(htmltools)
 
 gemeenten <- readRDS("../Data/gemeenten.rds")
 wijken <- readRDS("../Data/wijken.rds")
@@ -56,6 +59,8 @@ shinyServer(function(input, output, session) {
         }else if (input$vergelijkbaar1 == "Opleidingsniveau"){
           opleiding_num <- df[df$GM_NAAM == input$gemeente1, 'opleidingsgroep']        # Opleidingsniveau (calculated) is 182nd column
           comparable_df <- df[df$opleidingsgroep == opleiding_num, ]
+        } else if(input$vergelijkbaar1 == "Nederland"){
+          comparable_df <- df
         }
         comparable_df$selected_area_code <- comparable_df %>% filter(GM_NAAM == input$gemeente1) %>% pull(CODE)
         comparable_df$selected_area_label <- comparable_df %>% filter(GM_NAAM == input$gemeente1) %>% pull(NAAM)
@@ -84,17 +89,23 @@ shinyServer(function(input, output, session) {
           }else{
             comparable_df <- df[df$opleidingsgroep == opleiding_num, ]
           }
+        } else if(input$vergelijkbaar2 == "Nederland"){
+          comparable_df <- df
         }
         comparable_df$selected_area_code <- comparable_df %>% filter(GM_NAAM == input$gemeente2 & WK_NAAM == input$wijken2) %>%pull(CODE)
         comparable_df$selected_area_label <- comparable_df %>% filter(GM_NAAM == input$gemeente2 & WK_NAAM == input$wijken2) %>%pull(NAAM)
         selected_polygon <- wijken %>% filter(GM_NAAM == input$gemeente2 & WK_NAAM == input$wijken2)
       }else if(input$niveau == 'Buurten'){
-        stedelijkheid_num <- df[df$BU_NAAM==input$buurten3 & df$GM_NAAM == input$gemeente3 & df$WK_NAAM == input$wijken3, "Stedelijkheid (1=zeer sterk stedelijk, 5=niet stedelijk)"]
-        comparable_df <- df[df$`Stedelijkheid (1=zeer sterk stedelijk, 5=niet stedelijk)`== stedelijkheid_num, ]
+        if(input$vergelijkbaar3 == "Stedelijkheidsniveau"){
+          stedelijkheid_num <- df[df$BU_NAAM==input$buurten3 & df$GM_NAAM == input$gemeente3 & df$WK_NAAM == input$wijken3, "Stedelijkheid (1=zeer sterk stedelijk, 5=niet stedelijk)"]
+          comparable_df <- df[df$`Stedelijkheid (1=zeer sterk stedelijk, 5=niet stedelijk)`== stedelijkheid_num, ]
+        } else if(input$vergelijkbaar3 == "Nederland"){
+          comparable_df <- df
+        }
         comparable_df$selected_area_code <- comparable_df %>% filter(GM_NAAM == input$gemeente3 & WK_NAAM == input$wijken3 & BU_NAAM == input$buurten3) %>%pull(CODE)
         comparable_df$selected_area_label <- comparable_df %>% filter(GM_NAAM == input$gemeente3 & WK_NAAM == input$wijken3 & BU_NAAM == input$buurten3) %>%pull(NAAM)
         selected_polygon <- buurten %>% filter(GM_NAAM == input$gemeente3 & WK_NAAM == input$wijken3 & BU_NAAM == input$buurten3)
-      }
+      } 
       dataset <- st_as_sf(comparable_df)
       selected_centroid <- st_coordinates(st_centroid(selected_polygon))
       dataset$centroidx <- selected_centroid[1,1]
@@ -102,67 +113,6 @@ shinyServer(function(input, output, session) {
       
       return(dataset)
     })
-    
-    ###################
-    # I THINK THIS IS NOT NEEDED ANYMORE 
-    ###################
-    
-    #histogram van de variabele with vertical line of the value from the gemeente/wijk/buurt that has een selected  
-    #output$histogram <- renderPlot({
-      #data_hist <- datasetInput()
-        #ggplot(data_hist, aes(!!input$variable)) + 
-          #geom_histogram(fill='steelblue3', color='#e9ecef', bins=20) + 
-          #geom_vline(xintercept = data_hist$`area_line`) +
-          #labs( y = "Aantal")
-    #})
-    
-    #map with color based on the chosen variable
-    #output$map <- renderLeaflet({
-      #map_data  <- datasetInput()  
-      #map_data$variableplot <- map_data[[input$variable]]
-        # Change the colors based on the selected variable
-        #pal <- colorBin("YlOrRd", domain = map_data$variableplot)       #maps numeric input data to a fixed number of output colors using binning (slicing the input domain up by value)
-        #qpal <- colorQuantile("YlOrRd", map_data$variableplot, n = 6)    #maps numeric input data to a fixed number of output colors using quantiles (slicing the input domain into subsets with equal numbers of observations)
-        
-        #for the colors in the map, colorQuantile is used, unless an error is given, then we use colorBin
-        #coloring <- tryCatch({
-          #qpal(map_data$variableplot)
-        #} , error = function(e) {
-          #pal(map_data$variableplot)
-        #} )
-        
-        # Change the labels that appear on hover based on the selected variable
-        #labels <- sprintf("%s: %g", map_data$label, map_data$variableplot) %>% 
-            #lapply(htmltools::HTML)
-        #legend_title <- as.character(input$variable)
-        
-        #Different uses of legend, if there is the error of breaks not unique, then colorbin is used and the legend is established in a different manner
-        #coloring_legend <- tryCatch({
-          #leaflet(map_data) %>%
-            #addPolygons(fillColor = ~ coloring, color = "black", weight = 0.5, fillOpacity = 0.7,
-              #highlightOptions = highlightOptions(color='white',weight=0.5,fillOpacity = 0.7, bringToFront = TRUE), label = labels) %>%
-            #addProviderTiles(providers$CartoDB.Positron) %>% 
-            #addCircleMarkers(lng = map_data$centroidx, lat = map_data$centroidy, color = "black", weight = 3, opacity = 0.75, fillOpacity = 0)%>%
-            #leaflet::addLegend(pal = qpal, values = ~variableplot, opacity = 0.7, title = legend_title, labFormat = function(type, cuts, p) {      #labformat function makes sure the actual values instead of the quantiles are displayed in the legend
-                #n = length(cuts)
-                #paste0(cuts[-n], " &ndash; ", cuts[-1])
-              #}, labFormat = labelFormat(digits = 0)
-            #)
-        #}, error = function(e) {
-          #leaflet(map_data) %>%
-            #addPolygons(fillColor = ~ coloring, color = "black", weight = 0.5, fillOpacity = 0.7,
-              #highlightOptions = highlightOptions(color='white',weight=0.5,fillOpacity = 0.7, bringToFront = TRUE), label = labels) %>%
-            #addProviderTiles(providers$CartoDB.Positron) %>% 
-            #addCircleMarkers(lng = map_data$centroidx, lat = map_data$centroidy, color = "black", weight = 3, opacity = 0.75, fillOpacity = 0)%>%
-            #leaflet::addLegend(pal = pal, values = ~variableplot, opacity = 0.7, title = legend_title)
-        #})
-   
-        #l <- coloring_legend
-    #})
-    
-    ###################
-    # I THINK THIS IS NOT NEEDED ANYMORE 
-    ###################
     
     #Function that makes map of the selected variable 
     make_map <- function(variable){
@@ -213,6 +163,26 @@ shinyServer(function(input, output, session) {
       return(output_map)
       
     }
+    
+    # Make icon for prime map
+    awesome <- makeAwesomeIcon(
+      icon = "arrow-down",
+      iconColor = "black",
+      markerColor = "blue",
+      library = "fa")
+    
+    # Create map to point to the selected location and comparable polygons
+    output$prime_map <- renderLeaflet({
+      leaflet(datasetInput()) %>% 
+        addProviderTiles(providers$CartoDB.Positron) %>% 
+        addPolygons(color = "navy", weight = 1, 
+                    highlightOptions = highlightOptions(color = "black", 
+                                                        weight = 2),
+                    label = ~htmlEscape(datasetInput()$NAAM)) %>% 
+        addAwesomeMarkers(lng = datasetInput()$centroidx,
+                          lat = datasetInput()$centroidy,
+                          icon = awesome)
+    })
    
     #Function that takes four column names and creates a barplot of the selected area and the mean of comparable areas
     plot4 <- function(column1, column2, column3, column4){
@@ -244,7 +214,10 @@ shinyServer(function(input, output, session) {
     
     #Plot_4 of huisartsenpraktijken
     output$plot_huisarts <- renderPlot({
-      plot4("Afstand tot huisartsenpraktijk (km)", "Aantal huisartsenpraktijken binnen 1 km", "Aantal huisartsenpraktijken binnen 3 km", "Aantal huisartsenpraktijken binnen 5 km")
+      plot4("Afstand tot huisartsenpraktijk (km)", 
+            "Aantal huisartsenpraktijken binnen 1 km", 
+            "Aantal huisartsenpraktijken binnen 3 km", 
+            "Aantal huisartsenpraktijken binnen 5 km")
     })
     
     #Plot_4 of Ziekenhuis (incl. buitenpolikliniek)
