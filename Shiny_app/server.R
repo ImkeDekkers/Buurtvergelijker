@@ -69,8 +69,6 @@ shinyServer(function(input, output, session) {
         }
           })
     
-
-    
     #make used data reactive on the selected niveau
     datasetInput <- reactive({
       df <- as.data.frame(full_data)
@@ -91,6 +89,7 @@ shinyServer(function(input, output, session) {
         comparable_df$selected_area_code <- comparable_df %>% filter(GM_NAAM == input$gemeente1) %>% pull(CODE)
         comparable_df$selected_area_label <- comparable_df %>% filter(GM_NAAM == input$gemeente1) %>% pull(NAAM)
         selected_polygon <- gemeenten %>% filter(GM_NAAM == input$gemeente1)
+        row_num_selected <- which(comparable_df$GM_NAAM == input$gemeente1)
       }else if(input$niveau == 'Wijken'){
         if(input$vergelijkbaar2 == "Stedelijkheidsniveau"){
           stedelijkheid_num <- df[df$WK_NAAM == input$wijken2 & df$GM_NAAM == input$gemeente2, "Stedelijkheid (1=zeer sterk stedelijk, 5=niet stedelijk)"]      # Stedelijkheid is the 5th column in the data
@@ -124,6 +123,7 @@ shinyServer(function(input, output, session) {
         comparable_df$selected_area_code <- comparable_df %>% filter(GM_NAAM == input$gemeente2 & WK_NAAM == input$wijken2) %>%pull(CODE)
         comparable_df$selected_area_label <- comparable_df %>% filter(GM_NAAM == input$gemeente2 & WK_NAAM == input$wijken2) %>%pull(NAAM)
         selected_polygon <- wijken %>% filter(GM_NAAM == input$gemeente2 & WK_NAAM == input$wijken2)
+        row_num_selected <- which(comparable_df$GM_NAAM == input$gemeente2 & comparable_df$WK_NAAM == input$wijken2)
       }else if(input$niveau == 'Buurten'){
         if(input$vergelijkbaar3 == "Stedelijkheidsniveau"){
           stedelijkheid_num <- df[df$BU_NAAM==input$buurten3 & df$GM_NAAM == input$gemeente3 & df$WK_NAAM == input$wijken3, "Stedelijkheid (1=zeer sterk stedelijk, 5=niet stedelijk)"]
@@ -135,89 +135,14 @@ shinyServer(function(input, output, session) {
         comparable_df$selected_area_code <- comparable_df %>% filter(GM_NAAM == input$gemeente3 & WK_NAAM == input$wijken3 & BU_NAAM == input$buurten3) %>%pull(CODE)
         comparable_df$selected_area_label <- comparable_df %>% filter(GM_NAAM == input$gemeente3 & WK_NAAM == input$wijken3 & BU_NAAM == input$buurten3) %>%pull(NAAM)
         selected_polygon <- buurten %>% filter(GM_NAAM == input$gemeente3 & WK_NAAM == input$wijken3 & BU_NAAM == input$buurten3)
+        row_num_selected <- which(comparable_df$GM_NAAM == input$gemeente3 & comparable_df$WK_NAAM == input$wijken3 & comparable_df$BU_NAAM == input$buurten3)
       } 
+      comparable_df$centroidxx <- comparable_df[row_num_selected, 'centroidx']
+      comparable_df$centroidyy <- comparable_df[row_num_selected, 'centroidy']
       dataset <- st_as_sf(comparable_df)
-      selected_centroid <- st_coordinates(st_centroid(selected_polygon))
-      dataset$centroidx <- selected_centroid[1,1]
-      dataset$centroidy <- selected_centroid[1,2]
       
       return(dataset)
     })
-    
-    #Function that makes map of the selected variable 
-    make_map <- function(variable){
-      #get input for the map
-      map_data <- datasetInput()
-      map_data$variable <- map_data[[variable]]
-      
-      #define colors for polygons and legend 
-      pal <- colorBin("YlOrRd", domain = map_data$variable)
-      qpal <- colorQuantile("YlOrRd", map_data$variable, n = 6)
-      #for the colors in the map, colorQuantile is used, unless an error is given, then we use colorBin
-      coloring <- tryCatch({
-        qpal(map_data$variable)
-      } , error = function(e) {
-        pal(map_data$variable)
-      } )
-      legend_title <- as.character(variable)
-      labels <- sprintf("%s: %g", map_data$NAAM, map_data$variable) %>% 
-        lapply(htmltools::HTML)
-      #label_content <- sprintf("%s: %g \n %s: %g", map_data$selected_area_label, map_data$variable[map_data$NAAM == map_data$selected_area_label], "Gemiddelde geselecteerde gebieden", round(mean(map_data$variable, na.rm=TRUE), digits = 1))
-      label_content <- sprintf("%s: %g %s: %g", map_data$selected_area_label, map_data$variable[map_data$NAAM == map_data$selected_area_label], "Gemiddelde geselecteerde gebieden", round(mean(map_data$variable, na.rm=TRUE), digits = 1))
-      
-      #map
-      output_map <- tryCatch({
-        leaflet(map_data)%>%
-          addPolygons(fillColor = ~coloring, color = "black", weight = 0.5, fillOpacity = 0.7,
-                      highlightOptions = highlightOptions(color='white',weight=0.5,fillOpacity = 0.7, bringToFront = TRUE), label = labels)%>%
-          addProviderTiles(providers$CartoDB.Positron)%>%
-          addMarkers(
-            lng = map_data$centroidx, lat = map_data$centroidy,
-            label = label_content,
-            labelOptions = labelOptions(noHide = T))%>%
-          #addCircleMarkers(lng = map_data$centroidx, lat = map_data$centroidy, color = "black", weight = 3, opacity = 0.75, fillOpacity = 0)%>%
-          leaflet::addLegend(pal = qpal, values = ~map_data$variable, opacity = 0.7, title = legend_title, labFormat = function(type, cuts, p) {      #labformat function makes sure the actual values instead of the quantiles are displayed in the legend
-            n = length(cuts)
-            paste0(cuts[-n], " &ndash; ", cuts[-1])
-          }, labFormat = labelFormat(digits = 0))
-        
-      }, error = function(e) {
-        leaflet(map_data) %>%
-          addPolygons(fillColor = ~ coloring, color = "black", weight = 0.5, fillOpacity = 0.7,
-                      highlightOptions = highlightOptions(color='white',weight=0.5,fillOpacity = 0.7, bringToFront = TRUE), label = labels) %>%
-          addProviderTiles(providers$CartoDB.Positron) %>% 
-          addMarkers(
-            lng = map_data$centroidx, lat = map_data$centroidy,
-            label = label_content,
-            labelOptions = labelOptions(noHide = T))%>%
-          #addCircleMarkers(lng = map_data$centroidx, lat = map_data$centroidy, color = "black", weight = 3, opacity = 0.75, fillOpacity = 0)%>%
-          leaflet::addLegend(pal = pal, values = ~map_data$variable, opacity = 0.7, title = legend_title)
-      })
-      
-      return(output_map)
-      
-    }
-    
-    # Make icon for prime map
-    awesome <- makeAwesomeIcon(
-      icon = "arrow-down",
-      iconColor = "black",
-      markerColor = "blue",
-      library = "fa")
-    
-    # Create map to point to the selected location and comparable polygons
-    output$prime_map <- renderLeaflet({
-      leaflet(datasetInput()) %>% 
-        addProviderTiles(providers$CartoDB.Positron) %>% 
-        addPolygons(color = "navy", weight = 1, 
-                    highlightOptions = highlightOptions(color = "black", 
-                                                        weight = 2),
-                    label = ~htmlEscape(datasetInput()$NAAM)) %>% 
-        addAwesomeMarkers(lng = datasetInput()$centroidx,
-                          lat = datasetInput()$centroidy,
-                          icon = awesome)
-    })
-    
     
     #Function that returns the 5 most similar areas to the input area based on all voorzieningen variables
     top5_distances_overall <- function(){
@@ -252,23 +177,23 @@ shinyServer(function(input, output, session) {
       final <-  final[order(final$`afstand`),]      #After merge it was not sorted anymore
       
       #Returning GM_NAAM, WK_NAAM and BU_NAAM based on selected niveau
-      if(input$niveau=="Gemeenten"){
-        final <- final %>% select(GM_NAAM)
-        final <- rename(final, "Gemeente naam"=GM_NAAM)
-        row.names(final) <- NULL
-      }else if (input$niveau=="Wijken"){
-        final <- final %>% unite(., col = "Wijk naam",  WK_NAAM, GM_NAAM, na.rm=TRUE, sep = " (gemeente ")
-        final$`Wijk naam` <- paste0(final$`Wijk naam`, ")")
-        final <- final %>% select(`Wijk naam`)
-        row.names(final) <- NULL
-      }else if (input$niveau=="Buurten"){
-        final <- final %>% unite(., col = "Buurt naam",  BU_NAAM, GM_NAAM, na.rm=TRUE, sep = " (gemeente ")
-        final <- final %>% unite(., col = "Buurt naam",  `Buurt naam`, WK_NAAM, na.rm=TRUE, sep = ", wijk ")
-        final$`Buurt naam` <- paste0(final$`Buurt naam`, ")")
-        final <- final %>% select(`Buurt naam`)
-        row.names(final) <- NULL
-      }
-      
+      # if(input$niveau=="Gemeenten"){
+      #   final <- final %>% select(GM_NAAM)
+      #   final <- rename(final, "Gemeente naam"=GM_NAAM)
+      #   row.names(final) <- NULL
+      # }else if (input$niveau=="Wijken"){
+      #   final <- final %>% unite(., col = "Wijk naam",  WK_NAAM, GM_NAAM, na.rm=TRUE, sep = " (gemeente ")
+      #   final$`Wijk naam` <- paste0(final$`Wijk naam`, ")")
+      #   final <- final %>% select(`Wijk naam`)
+      #   row.names(final) <- NULL
+      # }else if (input$niveau=="Buurten"){
+      #   final <- final %>% unite(., col = "Buurt naam",  BU_NAAM, GM_NAAM, na.rm=TRUE, sep = " (gemeente ")
+      #   final <- final %>% unite(., col = "Buurt naam",  `Buurt naam`, WK_NAAM, na.rm=TRUE, sep = ", wijk ")
+      #   final$`Buurt naam` <- paste0(final$`Buurt naam`, ")")
+      #   final <- final %>% select(`Buurt naam`)
+      #   row.names(final) <- NULL
+      # }
+      # 
       return(final)
     }
     
@@ -325,32 +250,126 @@ shinyServer(function(input, output, session) {
       final <-  final[order(final$`afstand`),]      #After merge it was not sorted anymore
       
       #Returning GM_NAAM, WK_NAAM and BU_NAAM based on selected niveau
-      if(input$niveau=="Gemeenten"){
-        final <- final %>% select(GM_NAAM)
-        final <- rename(final, "Gemeente naam"=GM_NAAM)
-        row.names(final) <- NULL
-      }else if (input$niveau=="Wijken"){
-        final <- final %>% unite(., col = "Wijk naam",  WK_NAAM, GM_NAAM, na.rm=TRUE, sep = " (gemeente ")
-        final$`Wijk naam` <- paste0(final$`Wijk naam`, ")")
-        final <- final %>% select(`Wijk naam`)
-        row.names(final) <- NULL
-      }else if (input$niveau=="Buurten"){
-        final <- final %>% unite(., col = "Buurt naam",  BU_NAAM, GM_NAAM, na.rm=TRUE, sep = " (gemeente ")
-        final <- final %>% unite(., col = "Buurt naam",  `Buurt naam`, WK_NAAM, na.rm=TRUE, sep = ", wijk ")
-        final$`Buurt naam` <- paste0(final$`Buurt naam`, ")")
-        final <- final %>% select(`Buurt naam`)
-        row.names(final) <- NULL
-      }
+      # if(input$niveau=="Gemeenten"){
+      #   final <- final %>% select(GM_NAAM)
+      #   final <- rename(final, "Gemeente naam"=GM_NAAM)
+      #   row.names(final) <- NULL
+      # }else if (input$niveau=="Wijken"){
+      #   final <- final %>% unite(., col = "Wijk naam",  WK_NAAM, GM_NAAM, na.rm=TRUE, sep = " (gemeente ")
+      #   final$`Wijk naam` <- paste0(final$`Wijk naam`, ")")
+      #   final <- final %>% select(`Wijk naam`)
+      #   row.names(final) <- NULL
+      # }else if (input$niveau=="Buurten"){
+      #   final <- final %>% unite(., col = "Buurt naam",  BU_NAAM, GM_NAAM, na.rm=TRUE, sep = " (gemeente ")
+      #   final <- final %>% unite(., col = "Buurt naam",  `Buurt naam`, WK_NAAM, na.rm=TRUE, sep = ", wijk ")
+      #   final$`Buurt naam` <- paste0(final$`Buurt naam`, ")")
+      #   final <- final %>% select(`Buurt naam`)
+      #   row.names(final) <- NULL
+      # }
       
       return(final)
     }
     
+    # Make icon for maps
+    awesome1 <- makeAwesomeIcon(
+      icon = "arrow-down",
+      iconColor = "black",
+      markerColor = "blue",
+      library = "fa")
+    
+    awesome5 <- makeAwesomeIcon(
+      icon = "arrow-down",
+      iconColor = "black",
+      markerColor = "red",
+      library = "fa")
+    
+    #Function that makes map of the selected variable 
+    make_map <- function(variable){
+      #get input for the map
+      map_data <- datasetInput()
+      map_data$variable <- map_data[[variable]]
+      
+      #define colors for polygons and legend 
+      pal <- colorBin("YlOrRd", domain = map_data$variable)
+      qpal <- colorQuantile("YlOrRd", map_data$variable, n = 6)
+      #for the colors in the map, colorQuantile is used, unless an error is given, then we use colorBin
+      coloring <- tryCatch({
+        qpal(map_data$variable)
+      } , error = function(e) {
+        pal(map_data$variable)
+      } )
+      legend_title <- as.character(variable)
+      labels <- sprintf("%s: %g", map_data$NAAM, map_data$variable) %>% 
+        lapply(htmltools::HTML)
+      #label_content <- sprintf("%s: %g \n %s: %g", map_data$selected_area_label, map_data$variable[map_data$NAAM == map_data$selected_area_label], "Gemiddelde geselecteerde gebieden", round(mean(map_data$variable, na.rm=TRUE), digits = 1))
+      label_content <- sprintf("%s: %g %s: %g", map_data$selected_area_label, map_data$variable[map_data$NAAM == map_data$selected_area_label], "Gemiddelde geselecteerde gebieden", round(mean(map_data$variable, na.rm=TRUE), digits = 1))
+      
+      #map
+      output_map <- tryCatch({
+        leaflet(map_data)%>%
+          addPolygons(fillColor = ~coloring, color = "black", weight = 0.5, fillOpacity = 0.7,
+                      highlightOptions = highlightOptions(color='white',weight=0.5,fillOpacity = 0.7, bringToFront = TRUE), label = labels)%>%
+          addProviderTiles(providers$CartoDB.Positron)%>%
+          addMarkers(
+            lng = map_data$centroidxx, lat = map_data$centroidyy,
+            label = label_content,
+            labelOptions = labelOptions(noHide = T))%>%
+          addAwesomeMarkers(data = top5_distances_theme(),
+                            lng = ~centroidx,
+                            lat = ~centroidy,
+                            icon = awesome5,
+                            label = ~NAAM) %>% 
+          #addCircleMarkers(lng = map_data$centroidxx, lat = map_data$centroidyy, color = "black", weight = 3, opacity = 0.75, fillOpacity = 0)%>%
+          leaflet::addLegend(pal = qpal, values = ~map_data$variable, opacity = 0.7, title = legend_title, labFormat = function(type, cuts, p) {      #labformat function makes sure the actual values instead of the quantiles are displayed in the legend
+            n = length(cuts)
+            paste0(cuts[-n], " &ndash; ", cuts[-1])
+          }, labFormat = labelFormat(digits = 0))
+        
+      }, error = function(e) {
+        leaflet(map_data) %>%
+          addPolygons(fillColor = ~ coloring, color = "black", weight = 0.5, fillOpacity = 0.7,
+                      highlightOptions = highlightOptions(color='white',weight=0.5,fillOpacity = 0.7, bringToFront = TRUE), label = labels) %>%
+          addProviderTiles(providers$CartoDB.Positron) %>% 
+          addMarkers(
+            lng = map_data$centroidxx, lat = map_data$centroidyy,
+            label = label_content,
+            labelOptions = labelOptions(noHide = T))%>% 
+          addAwesomeMarkers(data = top5_distances_theme(),
+                            lng = ~centroidx,
+                            lat = ~centroidy,
+                            icon = awesome5,
+                            label = ~NAAM) %>% 
+          #addCircleMarkers(lng = map_data$centroidx, lat = map_data$centroidy, color = "black", weight = 3, opacity = 0.75, fillOpacity = 0)%>%
+          leaflet::addLegend(pal = pal, values = ~map_data$variable, opacity = 0.7, title = legend_title)
+      })
+      
+      return(output_map)
+      
+    }
+
     #returns table with top 5 similar areas based on chosen theme
     output$top5_theme <- renderTable(
       top5_distances_theme(),
       rownames = TRUE
     )
     
+    # Create map to point to the selected location and comparable polygons
+    output$prime_map <- renderLeaflet({
+      leaflet(datasetInput()) %>% 
+        addProviderTiles(providers$CartoDB.Positron) %>% 
+        addPolygons(color = "navy", weight = 1, 
+                    highlightOptions = highlightOptions(color = "black", 
+                                                        weight = 2),
+                    label = ~htmlEscape(datasetInput()$NAAM)) %>% 
+        addAwesomeMarkers(lng = datasetInput()$centroidxx,
+                          lat = datasetInput()$centroidyy,
+                          icon = awesome1) %>% 
+        addAwesomeMarkers(data = top5_distances_overall(),
+                          lng = ~centroidx,
+                          lat = ~centroidy,
+                          icon = awesome5,
+                          label = ~NAAM)
+    })
     
     #Function that takes four column names and creates a barplot of the selected area and the mean of comparable areas
     plot4 <- function(column1, column2, column3, column4){
@@ -379,8 +398,6 @@ shinyServer(function(input, output, session) {
         scale_x_discrete(labels = function(x) 
           stringr::str_wrap(x, width = 15))
     }
-    
-
     
     output$map_variable <- renderLeaflet({
       if (input$subthema == "Huisartsenpraktijk"){
