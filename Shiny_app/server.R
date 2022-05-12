@@ -243,11 +243,83 @@ shinyServer(function(input, output, session) {
     }
     
     #Gives table output with 5 most similar areas based on all voorzieningen variables
-    output$table <- renderTable(
+    output$top5_algemeen <- renderTable(
       top5_distances_overall(),
       rownames = TRUE
     )
     
+    #Function that returns the 5 most similar areas to the input area based on voorzieningen variables in chosen theme
+    top5_distances_theme <- function(){
+      
+      df <- as.data.frame(datasetInput())
+      
+      #Making CODE the row index so all rows are identifiable 
+      result <-  subset(df, select = -c(CODE))
+      row.names(result) <- df$CODE
+      
+      #subset df based on theme input so it contains the right voorzieningen variables and transform the data with z-score (scale function)
+      if(input$thema=="Gezondheid en welzijn"){
+        result <- subset(result, select= `Afstand tot huisartsenpraktijk (km)`: `Aantal ziekenhuizen excl. Buitenpolikliniek binnen 20 km`)
+      }else if(input$thema=="Detailhandel"){
+        result <- subset(result, select= `Afstand tot grote supermarkt (km)`: `Aantal warenhuizen binnen 20 km`)
+      }else if(input$thema=="Horeca"){
+        result <- subset(result, select= `Afstand tot café (km)`: `Aantal hotel binnen 20 km`)
+      }else if(input$thema=="Kinderopvang"){
+        result <- subset(result, select= `Afstand tot kinderdagverblijf  (km)`: `Aantal buitenschoolse opvang  binnen 5 km`)
+      }else if(input$thema=="Onderwijs"){
+        result <- subset(result, select= `Afstand tot basisscholen (km)`: `Aantal scholen HAVO/VWO binnen 10 km`)
+      }else if(input$thema=="Verkeer en vervoer"){
+        result <- subset(result, select= `Afstand tot oprit hoofdverkeersweg (km)`: `Afstand tot belangrijk overstapstation (km)`)
+      }else if (input$thema=="Vrije tijd en cultuur"){
+        result <- subset(result, select= `Afstand tot zwembad (km)`: `Aantal musea binnen 20 km`)
+      }
+      normalized <- as.data.frame(scale(result))
+      
+      #Making one df for the selected area and one for the comparable areas without the area itself 
+      selected_area_code <- df[1, "selected_area_code"]
+      selected_area <- normalized[rownames(normalized) == selected_area_code,]
+      other <- normalized[rownames(normalized) != selected_area_code,]
+      
+      #Calculating distance from the selected area to all areas in other dataframe
+      dist_matrix <- apply(selected_area,1,function(selected_area)apply(other,1,function(other,selected_area)dist(rbind(other,selected_area),method = 'manhattan'),selected_area))
+      dist_df <- as.data.frame(dist_matrix)
+      dist_df <- rename(dist_df, "afstand"=1)
+      dist_df$CODE <- row.names(dist_df)
+      
+      #Ordering the distances and returning top 5
+      sorted <-  dist_df[order(dist_df$`afstand`),]
+      top5 <- head(sorted, 5)
+      
+      #Merging with original df to get the names of the areas
+      final <- merge(top5, df, by="CODE")
+      final <-  final[order(final$`afstand`),]      #After merge it was not sorted anymore
+      
+      #Returning GM_NAAM, WK_NAAM and BU_NAAM based on selected niveau
+      if(input$niveau=="Gemeenten"){
+        final <- final %>% select(GM_NAAM)
+        final <- rename(final, "Gemeente naam"=GM_NAAM)
+        row.names(final) <- NULL
+      }else if (input$niveau=="Wijken"){
+        final <- final %>% unite(., col = "Wijk naam",  WK_NAAM, GM_NAAM, na.rm=TRUE, sep = " (gemeente ")
+        final$`Wijk naam` <- paste0(final$`Wijk naam`, ")")
+        final <- final %>% select(`Wijk naam`)
+        row.names(final) <- NULL
+      }else if (input$niveau=="Buurten"){
+        final <- final %>% unite(., col = "Buurt naam",  BU_NAAM, GM_NAAM, na.rm=TRUE, sep = " (gemeente ")
+        final <- final %>% unite(., col = "Buurt naam",  `Buurt naam`, WK_NAAM, na.rm=TRUE, sep = ", wijk ")
+        final$`Buurt naam` <- paste0(final$`Buurt naam`, ")")
+        final <- final %>% select(`Buurt naam`)
+        row.names(final) <- NULL
+      }
+      
+      return(final)
+    }
+    
+    #returns table with top 5 similar areas based on chosen theme
+    output$top5_theme <- renderTable(
+      top5_distances_theme(),
+      rownames = TRUE
+    )
     
     
     #Function that takes four column names and creates a barplot of the selected area and the mean of comparable areas

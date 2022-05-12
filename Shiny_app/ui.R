@@ -72,14 +72,15 @@ ui <- dashboardPage(
                           leafletOutput("prime_map")), # Box geselecteerde plek
                       box(title = "Top 5 algemeen", width = 2, background = "red", 
                           "Hier komt de algemene top 5 zonder geselecteerd thema",
-                          tableOutput('table')) # Box top 5 algemeen
+                          tableOutput('top5_algemeen')) # Box top 5 algemeen
                     ), # Fluid row 1 postcode, thema, algemene top 5, niveau, geselecteerde plek
                     fluidRow(
                       box(title = "Kaart van Nederland", width = 6, status = "warning", solidHeader = T,
                           "Hier komt de kaart van Nederland met geselecteerde vergelijkbare g/w/b op bepaalde variabele",
                           leafletOutput("map_huisarts")), # Box kaart
                       box(title = "Top 5 geselecteerd thema", width = 2, background = "red",
-                          "Hier komt de top 5 van vergelijkbare g/w/b voor een bepaald thema"), # Box top 5 thema
+                          "Hier komt de top 5 van vergelijkbare g/w/b voor een bepaald thema",
+                          tableOutput('top5_theme')), # Box top 5 thema
                       box(title = "Staafdiagram", width = 4, status = "warning", solidHeader = T,
                           "Hier komt een staafdiagram om je wijk te vergelijken met het gemiddelde van vergelijkbare wijken",
                           plotOutput("plot_huisarts")) # Box staafdiagram
