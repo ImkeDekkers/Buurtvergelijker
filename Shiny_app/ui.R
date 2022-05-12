@@ -35,7 +35,8 @@ ui <- dashboardPage(
                              box(title = "Thema", width = NULL, status = "primary", solidHeader = T,
                                  selectInput("thema", "Thema:", c("Gezondheid en welzijn", "Detailhandel", "Horeca", 
                                                                  "Kinderopvang", "Onderwijs", "Verkeer en vervoer", 
-                                                                 "Vrije tijd en cultuur"))), # Box thema
+                                                                 "Vrije tijd en cultuur")), # Box thema
+                                 selectInput("subthema", "Subthema:", choices = NULL)), 
                       ), # Column
                       box(title = "Selecteer een niveau", width = 3, status = "primary", solidHeader = T,
                           selectInput("niveau", "Niveau:", c("Gemeenten" = "Gemeenten",
@@ -77,13 +78,13 @@ ui <- dashboardPage(
                     fluidRow(
                       box(title = "Kaart van Nederland", width = 6, status = "warning", solidHeader = T,
                           "Hier komt de kaart van Nederland met geselecteerde vergelijkbare g/w/b op bepaalde variabele",
-                          leafletOutput("map_huisarts")), # Box kaart
+                          leafletOutput("map_variable")), # Box kaart
                       box(title = "Top 5 geselecteerd thema", width = 2, background = "red",
                           "Hier komt de top 5 van vergelijkbare g/w/b voor een bepaald thema",
                           tableOutput('top5_theme')), # Box top 5 thema
                       box(title = "Staafdiagram", width = 4, status = "warning", solidHeader = T,
                           "Hier komt een staafdiagram om je wijk te vergelijken met het gemiddelde van vergelijkbare wijken",
-                          plotOutput("plot_huisarts")) # Box staafdiagram
+                          plotOutput("plot_variable")) # Box staafdiagram
                     ) # Fluid row 2 histogram, kaart, thema top 5
                   ), # Tab item dashboard
                   
