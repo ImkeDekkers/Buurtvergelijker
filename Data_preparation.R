@@ -147,12 +147,43 @@ wijken <- wijken %>%
                                      perc_opleiding >= quants_wk_opl[4] & 
                                        perc_opleiding <= quants_wk_opl[5] ~ 4))
 
+# Centroids gemeenten 
+sf_use_s2(F)
+gemeenten$centroid <- st_centroid(gemeenten$geometry)
+gemeenten$centroidx <- NA
+gemeenten$centroidy <- NA
+
+for (x in seq(1: nrow(gemeenten))){
+  gemeenten[x,]$centroidx <- st_coordinates(gemeenten$centroid)[x,1]
+  gemeenten[x,]$centroidy <- st_coordinates(gemeenten$centroid)[x,2]
+}
+
+# Centroids wijken
+wijken$centroid <- st_centroid(wijken$geometry)
+wijken$centroidx <- NA
+wijken$centroidy <- NA
+
+for (x in seq(1: nrow(wijken))){
+  wijken[x,]$centroidx <- st_coordinates(wijken$centroid)[x,1]
+  wijken[x,]$centroidy <- st_coordinates(wijken$centroid)[x,2]
+}
+
+# Centroids buurten
+buurten$centroid <- st_centroid(buurten$geometry)
+buurten$centroidx <- NA
+buurten$centroidy <- NA
+
+for (x in seq(1: nrow(buurten))){
+  buurten[x,]$centroidx <- st_coordinates(buurten$centroid)[x,1]
+  buurten[x,]$centroidy <- st_coordinates(buurten$centroid)[x,2]
+}
+
 #Bind rows from gemeenten, wijken en buurten together 
 gemeenten_test <- gemeenten  %>% add_column(Niveau = 'Gemeenten', CODE=gemeenten$GM_CODE, NAAM = gemeenten$GM_NAAM, .before = 'H2O')
 wijken_test <- wijken %>% add_column(Niveau = 'Wijken', CODE = wijken$WK_CODE, NAAM = wijken$WK_NAAM,  .before = 'H2O') 
 buurten_test <- buurten %>% add_column(Niveau = 'Buurten', CODE = buurten$BU_CODE, NAAM = buurten$BU_NAAM,  .before = 'H2O')
 
 full_data <- bind_rows(buurten_test, wijken_test, gemeenten_test)
-write_rds(full_data, "Data/full_data.rds")
+write_rds(full_data, "../Data/full_data.rds")
 
 
