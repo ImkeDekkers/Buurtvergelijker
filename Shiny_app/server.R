@@ -69,6 +69,7 @@ shinyServer(function(input, output, session) {
         if(input$vergelijkbaar2 == "Stedelijkheidsniveau"){
           stedelijkheid_num <- df[df$WK_NAAM == input$wijken2 & df$GM_NAAM == input$gemeente2, "Stedelijkheid (1=zeer sterk stedelijk, 5=niet stedelijk)"]      # Stedelijkheid is the 5th column in the data
           comparable_df <- df[df$`Stedelijkheid (1=zeer sterk stedelijk, 5=niet stedelijk)`== stedelijkheid_num, ]
+          comparable_df <- comparable_df %>% drop_na(CODE)
         }else if (input$vergelijkbaar2 == "Inkomensniveau"){
           inkomen_num <- df[df$WK_NAAM == input$wijken2 & df$GM_NAAM == input$gemeente2, 'inkomengroep']          # Inkomensniveau (calculated) is 180th column
           if(is.na(inkomen_num)){
@@ -78,6 +79,7 @@ shinyServer(function(input, output, session) {
             )
           }else{
             comparable_df <- df[df$inkomengroep == inkomen_num, ]
+            comparable_df <- comparable_df %>% drop_na(CODE)
           }
         }else if (input$vergelijkbaar2 == "Opleidingsniveau"){
           opleiding_num <- df[df$WK_NAAM == input$wijken2 & df$GM_NAAM == input$gemeente2, 'opleidingsgroep']        # Opleidingsniveau (calculated) is 182nd column
@@ -88,6 +90,7 @@ shinyServer(function(input, output, session) {
             )
           }else{
             comparable_df <- df[df$opleidingsgroep == opleiding_num, ]
+            comparable_df <- comparable_df %>% drop_na(CODE)
           }
         } else if(input$vergelijkbaar2 == "Nederland"){
           comparable_df <- df
@@ -99,6 +102,7 @@ shinyServer(function(input, output, session) {
         if(input$vergelijkbaar3 == "Stedelijkheidsniveau"){
           stedelijkheid_num <- df[df$BU_NAAM==input$buurten3 & df$GM_NAAM == input$gemeente3 & df$WK_NAAM == input$wijken3, "Stedelijkheid (1=zeer sterk stedelijk, 5=niet stedelijk)"]
           comparable_df <- df[df$`Stedelijkheid (1=zeer sterk stedelijk, 5=niet stedelijk)`== stedelijkheid_num, ]
+          comparable_df <- comparable_df %>% drop_na(CODE)
         } else if(input$vergelijkbaar3 == "Nederland"){
           comparable_df <- df
         }
@@ -183,7 +187,65 @@ shinyServer(function(input, output, session) {
                           lat = datasetInput()$centroidy,
                           icon = awesome)
     })
-   
+    
+    
+    #Function that returns the 5 most similar areas to the input area based on all voorzieningen variables
+    top5_distances_overall <- function(){
+      
+      df <- as.data.frame(datasetInput())
+      
+      #Making CODE the row index so all rows are identifiable 
+      result <-  subset(df, select = -c(CODE))
+      row.names(result) <- df$CODE
+      
+      #subset df so it only contains voorzieningen variables and transform the data with z-score (scale function)
+      result <- subset(result, select= `Afstand tot huisartsenpraktijk (km)`: `Aantal musea binnen 20 km`)
+      normalized <- as.data.frame(scale(result))
+      
+      #Making one df for the selected area and one for the comparable areas without the area itself 
+      selected_area_code <- df[1, "selected_area_code"]
+      selected_area <- normalized[rownames(normalized) == selected_area_code,]
+      other <- normalized[rownames(normalized) != selected_area_code,]
+      
+      #Calculating distance from the selected area to all areas in other dataframe
+      dist_matrix <- apply(selected_area,1,function(selected_area)apply(other,1,function(other,selected_area)dist(rbind(other,selected_area),method = 'manhattan'),selected_area))
+      dist_df <- as.data.frame(dist_matrix)
+      dist_df <- rename(dist_df, "afstand"=1)
+      dist_df$CODE <- row.names(dist_df)
+      
+      #Ordering the distances and returning top 5
+      sorted <-  dist_df[order(dist_df$`afstand`),]
+      top5 <- head(sorted, 5)
+      
+      #Merging with original df to get the names of the areas
+      final <- merge(top5, df, by="CODE")
+      final <-  final[order(final$`afstand`),]      #After merge it was not sorted anymore
+      
+      #Returning GM_NAAM, WK_NAAM and BU_NAAM based on selected niveau
+      if(input$niveau=="Gemeenten"){
+        final <- final %>% select(GM_NAAM)
+        final <- rename(final, "Gemeente naam"=GM_NAAM)
+      }else if (input$niveau=="Wijken"){
+        final <- final %>% unite(., col = "Wijk naam",  WK_NAAM, GM_NAAM, na.rm=TRUE, sep = " (gemeente ")
+        final$`Wijk naam` <- paste0(final$`Wijk naam`, ")")
+        final <- final %>% select(`Wijk naam`)
+      }else if (input$niveau=="Buurten"){
+        final <- final %>% unite(., col = "Buurt naam",  BU_NAAM, GM_NAAM, na.rm=TRUE, sep = " (gemeente ")
+        final <- final %>% unite(., col = "Buurt naam",  `Buurt naam`, WK_NAAM, na.rm=TRUE, sep = ", wijk ")
+        final$`Buurt naam` <- paste0(final$`Buurt naam`, ")")
+        final <- final %>% select(`Buurt naam`)
+      }
+      
+      return(final)
+    }
+    
+    #Gives table output with 5 most similar areas based on all voorzieningen variables
+    output$table <- renderTable(
+      top5_distances_overall()
+    )
+    
+    
+    
     #Function that takes four column names and creates a barplot of the selected area and the mean of comparable areas
     plot4 <- function(column1, column2, column3, column4){
       

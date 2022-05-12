@@ -7,6 +7,11 @@ library(tidyverse)
 library(shinythemes)
 library(shinydashboard)
 library(htmltools)
+gemeenten <- readRDS("../Data/gemeenten.rds")
+wijken <- readRDS("../Data/wijken.rds")
+buurten <- readRDS("../Data/buurten.rds")
+postcodes_final <- readRDS("../Data/postcodes_final.rds")
+full_data <- readRDS("../Data/full_data.rds")
 
 ui <- dashboardPage(
   dashboardHeader(title = "Buurtvergelijker"),
@@ -66,7 +71,8 @@ ui <- dashboardPage(
                           "Hier komt de prime map van leaflet met pointer naar centroid van de geselecteerde g/w/b",
                           leafletOutput("prime_map")), # Box geselecteerde plek
                       box(title = "Top 5 algemeen", width = 2, background = "red", 
-                          "Hier komt de algemene top 5 zonder geselecteerd thema") # Box top 5 algemeen
+                          "Hier komt de algemene top 5 zonder geselecteerd thema",
+                          tableOutput('table')) # Box top 5 algemeen
                     ), # Fluid row 1 postcode, thema, algemene top 5, niveau, geselecteerde plek
                     fluidRow(
                       box(title = "Kaart van Nederland", width = 6, status = "warning", solidHeader = T,
