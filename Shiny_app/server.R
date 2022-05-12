@@ -225,15 +225,18 @@ shinyServer(function(input, output, session) {
       if(input$niveau=="Gemeenten"){
         final <- final %>% select(GM_NAAM)
         final <- rename(final, "Gemeente naam"=GM_NAAM)
+        row.names(final) <- NULL
       }else if (input$niveau=="Wijken"){
         final <- final %>% unite(., col = "Wijk naam",  WK_NAAM, GM_NAAM, na.rm=TRUE, sep = " (gemeente ")
         final$`Wijk naam` <- paste0(final$`Wijk naam`, ")")
         final <- final %>% select(`Wijk naam`)
+        row.names(final) <- NULL
       }else if (input$niveau=="Buurten"){
         final <- final %>% unite(., col = "Buurt naam",  BU_NAAM, GM_NAAM, na.rm=TRUE, sep = " (gemeente ")
         final <- final %>% unite(., col = "Buurt naam",  `Buurt naam`, WK_NAAM, na.rm=TRUE, sep = ", wijk ")
         final$`Buurt naam` <- paste0(final$`Buurt naam`, ")")
         final <- final %>% select(`Buurt naam`)
+        row.names(final) <- NULL
       }
       
       return(final)
@@ -241,7 +244,8 @@ shinyServer(function(input, output, session) {
     
     #Gives table output with 5 most similar areas based on all voorzieningen variables
     output$table <- renderTable(
-      top5_distances_overall()
+      top5_distances_overall(),
+      rownames = TRUE
     )
     
     
