@@ -176,30 +176,34 @@ shinyServer(function(input, output, session) {
       final <- merge(top5, df, by="CODE")
       final <-  final[order(final$`afstand`),]      #After merge it was not sorted anymore
       
+      return(final)
+    }
+    
+    table_top5_distances_overall <- function(){
+      final <- top5_distances_overall()
       #Returning GM_NAAM, WK_NAAM and BU_NAAM based on selected niveau
-      # if(input$niveau=="Gemeenten"){
-      #   final <- final %>% select(GM_NAAM)
-      #   final <- rename(final, "Gemeente naam"=GM_NAAM)
-      #   row.names(final) <- NULL
-      # }else if (input$niveau=="Wijken"){
-      #   final <- final %>% unite(., col = "Wijk naam",  WK_NAAM, GM_NAAM, na.rm=TRUE, sep = " (gemeente ")
-      #   final$`Wijk naam` <- paste0(final$`Wijk naam`, ")")
-      #   final <- final %>% select(`Wijk naam`)
-      #   row.names(final) <- NULL
-      # }else if (input$niveau=="Buurten"){
-      #   final <- final %>% unite(., col = "Buurt naam",  BU_NAAM, GM_NAAM, na.rm=TRUE, sep = " (gemeente ")
-      #   final <- final %>% unite(., col = "Buurt naam",  `Buurt naam`, WK_NAAM, na.rm=TRUE, sep = ", wijk ")
-      #   final$`Buurt naam` <- paste0(final$`Buurt naam`, ")")
-      #   final <- final %>% select(`Buurt naam`)
-      #   row.names(final) <- NULL
-      # }
-      # 
+      if(input$niveau=="Gemeenten"){
+        final <- final %>% select(GM_NAAM)
+        final <- rename(final, "Gemeente naam"=GM_NAAM)
+        row.names(final) <- NULL
+      }else if (input$niveau=="Wijken"){
+        final <- final %>% unite(., col = "Wijk naam",  WK_NAAM, GM_NAAM, na.rm=TRUE, sep = " (gemeente ")
+        final$`Wijk naam` <- paste0(final$`Wijk naam`, ")")
+        final <- final %>% select(`Wijk naam`)
+        row.names(final) <- NULL
+      }else if (input$niveau=="Buurten"){
+        final <- final %>% unite(., col = "Buurt naam",  BU_NAAM, GM_NAAM, na.rm=TRUE, sep = " (gemeente ")
+        final <- final %>% unite(., col = "Buurt naam",  `Buurt naam`, WK_NAAM, na.rm=TRUE, sep = ", wijk ")
+        final$`Buurt naam` <- paste0(final$`Buurt naam`, ")")
+        final <- final %>% select(`Buurt naam`)
+        row.names(final) <- NULL
+      }
       return(final)
     }
     
     #Gives table output with 5 most similar areas based on all voorzieningen variables
     output$top5_algemeen <- renderTable(
-      top5_distances_overall(),
+      table_top5_distances_overall(),
       rownames = TRUE
     )
     
@@ -267,6 +271,28 @@ shinyServer(function(input, output, session) {
       #   row.names(final) <- NULL
       # }
       
+      return(final)
+    }
+    
+    table_top5_distances_theme <- function(){
+      final <- top5_distances_theme()
+      #Returning GM_NAAM, WK_NAAM and BU_NAAM based on selected niveau
+      if(input$niveau=="Gemeenten"){
+        final <- final %>% select(GM_NAAM)
+        final <- rename(final, "Gemeente naam"=GM_NAAM)
+        row.names(final) <- NULL
+      }else if (input$niveau=="Wijken"){
+        final <- final %>% unite(., col = "Wijk naam",  WK_NAAM, GM_NAAM, na.rm=TRUE, sep = " (gemeente ")
+        final$`Wijk naam` <- paste0(final$`Wijk naam`, ")")
+        final <- final %>% select(`Wijk naam`)
+        row.names(final) <- NULL
+      }else if (input$niveau=="Buurten"){
+        final <- final %>% unite(., col = "Buurt naam",  BU_NAAM, GM_NAAM, na.rm=TRUE, sep = " (gemeente ")
+        final <- final %>% unite(., col = "Buurt naam",  `Buurt naam`, WK_NAAM, na.rm=TRUE, sep = ", wijk ")
+        final$`Buurt naam` <- paste0(final$`Buurt naam`, ")")
+        final <- final %>% select(`Buurt naam`)
+        row.names(final) <- NULL
+      }
       return(final)
     }
     
@@ -349,7 +375,7 @@ shinyServer(function(input, output, session) {
 
     #returns table with top 5 similar areas based on chosen theme
     output$top5_theme <- renderTable(
-      top5_distances_theme(),
+      table_top5_distances_theme(),
       rownames = TRUE
     )
     
@@ -379,7 +405,7 @@ shinyServer(function(input, output, session) {
       df_gem <- select(df, column1, column2, column3, column4)
       df_gem <- as.data.frame(colMeans(df_gem, na.rm = TRUE))
       df_gem <-  rownames_to_column(df_gem)
-      df_gem$groep <- "Gemiddelde vergelijkbare gebieden"
+      df_gem$groep <- "Gemiddelde"
       df_gem <- rename(df_gem, c(Variabele = 1, Waarde = 2, groep=3))
       
       #Looking for the values of the input columns from the selected areas
