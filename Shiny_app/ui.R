@@ -29,7 +29,7 @@ ui <- dashboardPage(
                     h2("Histogram en kaart van verschillende variabelen op gemeente-, wijk- of buurtniveau"),
                     fluidRow(
                       column(width = 3,
-                             box(title = "Postcode zoeken?", width = NULL, status = "primary", solidHeader = T,
+                             box(title = "Postcode zoeken?", width = NULL, status = "primary", solidHeader = T, collapsible = T, collapsed = T,
                                  textInput("postcode", "Weet u niet uw exacte gemeente, wijk of buurt? Vul dan hier uw postcode in:"),
                                  textOutput("postcode_info")), # Box postcode zoeken
                              box(title = "Thema", width = NULL, status = "primary", solidHeader = T,
