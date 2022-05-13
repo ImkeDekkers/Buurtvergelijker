@@ -45,45 +45,50 @@ ui <- dashboardPage(
                           conditionalPanel(
                             condition = "input.niveau == 'Gemeenten'",
                             selectInput("gemeente1", "Gemeente:", choices = unique(gemeenten$GM_NAAM)), # Select input gemeente1
-                            selectInput("vergelijkbaar1", "Vergelijkbaar:", c("Stedelijkheidsniveau" = "Stedelijkheidsniveau",
+                            selectInput("vergelijkbaar1", "Vergelijkbaar:", c("Nederland" = "Nederland", 
+                                                                              "Stedelijkheidsniveau" = "Stedelijkheidsniveau",
                                                                               "Inkomensniveau" = "Inkomensniveau",
-                                                                              "Opleidingsniveau" = "Opleidingsniveau",
-                                                                              "Nederland" = "Nederland")) # Select input vergelijkbaar1
+                                                                              "Opleidingsniveau" = "Opleidingsniveau")) # Select input vergelijkbaar1
                           ), # Conditional panel 1 gemeenten
                           conditionalPanel(
                             condition = "input.niveau == 'Wijken'",
                             selectInput("gemeente2", "Gemeente:", choices = unique(gemeenten$GM_NAAM)), # Select input gemeente2
                             selectInput("wijken2", "Wijk:", choices = NULL), # Select input wijken2,
-                            selectInput("vergelijkbaar2", "Vergelijkbaar:", c("Stedelijkheidsiveau" = "Stedelijkheidsniveau",
+                            selectInput("vergelijkbaar2", "Vergelijkbaar:", c("Nederland" = "Nederland", 
+                                                                              "Stedelijkheidsniveau" = "Stedelijkheidsniveau",
                                                                               "Inkomensniveau" = "Inkomensniveau",
-                                                                              "Opleidingsniveau" = "Opleidingsniveau",
-                                                                              "Nederland" = "Nederland")), # Select input vergelijkbaar 2
+                                                                              "Opleidingsniveau" = "Opleidingsniveau")), # Select input vergelijkbaar 2
                           ), # Conditional panel 2 wijken
                           conditionalPanel(
                             condition = "input.niveau == 'Buurten'",
                             selectInput("gemeente3", "Gemeente:", choices = unique(gemeenten$GM_NAAM)), # Select input gemeente3
                             selectInput("wijken3", "Wijk:", choices = NULL), # Select input wijken3
                             selectInput("buurten3", "Buurt:", choices = NULL), # Select input buurten3
-                            selectInput("vergelijkbaar3", "Vergelijkbaar:", c("Stedelijkheidsniveau" = "Stedelijkheidsniveau",
-                                                                              "Nederland" = "Nederland")) # Select input vergelijkbaar3
+                            selectInput("vergelijkbaar3", "Vergelijkbaar:", c("Nederland" = "Nederland", 
+                                                                              "Stedelijkheidsniveau" = "Stedelijkheidsniveau")) # Select input vergelijkbaar3
                           ) # Conditional panel 3 buurten
                       ), # Box selecteer niveau
                       box(title = "Geselecteerde plek op de kaart", width = 4, status = "warning", solidHeader = T,
-                          "Hier komt de prime map van leaflet met pointer naar centroid van de geselecteerde g/w/b",
+                          "Kaart waarop het gekozen gebied te zien is (blauwe pointer), de top 5 meest vergelijkbare gebieden (rode pointers) en de gebieden waarmee wordt vergeleken.",
+                          #"Hier komt de prime map van leaflet met pointer naar centroid van de geselecteerde g/w/b",
                           leafletOutput("prime_map")), # Box geselecteerde plek
                       box(title = "Top 5 algemeen", width = 2, background = "red", 
-                          "Hier komt de algemene top 5 zonder geselecteerd thema",
+                          "Top 5 met vergelijkbare gebieden",
+                          #"Hier komt de algemene top 5 zonder geselecteerd thema",
                           tableOutput('top5_algemeen')) # Box top 5 algemeen
                     ), # Fluid row 1 postcode, thema, algemene top 5, niveau, geselecteerde plek
                     fluidRow(
                       box(title = "Kaart van Nederland", width = 6, status = "warning", solidHeader = T,
-                          "Hier komt de kaart van Nederland met geselecteerde vergelijkbare g/w/b op bepaalde variabele",
+                          "Kaart van Nederland met de geselecteerde vergelijkbare gebieden van het gekozen subthema.",
+                          #"Hier komt de kaart van Nederland met geselecteerde vergelijkbare g/w/b op bepaalde variabele",
                           leafletOutput("map_variable")), # Box kaart
                       box(title = "Top 5 geselecteerd thema", width = 2, background = "red",
-                          "Hier komt de top 5 van vergelijkbare g/w/b voor een bepaald thema",
+                          "Top 5 met vergelijkbare gebieden op basis van het gekozen thema",
+                          #"Hier komt de top 5 van vergelijkbare g/w/b voor een bepaald thema",
                           tableOutput('top5_theme')), # Box top 5 thema
                       box(title = "Staafdiagram", width = 4, status = "warning", solidHeader = T,
-                          "Hier komt een staafdiagram om je wijk te vergelijken met het gemiddelde van vergelijkbare wijken",
+                          "Aantallen van het gekozen subthema binnen een bepaalde straal, voor het geselecteerde gebied (roze) en andere vergelijkbare gebieden (blauw).",
+                          #"Hier komt een staafdiagram om je wijk te vergelijken met het gemiddelde van vergelijkbare wijken",
                           plotOutput("plot_variable")) # Box staafdiagram
                     ) # Fluid row 2 histogram, kaart, thema top 5
                   ), # Tab item dashboard

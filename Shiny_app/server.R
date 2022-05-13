@@ -311,7 +311,7 @@ shinyServer(function(input, output, session) {
       labels <- sprintf("%s: %g", map_data$NAAM, map_data$variable) %>% 
         lapply(htmltools::HTML)
       #label_content <- sprintf("%s: %g \n %s: %g", map_data$selected_area_label, map_data$variable[map_data$NAAM == map_data$selected_area_label], "Gemiddelde geselecteerde gebieden", round(mean(map_data$variable, na.rm=TRUE), digits = 1))
-      label_content <- sprintf("%s: %g %s: %g", map_data$selected_area_label, map_data$variable[map_data$NAAM == map_data$selected_area_label], "Gemiddelde geselecteerde gebieden", round(mean(map_data$variable, na.rm=TRUE), digits = 1))
+      label_content <- sprintf("%s: %g </strong><br/> %s: %g", map_data$selected_area_label, map_data$variable[map_data$NAAM == map_data$selected_area_label], "Gemiddelde vergelijkbare gebieden", round(mean(map_data$variable, na.rm=TRUE), digits = 1))%>% lapply(htmltools::HTML)
       
       #map
       output_map <- tryCatch({
