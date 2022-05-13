@@ -59,7 +59,7 @@ shinyServer(function(input, output, session) {
                           choices = c("Kinderdagverblijf", "Buitenschoolse opvang"))
       }else if (input$thema == "Onderwijs") {
         updateSelectInput(session, 'subthema', 
-                          choices = c("Basisschool", "Voorgezet onderwijs", "VMBO school", "HAVO/VWO school"))
+                          choices = c("Basisschool", "Voortgezet onderwijs", "VMBO school", "HAVO/VWO school"))
       }else if (input$thema == "Verkeer en vervoer") {
         updateSelectInput(session, 'subthema', 
                           choices = c("Oprit hoofdverkeersweg","Treinstation","Belangrijk overstapstation")) 
@@ -223,7 +223,7 @@ shinyServer(function(input, output, session) {
       }else if(input$thema=="Detailhandel"){
         result <- subset(result, select= `Afstand tot grote supermarkt (km)`: `Aantal warenhuizen binnen 20 km`)
       }else if(input$thema=="Horeca"){
-        result <- subset(result, select= `Afstand tot café (km)`: `Aantal hotel binnen 20 km`)
+        result <- subset(result, select= `Afstand tot cafe (km)`: `Aantal hotel binnen 20 km`)
       }else if(input$thema=="Kinderopvang"){
         result <- subset(result, select= `Afstand tot kinderdagverblijf  (km)`: `Aantal buitenschoolse opvang  binnen 5 km`)
       }else if(input$thema=="Onderwijs"){
@@ -423,7 +423,7 @@ shinyServer(function(input, output, session) {
       }else if (input$subthema == "Warenhuis"){
         make_map("Afstand tot warenhuis (km)")
       }else if (input$subthema == "Café"){
-        make_map("Afstand tot café (km)")
+        make_map("Afstand tot cafe (km)")
       }else if (input$subthema == "Cafetaria"){
         make_map("Afstand tot cafetaria (km)")
       }else if (input$subthema == "Restaurant"){
@@ -493,9 +493,9 @@ shinyServer(function(input, output, session) {
               "Aantal warenhuizen binnen 10 km",                                                
               "Aantal warenhuizen binnen 20 km")
       }else if (input$subthema == "Café"){
-        plot4("Aantal cafés binnen 1 km" ,                                                       
-              "Aantal cafés binnen 3 km" ,                                                       
-              "Aantal cafés binnen 5 km")
+        plot4("Aantal cafes binnen 1 km" ,                                                       
+              "Aantal cafes binnen 3 km" ,                                                       
+              "Aantal cafes binnen 5 km")
       }else if (input$subthema == "Cafetaria"){
         plot4("Aantal cafetaria's binnen 1 km",                                                  
               "Aantal cafetaria's binnen 3 km",                                                  

@@ -184,6 +184,17 @@ wijken_test <- wijken %>% add_column(Niveau = 'Wijken', CODE = wijken$WK_CODE, N
 buurten_test <- buurten %>% add_column(Niveau = 'Buurten', CODE = buurten$BU_CODE, NAAM = buurten$BU_NAAM,  .before = 'H2O')
 
 full_data <- bind_rows(buurten_test, wijken_test, gemeenten_test)
+#full_data <- rename(full_data, c("Afstand tot cafÃ© (km)" = "Afstand tot cafe (km)", "Aantal cafÃ©s binnen 1 km" = "Aantal cafes binnen 1 km", "Aantal cafÃ©s binnen 3 km" = "Aantal cafes binnen 3 km", "Aantal cafÃ©s binnen 5 km" = "Aantal cafes binnen 5 km", "Aantal vestigingen financiÃ«le diensten, onroerend goed" = "Aantal vestigingen financiele diensten, onroerend goed") #, "Aantal personenautoâs rijdend op benzine" = "Aantal personenautos rijdend op benzine", "Aantal personenautoâs rijdend op overige brandstof" = "Aantal personenautos rijdend op overige brandstof" )
+ 
+names(full_data)[names(full_data) == "Afstand tot cafÃ© (km)"] <- "Afstand tot cafe (km)"
+names(full_data)[names(full_data) == "Aantal cafÃ©s binnen 1 km"] <- "Aantal cafes binnen 1 km"
+names(full_data)[names(full_data) == "Aantal cafÃ©s binnen 3 km"] <- "Aantal cafes binnen 3 km"
+names(full_data)[names(full_data) == "Aantal cafÃ©s binnen 5 km"] <- "Aantal cafes binnen 5 km"
+names(full_data)[names(full_data) == "Aantal vestigingen financiÃ«le diensten, onroerend goed"] <- "Aantal vestigingen financiele diensten, onroerend goed"
+names(full_data)[names(full_data) == "Aantal personenautoâs rijdend op benzine"] <- "Aantal personenautos rijdend op benzine"
+names(full_data)[names(full_data) == "Aantal personenautoâs rijdend op overige brandstof"] <- "Aantal personenautos rijdend op overige brandstof"
+
 write_rds(full_data, "../Data/full_data.rds")
+
 
 
