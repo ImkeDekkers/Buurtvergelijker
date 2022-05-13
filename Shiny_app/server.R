@@ -47,7 +47,7 @@ shinyServer(function(input, output, session) {
     observeEvent(input$thema, {
       if (input$thema == "Gezondheid en welzijn") {
         updateSelectInput(session, 'subthema', 
-                          choices = c("Huisartsenpraktijk", "Ziekenhuis"))
+                          choices = c("Huisartsenpraktijk", "Ziekenhuis","Apotheek"))
       }else if (input$thema == "Detailhandel") {
         updateSelectInput(session, 'subthema', 
                           choices = c("Supermarkt", "Overige dagelijkse levensmiddelen", "Warenhuis"))
@@ -62,10 +62,11 @@ shinyServer(function(input, output, session) {
                           choices = c("Basisschool", "Voorgezet onderwijs", "VMBO school", "HAVO/VWO school"))
       }else if (input$thema == "Verkeer en vervoer") {
         updateSelectInput(session, 'subthema', 
-                          choices = c("")) 
+                          choices = c("Oprit hoofdverkeersweg","Treinstation","Belangrijk overstapstation")) 
         }else if (input$thema == "Vrije tijd en cultuur") {
                             updateSelectInput(session, 'subthema', 
-                                              choices = c("Bioscoop", "Attractie", "Podiumkunsten", "Museum"))
+                                              choices = c("Bioscoop", "Attractie", "Podiumkunsten", "Museum",
+                                                          "Zwembad", "Kunstijsbaan", "Bibliotheek", "Poppodium","Sauna","Zonnebank"))
         }
           })
     
@@ -413,6 +414,8 @@ shinyServer(function(input, output, session) {
         make_map("Afstand tot huisartsenpraktijk (km)")
       }else if (input$subthema == "Ziekenhuis"){
         make_map("Afstand tot ziekenhuis incl. buitenpolikliniek (km)")
+      }else if(input$subthema=="Apotheek"){
+        make_map("Afstand tot apotheek (km)")
       }else if (input$subthema == "Supermarkt"){
         make_map("Afstand tot grote supermarkt (km)")
       }else if (input$subthema == "Overige dagelijkse levensmiddelen"){
@@ -439,6 +442,12 @@ shinyServer(function(input, output, session) {
         make_map("Afstand tot scholen VMBO (km)")
       }else if (input$subthema == "HAVO/VWO school"){
         make_map("Afstand tot scholen HAVO/VWO (km)")
+      }else if (input$subthema == "Oprit hoofdverkeersweg"){
+        make_map("Afstand tot oprit hoofdverkeersweg (km)")
+      }else if (input$subthema == "Treinstation"){
+        make_map("Afstand tot treinstation (km)")
+      }else if (input$subthema == "Belangrijk overstapstation"){
+        make_map("Afstand tot belangrijk overstapstation (km)")
       }else if (input$subthema == "Bioscoop"){
         make_map("Afstand tot bioscoop (km)")
       }else if (input$subthema == "Attractie"){
@@ -447,6 +456,18 @@ shinyServer(function(input, output, session) {
         make_map("Afstand tot podiumkunsten (km)")
       }else if (input$subthema == "Museum"){
         make_map("Afstand tot museum (km)")
+      }else if (input$subthema == "Zwembad"){
+        make_map("Afstand tot zwembad (km)")
+      }else if (input$subthema == "Kunstijsbaan"){
+        make_map("Afstand tot kunstijsbaan (km)")
+      }else if (input$subthema == "Bibliotheek"){
+        make_map("Afstand tot bibliotheek (km)")
+      }else if (input$subthema == "Poppodium"){
+        make_map("Afstand tot poppodium (km)")
+      }else if (input$subthema == "Sauna"){
+        make_map("Afstand tot sauna (km)")
+      }else if (input$subthema == "Zonnebank"){
+        make_map("Afstand tot zonnebank (km)")
       }
     })
     
