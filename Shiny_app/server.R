@@ -253,24 +253,6 @@ shinyServer(function(input, output, session) {
       final <- merge(top5, df, by="CODE")
       final <-  final[order(final$`afstand`),]      #After merge it was not sorted anymore
       
-      #Returning GM_NAAM, WK_NAAM and BU_NAAM based on selected niveau
-      # if(input$niveau=="Gemeenten"){
-      #   final <- final %>% select(GM_NAAM)
-      #   final <- rename(final, "Gemeente naam"=GM_NAAM)
-      #   row.names(final) <- NULL
-      # }else if (input$niveau=="Wijken"){
-      #   final <- final %>% unite(., col = "Wijk naam",  WK_NAAM, GM_NAAM, na.rm=TRUE, sep = " (gemeente ")
-      #   final$`Wijk naam` <- paste0(final$`Wijk naam`, ")")
-      #   final <- final %>% select(`Wijk naam`)
-      #   row.names(final) <- NULL
-      # }else if (input$niveau=="Buurten"){
-      #   final <- final %>% unite(., col = "Buurt naam",  BU_NAAM, GM_NAAM, na.rm=TRUE, sep = " (gemeente ")
-      #   final <- final %>% unite(., col = "Buurt naam",  `Buurt naam`, WK_NAAM, na.rm=TRUE, sep = ", wijk ")
-      #   final$`Buurt naam` <- paste0(final$`Buurt naam`, ")")
-      #   final <- final %>% select(`Buurt naam`)
-      #   row.names(final) <- NULL
-      # }
-      
       return(final)
     }
     
@@ -398,29 +380,30 @@ shinyServer(function(input, output, session) {
     })
     
     #Function that takes four column names and creates a barplot of the selected area and the mean of comparable areas
-    plot4 <- function(column1, column2, column3, column4){
+    plot4 <- function(column1, column2, column3){
       
       #Calculating the mean values of the input columns
       df <- as.data.frame(datasetInput())
-      df_gem <- select(df, column1, column2, column3, column4)
+      df_gem <- select(df, column1, column2, column3)
       df_gem <- as.data.frame(colMeans(df_gem, na.rm = TRUE))
       df_gem <-  rownames_to_column(df_gem)
       df_gem$groep <- "Gemiddelde"
-      df_gem <- rename(df_gem, c(Variabele = 1, Waarde = 2, groep=3))
+      df_gem <- rename(df_gem, c(Variabele = 1, Aantal = 2, groep=3))
       
       #Looking for the values of the input columns from the selected areas
       selected_area_code <- df[1, "selected_area_code"]
       selected_area_label <- df[1, "selected_area_label"]
-      df_selected <- df %>% subset(CODE == selected_area_code) %>% select(column1, column2, column3, column4)
+      df_selected <- df %>% subset(CODE == selected_area_code) %>% select(column1, column2, column3)
       df_selected <- rownames_to_column(as.data.frame(t(df_selected)))
       df_selected$groep <- selected_area_label
-      df_selected <- rename(df_selected, c(Variabele = 1, Waarde = 2, groep = 3))
+      df_selected <- rename(df_selected, c(Variabele = 1, Aantal = 2, groep = 3))
       
       #adding mean and selected together
       df_final <- rbind(df_gem, df_selected)
       
       #Plot
-      ggplot(df_final, aes(x = Variabele, y = Waarde, fill = groep)) + geom_col(position = "dodge") + 
+      ggplot(df_final, aes(x = Variabele, y = Aantal, fill = groep)) + geom_col(position = "dodge") + 
+        theme(text = element_text(size = 14))+
         scale_x_discrete(labels = function(x) 
           stringr::str_wrap(x, width = 15))
     }
@@ -469,98 +452,79 @@ shinyServer(function(input, output, session) {
     
     output$plot_variable <- renderPlot({
       if (input$subthema == "Huisartsenpraktijk"){
-      plot4("Afstand tot huisartsenpraktijk (km)", 
-            "Aantal huisartsenpraktijken binnen 1 km", 
+      plot4("Aantal huisartsenpraktijken binnen 1 km", 
             "Aantal huisartsenpraktijken binnen 3 km", 
             "Aantal huisartsenpraktijken binnen 5 km")
       }else if (input$subthema == "Ziekenhuis"){
-        plot4("Afstand tot ziekenhuis incl. buitenpolikliniek (km)",                             
-              "Aantal ziekenhuizen incl. buitenpolikliniek binnen 5 km",                        
+        plot4("Aantal ziekenhuizen incl. buitenpolikliniek binnen 5 km",                        
               "Aantal ziekenhuizen incl. buitenpolikliniek binnen 10 km",                       
               "Aantal ziekenhuizen incl. buitenpolikliniek binnen 20 km")
       }else if (input$subthema == "Supermarkt"){
-        plot4("Afstand tot grote supermarkt (km)",                                               
-              "Aantal  grote supermarkten binnen 1 km",                                         
+        plot4("Aantal  grote supermarkten binnen 1 km",                                         
               "Aantal  grote supermarkten binnen 3 km",                                          
               "Aantal  grote supermarkten binnen 5 km")
       }else if (input$subthema == "Overige dagelijkse levensmiddelen"){
-        plot4("Afstand tot overige dagelijkse levensmiddelen (km)",                              
-              "Aantal winkels overige dagelijkse levensmiddelen binnen 1 km",                    
+        plot4("Aantal winkels overige dagelijkse levensmiddelen binnen 1 km",                    
               "Aantal winkels overige dagelijkse levensmiddelen binnen 3 km",                    
               "Aantal winkels overige dagelijkse levensmiddelen binnen 5 km")
       }else if (input$subthema == "Warenhuis"){
-        plot4("Afstand tot warenhuis (km)",                                                      
-              "Aantal warenhuizen binnen 5 km",                                                  
+        plot4("Aantal warenhuizen binnen 5 km",                                                  
               "Aantal warenhuizen binnen 10 km",                                                
               "Aantal warenhuizen binnen 20 km")
       }else if (input$subthema == "Café"){
-        plot4("Afstand tot café (km)" ,                                                          
-              "Aantal cafés binnen 1 km" ,                                                       
+        plot4("Aantal cafés binnen 1 km" ,                                                       
               "Aantal cafés binnen 3 km" ,                                                       
               "Aantal cafés binnen 5 km")
       }else if (input$subthema == "Cafetaria"){
-        plot4("Afstand tot cafetaria (km)",                                                      
-              "Aantal cafetaria's binnen 1 km",                                                  
+        plot4("Aantal cafetaria's binnen 1 km",                                                  
               "Aantal cafetaria's binnen 3 km",                                                  
               "Aantal cafetaria's binnen 5 km")
       }else if (input$subthema == "Restaurant"){
-        plot4("Afstand tot restaurant (km)",                                                     
-              "Aantal restaurants binnen 1 km",                                                  
+        plot4("Aantal restaurants binnen 1 km",                                                  
               "Aantal restaurants binnen 3 km",                                                  
               "Aantal restaurants binnen 5 km")
       }else if (input$subthema == "Hotel"){
-        plot4("Afstand tot hotel (km)",                                                     
-              "Aantal hotel binnen 5 km",                                                  
+        plot4("Aantal hotel binnen 5 km",                                                  
               "Aantal hotel binnen 10 km",                                                  
               "Aantal hotel binnen 20 km")
       }else if (input$subthema == "Kinderdagverblijf"){
-        plot4("Afstand tot kinderdagverblijf  (km)",                                                     
-              "Aantal kinderdagverblijf  binnen 1 km",                                                  
+        plot4("Aantal kinderdagverblijf  binnen 1 km",                                                  
               "Aantal kinderdagverblijf  binnen 3 km",                                                  
               "Aantal kinderdagverblijf  binnen 5 km")
       }else if (input$subthema == "Buitenschoolse opvang"){
-        plot4("Afstand tot buitenschoolse opvang  (km)",                                                     
-              "Aantal buitenschoolse opvang  binnen 1 km",                                                  
+        plot4("Aantal buitenschoolse opvang  binnen 1 km",                                                  
               "Aantal buitenschoolse opvang  binnen 3 km",                                                  
               "Aantal buitenschoolse opvang  binnen 5 km")
       }else if (input$subthema == "Basisschool"){
-        plot4("Afstand tot basisscholen (km)",                                                     
-              "Aantal basisscholen binnen 1 km",                                                  
+        plot4("Aantal basisscholen binnen 1 km",                                                  
               "Aantal basisscholen binnen 3 km",                                                  
               "Aantal basisscholen binnen 5 km")
       }else if (input$subthema == "Voortgezet onderwijs"){
-        plot4("Afstand tot voortgezet onderwijs (km)",                                                     
-              "Aantal voortgezet onderwijs binnen 3 km",                                                  
+        plot4("Aantal voortgezet onderwijs binnen 3 km",                                                  
               "Aantal voortgezet onderwijs binnen 5 km",                                                  
               "Aantal voortgezet onderwijs binnen 10 km")
       }else if (input$subthema == "VMBO school"){
-        plot4("Afstand tot scholen VMBO (km)",                                                     
-              "Aantal scholen VMBO binnen 3 km",                                                  
+        plot4("Aantal scholen VMBO binnen 3 km",                                                  
               "Aantal scholen VMBO binnen 5 km",                                                  
               "Aantal scholen VMBO binnen 10 km")
       }else if (input$subthema == "HAVO/VWO school"){
-        plot4("Afstand tot scholen HAVO/VWO (km)",                                                     
-              "Aantal scholen HAVO/VWO binnen 3 km",                                                  
+        plot4("Aantal scholen HAVO/VWO binnen 3 km",                                                  
               "Aantal scholen HAVO/VWO binnen 5 km",                                                  
               "Aantal scholen HAVO/VWO binnen 10 km")
       }else if (input$subthema == "Bioscoop"){
-        plot4("Afstand tot bioscoop (km)",                                                     
-              "Aantal bioscoop binnen 5 km",                                                  
+        plot4("Aantal bioscoop binnen 5 km",                                                  
               "Aantal bioscoop binnen 10 km",                                                  
               "Aantal bioscoop binnen 20 km")
       }else if (input$subthema == "Attractie"){
-        plot4("Afstand tot attractie (km)",                                                     
-              "Aantal attracties binnen 10 km",                                                  
+        plot4("Aantal attracties binnen 10 km",                                                  
               "Aantal attracties binnen 20 km",                                                  
               "Aantal attracties binnen 50 km")
       }else if (input$subthema == "Podiumkunsten"){
-        plot4("Afstand tot podiumkunsten (km)",                                                     
-              "Aantal podiumkunsten binnen 5 km",                                                  
+        plot4("Aantal podiumkunsten binnen 5 km",                                                  
               "Aantal podiumkunsten binnen 10 km",                                                  
               "Aantal podiumkunsten binnen 20 km")
       }else if (input$subthema == "Museum"){
-          plot4("Afstand tot museum (km)",                                                     
-                "Aantal musea binnen 5 km",                                                  
+          plot4("Aantal musea binnen 5 km",                                                  
                 "Aantal musea binnen 10 km",                                                  
                 "Aantal musea binnen 20 km")
       }
