@@ -86,10 +86,7 @@ ui <- dashboardPage(
                           "Top 5 met vergelijkbare gebieden op basis van het gekozen thema",
                           #"Hier komt de top 5 van vergelijkbare g/w/b voor een bepaald thema",
                           tableOutput('top5_theme')), # Box top 5 thema
-                      box(title = "Staafdiagram", width = 4, status = "warning", solidHeader = T,
-                          "Aantallen van het gekozen subthema binnen een bepaalde straal, voor het geselecteerde gebied (roze) en andere vergelijkbare gebieden (blauw).",
-                          #"Hier komt een staafdiagram om je wijk te vergelijken met het gemiddelde van vergelijkbare wijken",
-                          plotOutput("plot_variable")) # Box staafdiagram
+                      uiOutput("box_staafdiagram"),
                     ) # Fluid row 2 histogram, kaart, thema top 5
                   ), # Tab item dashboard
                   

@@ -400,7 +400,9 @@ shinyServer(function(input, output, session) {
       df_selected <- rename(df_selected, c(Variabele = 1, Aantal = 2, groep = 3))
       
       #adding mean and selected together
-      df_final <- rbind(df_gem, df_selected)
+      df_final <- rbind(df_selected, df_gem)
+      df_final$groep <- as.character(df_final$groep)
+      df_final$groep <- factor(df_final$groep, levels=unique(df_final$groep))
       
       #Plot
       ggplot(df_final, aes(x = Variabele, y = Aantal, fill = groep)) + geom_col(position = "dodge") + 
@@ -409,6 +411,23 @@ shinyServer(function(input, output, session) {
           stringr::str_wrap(x, width = 15))
     }
     
+    #Creates box for staafdiagram only when one of the subthemes is selected that has one
+    output[["box_staafdiagram"]] <- renderUI({
+      
+      #subthemes that have data available on the count inside a radius
+      subthemes_count <- c("Huisartsenpraktijk","Ziekenhuis", "Supermarkt", "Overige dagelijkse levensmiddelen", "Warenhuis",
+                     "Café", "Cafetaria", "Restaurant", "Hotel", "Kinderdagverblijf", "Buitenschoolse opvang", "Basisschool",
+                     "Voortgezet onderwijs", "VMBO school", "HAVO/VWO school", "Bioscoop", "Attractie", "Podiumkunsten", "Museum")
+      #if the selected subthemes is in these subthemes with count, show the "staafdiagram" box
+      if(input$subthema %in% subthemes_count){
+        box(title = "Staafdiagram", width = 4, status = "warning", solidHeader = T,
+            "Aantallen van het gekozen subthema binnen een bepaalde straal, voor het geselecteerde gebied (roze) en andere vergelijkbare gebieden (blauw).",
+            #"Hier komt een staafdiagram om je wijk te vergelijken met het gemiddelde van vergelijkbare wijken",
+            plotOutput("plot_variable"))
+      }
+    })
+    
+    #Maps for all variables with distance to closest spot
     output$map_variable <- renderLeaflet({
       if (input$subthema == "Huisartsenpraktijk"){
         make_map("Afstand tot huisartsenpraktijk (km)")
@@ -471,6 +490,7 @@ shinyServer(function(input, output, session) {
       }
     })
     
+    #Maps for the amount of instances inside a radius
     output$plot_variable <- renderPlot({
       if (input$subthema == "Huisartsenpraktijk"){
       plot4("Aantal huisartsenpraktijken binnen 1 km", 
