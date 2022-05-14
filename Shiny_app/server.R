@@ -403,6 +403,8 @@ shinyServer(function(input, output, session) {
       df_final <- rbind(df_selected, df_gem)
       df_final$groep <- as.character(df_final$groep)
       df_final$groep <- factor(df_final$groep, levels=unique(df_final$groep))
+      df_final$Variabele <- as.character(df_final$Variabele)
+      df_final$Variabele <- factor(df_final$Variabele, levels=unique(df_final$Variabele))
       
       #Plot
       ggplot(df_final, aes(x = Variabele, y = Aantal, fill = groep)) + geom_col(position = "dodge") + 
