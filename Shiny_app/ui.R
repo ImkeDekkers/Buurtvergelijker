@@ -26,7 +26,7 @@ ui <- dashboardPage(
                 tabItems(
                   tabItem(
                     tabName = "Dashboard",
-                    h2("Histogram en kaart van verschillende variabelen op gemeente-, wijk- of buurtniveau"),
+                    h2("Dashboard nabijheid voorzieningen op gemeente-, wijk- of buurtniveau"),
                     fluidRow(
                       column(width = 3,
                              box(title = "Postcode zoeken?", width = NULL, status = "primary", solidHeader = T, collapsible = T, collapsed = T,
