@@ -39,6 +39,7 @@ ui <- dashboardPage(
                                  selectInput("subthema", "Subthema:", choices = NULL)), 
                       ), # Column
                       box(title = "Selecteer een niveau", width = 3, status = "primary", solidHeader = T,
+                          "Selecteer het gewenste niveau, gebied en vergelijkbaarheidniveau en druk op 'indienen' om door te gaan",
                           selectInput("niveau", "Niveau:", c("Gemeenten" = "Gemeenten",
                                                             "Wijken" = "Wijken",
                                                             "Buurten" = "Buurten")), # Select input niveau
@@ -66,7 +67,8 @@ ui <- dashboardPage(
                             selectInput("buurten3", "Buurt:", choices = NULL), # Select input buurten3
                             selectInput("vergelijkbaar3", "Vergelijkbaar:", c("Nederland" = "Nederland", 
                                                                               "Stedelijkheidsniveau" = "Stedelijkheidsniveau")) # Select input vergelijkbaar3
-                          ) # Conditional panel 3 buurten
+                          ), # Conditional panel 3 buurten
+                          actionButton("action", "Indienen")
                       ), # Box selecteer niveau
                       box(title = "Geselecteerde plek op de kaart", width = 4, status = "warning", solidHeader = T,
                           "Kaart waarop het gekozen gebied te zien is (blauwe pointer), de top 5 meest vergelijkbare gebieden (rode pointers) en de gebieden waarmee wordt vergeleken.",

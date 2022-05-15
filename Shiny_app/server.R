@@ -71,7 +71,7 @@ shinyServer(function(input, output, session) {
           })
     
     #make used data reactive on the selected niveau
-    datasetInput <- reactive({
+    datasetInput <- eventReactive(input$action,{
       df <- as.data.frame(full_data)
       df <- df[df$Niveau == input$niveau,]
       if(input$niveau == 'Gemeenten'){
