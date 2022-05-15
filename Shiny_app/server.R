@@ -182,8 +182,13 @@ shinyServer(function(input, output, session) {
     
     table_top5_distances_overall <- function(){
       final <- top5_distances_overall()
+      
+      #If there are no data about the distance to the amenities, return message
+      if (is.na(final$afstand)){
+        return("Er zijn onvoldoende gegevens beschikbaar voor het geselecteerde gebied")
+        
       #Returning GM_NAAM, WK_NAAM and BU_NAAM based on selected niveau
-      if(input$niveau=="Gemeenten"){
+      }else if(input$niveau=="Gemeenten"){
         final <- final %>% select(GM_NAAM)
         final <- rename(final, "Gemeente naam"=GM_NAAM)
         row.names(final) <- NULL
@@ -259,8 +264,12 @@ shinyServer(function(input, output, session) {
     
     table_top5_distances_theme <- function(){
       final <- top5_distances_theme()
+      #If there are no data about the distance to the amenities, return message
+      if (is.na(final$afstand)){
+        return("Er zijn onvoldoende gegevens beschikbaar voor het geselecteerde gebied")
+        
       #Returning GM_NAAM, WK_NAAM and BU_NAAM based on selected niveau
-      if(input$niveau=="Gemeenten"){
+      } else if(input$niveau=="Gemeenten"){
         final <- final %>% select(GM_NAAM)
         final <- rename(final, "Gemeente naam"=GM_NAAM)
         row.names(final) <- NULL
