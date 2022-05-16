@@ -7,6 +7,8 @@ library(tidyverse)
 library(shinythemes)
 library(shinydashboard)
 library(htmltools)
+library(shinyWidgets)
+
 gemeenten <- readRDS("../Data/gemeenten.rds")
 wijken <- readRDS("../Data/wijken.rds")
 buurten <- readRDS("../Data/buurten.rds")
@@ -73,7 +75,8 @@ ui <- dashboardPage(
                       box(title = "Geselecteerde plek op de kaart", width = 4, status = "warning", solidHeader = T,
                           "Kaart waarop het gekozen gebied te zien is (blauwe pointer), de top 5 meest vergelijkbare gebieden (rode pointers) en de gebieden waarmee wordt vergeleken.",
                           #"Hier komt de prime map van leaflet met pointer naar centroid van de geselecteerde g/w/b",
-                          leafletOutput("prime_map")), # Box geselecteerde plek
+                          shinycssloaders::withSpinner(leafletOutput("prime_map"))
+                          ), # Box geselecteerde plek
                       box(title = "Top 5 algemeen", width = 2, background = "red", 
                           "Top 5 met vergelijkbare gebieden op basis van alle voorzieningenthema's",
                           #"Hier komt de algemene top 5 zonder geselecteerd thema",
@@ -83,7 +86,8 @@ ui <- dashboardPage(
                       box(title = "Kaart van Nederland", width = 6, status = "warning", solidHeader = T,
                           "Kaart van Nederland met de geselecteerde vergelijkbare gebieden van het gekozen subthema.",
                           #"Hier komt de kaart van Nederland met geselecteerde vergelijkbare g/w/b op bepaalde variabele",
-                          leafletOutput("map_variable")), # Box kaart
+                          shinycssloaders::withSpinner(leafletOutput("map_variable"))
+                          ), # Box kaart
                       box(title = "Top 5 geselecteerd thema", width = 2, background = "red",
                           "Top 5 met vergelijkbare gebieden op basis van het gekozen thema",
                           #"Hier komt de top 5 van vergelijkbare g/w/b voor een bepaald thema",

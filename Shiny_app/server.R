@@ -348,7 +348,8 @@ shinyServer(function(input, output, session) {
           leaflet::addLegend(pal = qpal, values = ~map_data$variable, opacity = 0.7, title = legend_title, position = "bottomright", labFormat = function(type, cuts, p) {      #labformat function makes sure the actual values instead of the quantiles are displayed in the legend
             n = length(cuts)
             paste0(cuts[-n], " &ndash; ", cuts[-1])
-          }, labFormat = labelFormat(digits = 0))
+          }#, labFormat = labelFormat(digits = 0)
+          )
         
       }, error = function(e) {
         leaflet(map_data) %>%
