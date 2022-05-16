@@ -23,9 +23,14 @@ shinyServer(function(input, output, session) {
     #Finding gemeente, wijk and buurt based on the input postcode
     output$postcode_info <- renderText(
       if(any(postcodes_final$PC6==postcode())){
-        matching_postcode <- postcodes_final %>% filter_at(vars(PC6), any_vars(. %in% postcode()))     
+        matching_postcode <- postcodes_final %>% filter_at(vars(PC6), any_vars(. %in% postcode()))
+        if (nrow(matching_postcode)>1){
+          sprintf("Uw postcode komt voor in meerdere gebieden. Uw gemeentenaam is %s, uw wijknaam is %s en uw buurtnaam is %s of uw gemeentenaam is %s, uw wijknaam is %s en uw buurtnaam is %s", 
+                  matching_postcode$Gemeentenaam2020[1], matching_postcode$wijknaam2020[1], matching_postcode$buurtnaam2020[1], matching_postcode$Gemeentenaam2020[2], matching_postcode$wijknaam2020[2], matching_postcode$buurtnaam2020[2])
+          #with(matching_postcode, sprintf('Uw postcode komt voor in meerdere gebieden. Uw gemeentenaam is %s, uw wijknaam is %s en uw buurtnaam is %s', Gemeentenaam2020, wijknaam2020, buurtnaam2020))  
+      }else {
         with(matching_postcode, sprintf('Uw gemeentenaam is %s, uw wijknaam is %s en uw buurtnaam is %s', Gemeentenaam2020, wijknaam2020, buurtnaam2020))
-    } else {
+    }} else {
         print("Er is (nog) geen geldige postcode ingevoerd.")
       }
     )
@@ -321,6 +326,8 @@ shinyServer(function(input, output, session) {
         lapply(htmltools::HTML)
       #label_content <- sprintf("%s: %g \n %s: %g", map_data$selected_area_label, map_data$variable[map_data$NAAM == map_data$selected_area_label], "Gemiddelde geselecteerde gebieden", round(mean(map_data$variable, na.rm=TRUE), digits = 1))
       label_content <- sprintf("%s: %g </strong><br/> %s: %g", map_data$selected_area_label, map_data$variable[map_data$NAAM == map_data$selected_area_label], "Gemiddelde vergelijkbare gebieden", round(mean(map_data$variable, na.rm=TRUE), digits = 1))%>% lapply(htmltools::HTML)
+      label_content <- sprintf("%s: %g </strong><br/> %s: %g", 
+                               map_data$selected_area_label, map_data$variable[map_data$NAAM == map_data$selected_area_label], "Gemiddelde vergelijkbare gebieden", round(mean(map_data$variable, na.rm=TRUE), digits = 1))%>% lapply(htmltools::HTML)
       
       #map
       output_map <- tryCatch({
