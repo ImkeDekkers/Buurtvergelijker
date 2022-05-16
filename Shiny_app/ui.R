@@ -46,27 +46,27 @@ ui <- dashboardPage(
                           conditionalPanel(
                             condition = "input.niveau == 'Gemeenten'",
                             selectInput("gemeente1", "Gemeente:", choices = unique(gemeenten$GM_NAAM)), # Select input gemeente1
-                            selectInput("vergelijkbaar1", "Vergelijkbaar:", c("Nederland" = "Nederland", 
-                                                                              "Stedelijkheidsniveau" = "Stedelijkheidsniveau",
-                                                                              "Inkomensniveau" = "Inkomensniveau",
-                                                                              "Opleidingsniveau" = "Opleidingsniveau")) # Select input vergelijkbaar1
+                            selectInput("vergelijkbaar1", "Vergelijken met:", c("Alle gebieden in Nederland" = "Nederland", 
+                                                                              "Gebieden met hetzelfde stedelijkheidsniveau" = "Stedelijkheidsniveau",
+                                                                              "Gebieden met hetzelfde inkomensniveau" = "Inkomensniveau",
+                                                                              "Gebieden met hetzelfde opleidingsniveau" = "Opleidingsniveau")) # Select input vergelijkbaar1
                           ), # Conditional panel 1 gemeenten
                           conditionalPanel(
                             condition = "input.niveau == 'Wijken'",
                             selectInput("gemeente2", "Gemeente:", choices = unique(gemeenten$GM_NAAM)), # Select input gemeente2
                             selectInput("wijken2", "Wijk:", choices = NULL), # Select input wijken2,
-                            selectInput("vergelijkbaar2", "Vergelijkbaar:", c("Nederland" = "Nederland", 
-                                                                              "Stedelijkheidsniveau" = "Stedelijkheidsniveau",
-                                                                              "Inkomensniveau" = "Inkomensniveau",
-                                                                              "Opleidingsniveau" = "Opleidingsniveau")), # Select input vergelijkbaar 2
+                            selectInput("vergelijkbaar2", "Vergelijken met:", c("Alle gebieden in Nederland" = "Nederland", 
+                                                                                "Gebieden met hetzelfde stedelijkheidsniveau" = "Stedelijkheidsniveau",
+                                                                                "Gebieden met hetzelfde inkomensniveau" = "Inkomensniveau",
+                                                                                "Gebieden met hetzelfde opleidingsniveau" = "Opleidingsniveau")) # Select input vergelijkbaar 2
                           ), # Conditional panel 2 wijken
                           conditionalPanel(
                             condition = "input.niveau == 'Buurten'",
                             selectInput("gemeente3", "Gemeente:", choices = unique(gemeenten$GM_NAAM)), # Select input gemeente3
                             selectInput("wijken3", "Wijk:", choices = NULL), # Select input wijken3
                             selectInput("buurten3", "Buurt:", choices = NULL), # Select input buurten3
-                            selectInput("vergelijkbaar3", "Vergelijkbaar:", c("Nederland" = "Nederland", 
-                                                                              "Stedelijkheidsniveau" = "Stedelijkheidsniveau")) # Select input vergelijkbaar3
+                            selectInput("vergelijkbaar3", "Vergelijken met:", c("Alle gebieden in Nederland" = "Nederland", 
+                                                                              "gebieden met hetzelfde stedelijkheidsniveau" = "Stedelijkheidsniveau")) # Select input vergelijkbaar3
                           ), # Conditional panel 3 buurten
                           actionButton("action", "Indienen")
                       ), # Box selecteer niveau
@@ -75,7 +75,7 @@ ui <- dashboardPage(
                           #"Hier komt de prime map van leaflet met pointer naar centroid van de geselecteerde g/w/b",
                           leafletOutput("prime_map")), # Box geselecteerde plek
                       box(title = "Top 5 algemeen", width = 2, background = "red", 
-                          "Top 5 met vergelijkbare gebieden",
+                          "Top 5 met vergelijkbare gebieden op basis van alle voorzieningenthema's",
                           #"Hier komt de algemene top 5 zonder geselecteerd thema",
                           tableOutput('top5_algemeen')) # Box top 5 algemeen
                     ), # Fluid row 1 postcode, thema, algemene top 5, niveau, geselecteerde plek

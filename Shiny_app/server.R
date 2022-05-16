@@ -345,7 +345,7 @@ shinyServer(function(input, output, session) {
                             icon = awesome5,
                             label = ~NAAM) %>% 
           #addCircleMarkers(lng = map_data$centroidxx, lat = map_data$centroidyy, color = "black", weight = 3, opacity = 0.75, fillOpacity = 0)%>%
-          leaflet::addLegend(pal = qpal, values = ~map_data$variable, opacity = 0.7, title = legend_title, labFormat = function(type, cuts, p) {      #labformat function makes sure the actual values instead of the quantiles are displayed in the legend
+          leaflet::addLegend(pal = qpal, values = ~map_data$variable, opacity = 0.7, title = legend_title, position = "bottomright", labFormat = function(type, cuts, p) {      #labformat function makes sure the actual values instead of the quantiles are displayed in the legend
             n = length(cuts)
             paste0(cuts[-n], " &ndash; ", cuts[-1])
           }, labFormat = labelFormat(digits = 0))
@@ -365,7 +365,7 @@ shinyServer(function(input, output, session) {
                             icon = awesome5,
                             label = ~NAAM) %>% 
           #addCircleMarkers(lng = map_data$centroidx, lat = map_data$centroidy, color = "black", weight = 3, opacity = 0.75, fillOpacity = 0)%>%
-          leaflet::addLegend(pal = pal, values = ~map_data$variable, opacity = 0.7, title = legend_title)
+          leaflet::addLegend(pal = pal, values = ~map_data$variable, opacity = 0.7, title = legend_title, position = "bottomright")
       })
       
       return(output_map)
