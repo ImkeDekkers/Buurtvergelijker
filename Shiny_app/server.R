@@ -152,9 +152,12 @@ shinyServer(function(input, output, session) {
     })
     
     # Get information about selected area in table
-    output$info_area <- renderTable(
-      as.data.frame(datasetInput()$selected_polygon) %>% 
-        select(c("Stedelijkheid (1=zeer sterk stedelijk, 5=niet stedelijk)", "inkomengroep", "opleidingsgroep"))) 
+    output$info_area <- renderTable({
+      df <- as.data.frame(datasetInput()$selected_polygon) %>% 
+        select(c("Stedelijkheid (1=zeer sterk stedelijk, 5=niet stedelijk)", "inkomengroep", "opleidingsgroep"))
+      df <- rename(df, "Stedelijkheid"= `Stedelijkheid (1=zeer sterk stedelijk, 5=niet stedelijk)`)
+      df
+      }) 
     
     #Function that returns the 5 most similar areas to the input area based on all voorzieningen variables
     top5_distances_overall <- function(){
