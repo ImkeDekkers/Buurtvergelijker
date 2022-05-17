@@ -330,10 +330,10 @@ shinyServer(function(input, output, session) {
       legend_title <- as.character(variable)
       labels <- sprintf("%s: %g", map_data$NAAM, map_data$variable) %>% 
         lapply(htmltools::HTML)
-      #label_content <- sprintf("%s: %g \n %s: %g", map_data$selected_area_label, map_data$variable[map_data$NAAM == map_data$selected_area_label], "Gemiddelde geselecteerde gebieden", round(mean(map_data$variable, na.rm=TRUE), digits = 1))
-      label_content <- sprintf("%s: %g </strong><br/> %s: %g", map_data$selected_area_label, map_data$variable[map_data$NAAM == map_data$selected_area_label], "Gemiddelde vergelijkbare gebieden", round(mean(map_data$variable, na.rm=TRUE), digits = 1))%>% lapply(htmltools::HTML)
-      label_content <- sprintf("%s: %g </strong><br/> %s: %g", 
-                               map_data$selected_area_label, map_data$variable[map_data$NAAM == map_data$selected_area_label], "Gemiddelde vergelijkbare gebieden", round(mean(map_data$variable, na.rm=TRUE), digits = 1))%>% lapply(htmltools::HTML)
+      label_content <- sprintf("%s: %g <br/> %s: %g", 
+                               map_data$selected_area_label, map_data$variable[map_data$CODE == map_data$selected_area_code], "Gemiddelde vergelijkbare gebieden", round(mean(map_data$variable, na.rm=TRUE), digits = 1))%>% lapply(htmltools::HTML)
+      
+      #selected_area_code <- df[1, "selected_area_code"]
       
       #map
       output_map <- tryCatch({
