@@ -81,13 +81,13 @@ shinyServer(function(input, output, session) {
       df <- df[df$Niveau == input$niveau,]
       if(input$niveau == 'Gemeenten'){
         if(input$vergelijkbaar1 == "Stedelijkheidsniveau"){
-          stedelijkheid_num <- df[df$GM_NAAM == input$gemeente1, "Stedelijkheid (1=zeer sterk stedelijk, 5=niet stedelijk)"]      # Stedelijkheid is the 5th column in the data
+          stedelijkheid_num <- df[df$GM_NAAM == input$gemeente1, "Stedelijkheid (1=zeer sterk stedelijk, 5=niet stedelijk)"]
           comparable_df <- df[df$`Stedelijkheid (1=zeer sterk stedelijk, 5=niet stedelijk)`== stedelijkheid_num, ]
         }else if (input$vergelijkbaar1 == "Inkomensniveau"){
-          inkomen_num <- df[df$GM_NAAM == input$gemeente1, 'inkomengroep']          # Inkomensniveau (calculated) is 180th column
+          inkomen_num <- df[df$GM_NAAM == input$gemeente1, 'inkomengroep']
           comparable_df <- df[df$inkomengroep == inkomen_num, ]
         }else if (input$vergelijkbaar1 == "Opleidingsniveau"){
-          opleiding_num <- df[df$GM_NAAM == input$gemeente1, 'opleidingsgroep']        # Opleidingsniveau (calculated) is 182nd column
+          opleiding_num <- df[df$GM_NAAM == input$gemeente1, 'opleidingsgroep']
           comparable_df <- df[df$opleidingsgroep == opleiding_num, ]
         } else if(input$vergelijkbaar1 == "Nederland"){
           comparable_df <- df
@@ -98,11 +98,11 @@ shinyServer(function(input, output, session) {
         row_num_selected <- which(comparable_df$GM_NAAM == input$gemeente1)
       }else if(input$niveau == 'Wijken'){
         if(input$vergelijkbaar2 == "Stedelijkheidsniveau"){
-          stedelijkheid_num <- df[df$WK_NAAM == input$wijken2 & df$GM_NAAM == input$gemeente2, "Stedelijkheid (1=zeer sterk stedelijk, 5=niet stedelijk)"]      # Stedelijkheid is the 5th column in the data
+          stedelijkheid_num <- df[df$WK_NAAM == input$wijken2 & df$GM_NAAM == input$gemeente2, "Stedelijkheid (1=zeer sterk stedelijk, 5=niet stedelijk)"]
           comparable_df <- df[df$`Stedelijkheid (1=zeer sterk stedelijk, 5=niet stedelijk)`== stedelijkheid_num, ]
           comparable_df <- comparable_df %>% drop_na(CODE)
         }else if (input$vergelijkbaar2 == "Inkomensniveau"){
-          inkomen_num <- df[df$WK_NAAM == input$wijken2 & df$GM_NAAM == input$gemeente2, 'inkomengroep']          # Inkomensniveau (calculated) is 180th column
+          inkomen_num <- df[df$WK_NAAM == input$wijken2 & df$GM_NAAM == input$gemeente2, 'inkomengroep']
           if(is.na(inkomen_num)){
             comparable_df <- df[df$Niveau == input$niveau,]
             output$ink_vergelijkbaarheid <- renderText(
@@ -113,7 +113,7 @@ shinyServer(function(input, output, session) {
             comparable_df <- comparable_df %>% drop_na(CODE)
           }
         }else if (input$vergelijkbaar2 == "Opleidingsniveau"){
-          opleiding_num <- df[df$WK_NAAM == input$wijken2 & df$GM_NAAM == input$gemeente2, 'opleidingsgroep']        # Opleidingsniveau (calculated) is 182nd column
+          opleiding_num <- df[df$WK_NAAM == input$wijken2 & df$GM_NAAM == input$gemeente2, 'opleidingsgroep']
           if(is.na(opleiding_num)){
             comparable_df <- df[df$Niveau == input$niveau,]
             output$opl_vergelijkbaarheid <- renderText(
@@ -294,16 +294,22 @@ shinyServer(function(input, output, session) {
     }
     
     # Make icon for maps
-    awesome1 <- makeAwesomeIcon(
+    iconblue <- makeAwesomeIcon(
       icon = "arrow-down",
       iconColor = "black",
       markerColor = "blue",
       library = "fa")
     
-    awesome5 <- makeAwesomeIcon(
+    iconred <- makeAwesomeIcon(
       icon = "arrow-down",
       iconColor = "black",
       markerColor = "red",
+      library = "fa")
+    
+    icongreen <- makeAwesomeIcon(
+      icon = "arrow-down",
+      iconColor = "black",
+      markerColor = "green",
       library = "fa")
     
     #Function that makes map of the selected variable 
@@ -342,7 +348,7 @@ shinyServer(function(input, output, session) {
           addAwesomeMarkers(data = top5_distances_theme(),
                             lng = ~centroidx,
                             lat = ~centroidy,
-                            icon = awesome5,
+                            icon = icongreen,
                             label = ~NAAM) %>% 
           #addCircleMarkers(lng = map_data$centroidxx, lat = map_data$centroidyy, color = "black", weight = 3, opacity = 0.75, fillOpacity = 0)%>%
           leaflet::addLegend(pal = qpal, values = ~map_data$variable, opacity = 0.7, title = legend_title, position = "bottomright", labFormat = function(type, cuts, p) {      #labformat function makes sure the actual values instead of the quantiles are displayed in the legend
@@ -363,7 +369,7 @@ shinyServer(function(input, output, session) {
           addAwesomeMarkers(data = top5_distances_theme(),
                             lng = ~centroidx,
                             lat = ~centroidy,
-                            icon = awesome5,
+                            icon = icongreen,
                             label = ~NAAM) %>% 
           #addCircleMarkers(lng = map_data$centroidx, lat = map_data$centroidy, color = "black", weight = 3, opacity = 0.75, fillOpacity = 0)%>%
           leaflet::addLegend(pal = pal, values = ~map_data$variable, opacity = 0.7, title = legend_title, position = "bottomright")
@@ -389,11 +395,11 @@ shinyServer(function(input, output, session) {
                     label = ~htmlEscape(datasetInput()$NAAM)) %>% 
         addAwesomeMarkers(lng = datasetInput()$centroidxx,
                           lat = datasetInput()$centroidyy,
-                          icon = awesome1) %>% 
+                          icon = iconblue) %>% 
         addAwesomeMarkers(data = top5_distances_overall(),
                           lng = ~centroidx,
                           lat = ~centroidy,
-                          icon = awesome5,
+                          icon = iconred,
                           label = ~NAAM)
     })
     
