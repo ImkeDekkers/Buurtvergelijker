@@ -94,7 +94,7 @@ shinyServer(function(input, output, session) {
         }
         comparable_df$selected_area_code <- comparable_df %>% filter(GM_NAAM == input$gemeente1) %>% pull(CODE)
         comparable_df$selected_area_label <- comparable_df %>% filter(GM_NAAM == input$gemeente1) %>% pull(NAAM)
-        selected_polygon <- gemeenten %>% filter(GM_NAAM == input$gemeente1)
+        selected_polygon <- comparable_df %>% filter(GM_NAAM == input$gemeente1)
         row_num_selected <- which(comparable_df$GM_NAAM == input$gemeente1)
       }else if(input$niveau == 'Wijken'){
         if(input$vergelijkbaar2 == "Stedelijkheidsniveau"){
@@ -128,7 +128,7 @@ shinyServer(function(input, output, session) {
         }
         comparable_df$selected_area_code <- comparable_df %>% filter(GM_NAAM == input$gemeente2 & WK_NAAM == input$wijken2) %>%pull(CODE)
         comparable_df$selected_area_label <- comparable_df %>% filter(GM_NAAM == input$gemeente2 & WK_NAAM == input$wijken2) %>%pull(NAAM)
-        selected_polygon <- wijken %>% filter(GM_NAAM == input$gemeente2 & WK_NAAM == input$wijken2)
+        selected_polygon <- comparable_df %>% filter(GM_NAAM == input$gemeente2 & WK_NAAM == input$wijken2)
         row_num_selected <- which(comparable_df$GM_NAAM == input$gemeente2 & comparable_df$WK_NAAM == input$wijken2)
       }else if(input$niveau == 'Buurten'){
         if(input$vergelijkbaar3 == "Stedelijkheidsniveau"){
@@ -140,7 +140,7 @@ shinyServer(function(input, output, session) {
         }
         comparable_df$selected_area_code <- comparable_df %>% filter(GM_NAAM == input$gemeente3 & WK_NAAM == input$wijken3 & BU_NAAM == input$buurten3) %>%pull(CODE)
         comparable_df$selected_area_label <- comparable_df %>% filter(GM_NAAM == input$gemeente3 & WK_NAAM == input$wijken3 & BU_NAAM == input$buurten3) %>%pull(NAAM)
-        selected_polygon <- buurten %>% filter(GM_NAAM == input$gemeente3 & WK_NAAM == input$wijken3 & BU_NAAM == input$buurten3)
+        selected_polygon <- comparable_df %>% filter(GM_NAAM == input$gemeente3 & WK_NAAM == input$wijken3 & BU_NAAM == input$buurten3)
         row_num_selected <- which(comparable_df$GM_NAAM == input$gemeente3 & comparable_df$WK_NAAM == input$wijken3 & comparable_df$BU_NAAM == input$buurten3)
       } 
       comparable_df$centroidxx <- comparable_df[row_num_selected, 'centroidx']

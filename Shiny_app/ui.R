@@ -68,11 +68,11 @@ ui <- dashboardPage(
                              ), # Box selecteer niveau
                       ), # Column
                       box(title = "Informatie over geselecteerd gebied", width = 3, status = "warning", solidHeader = T,
-                          "In de onderstaande tabel kan worden afgelezen wat het stedelijkheidsniveau, de inkomensgroep en de opleidingsgroep zijn voor het geselecteerde gebied",
+                          "In de onderstaande tabel kan worden afgelezen wat het stedelijkheidsniveau, de inkomensgroep en de opleidingsgroep zijn voor het geselecteerde gebied.",
                           tableOutput("info_area"),
-                          "Stedelijkheid: 1 = zeer sterk stedelijk, 5 = niet stedelijk.
-                          Inkomensniveau: 1 = zeer laag percentage, 5 = hoog percentage van huishoudens met een inkomen onder het sociaal minimum.
-                          Opleidingsniveau: 1 = zeer laag percentage, 5 = zeer hoog percentage van personen met een lage opleiding."), # Box informatie
+                          "Stedelijkheid: 1 = zeer sterk stedelijk, 5 = niet stedelijk.", br(),
+                          "Inkomensniveau: 1 = zeer laag percentage, 5 = hoog percentage van huishoudens met een inkomen onder het sociaal minimum.",br(),
+                          "Opleidingsniveau: 1 = zeer laag percentage, 5 = zeer hoog percentage van personen met een lage opleiding."), # Box informatie
                       box(title = "Geselecteerde plek op de kaart", width = 4, status = "warning", solidHeader = T,
                           "Kaart waarop het gekozen gebied te zien is (blauwe pointer), de top 5 meest vergelijkbare gebieden (rode pointers) en de gebieden waarmee wordt vergeleken.",
                           #"Hier komt de prime map van leaflet met pointer naar centroid van de geselecteerde g/w/b",
