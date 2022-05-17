@@ -425,7 +425,7 @@ shinyServer(function(input, output, session) {
       
       #Plot
       ggplot(df_final, aes(x = Variabele, y = Aantal, fill = groep)) + geom_col(position = "dodge") + 
-        theme(text = element_text(size = 14))+
+        theme(text = element_text(size = 14),legend.title = element_blank())+
         scale_x_discrete(labels = function(x) 
           stringr::str_wrap(x, width = 15))
     }
