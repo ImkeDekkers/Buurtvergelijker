@@ -147,13 +147,19 @@ shinyServer(function(input, output, session) {
       comparable_df$centroidyy <- comparable_df[row_num_selected, 'centroidy']
       dataset <- st_as_sf(comparable_df)
       
-      return(dataset)
+      list_return <- list("dataset" = dataset, "selected_polygon" = selected_polygon)
+      return(list_return)
     })
+    
+    # Get information about selected area in table
+    output$info_area <- renderTable(
+      as.data.frame(datasetInput()$selected_polygon) %>% 
+        select(c("Stedelijkheid (1=zeer sterk stedelijk, 5=niet stedelijk)", "inkomengroep", "opleidingsgroep"))) 
     
     #Function that returns the 5 most similar areas to the input area based on all voorzieningen variables
     top5_distances_overall <- function(){
       
-      df <- as.data.frame(datasetInput())
+      df <- as.data.frame(datasetInput()$dataset)
       
       #Making CODE the row index so all rows are identifiable 
       result <-  subset(df, select = -c(CODE))
@@ -221,7 +227,7 @@ shinyServer(function(input, output, session) {
     #Function that returns the 5 most similar areas to the input area based on voorzieningen variables in chosen theme
     top5_distances_theme <- function(){
       
-      df <- as.data.frame(datasetInput())
+      df <- as.data.frame(datasetInput()$dataset)
       
       #Making CODE the row index so all rows are identifiable 
       result <-  subset(df, select = -c(CODE))
@@ -315,7 +321,7 @@ shinyServer(function(input, output, session) {
     #Function that makes map of the selected variable 
     make_map <- function(variable){
       #get input for the map
-      map_data <- datasetInput()
+      map_data <- datasetInput()$dataset
       map_data$variable <- map_data[[variable]]
       
       #define colors for polygons and legend 
@@ -387,14 +393,14 @@ shinyServer(function(input, output, session) {
     
     # Create map to point to the selected location and comparable polygons
     output$prime_map <- renderLeaflet({
-      leaflet(datasetInput()) %>% 
+      leaflet(datasetInput()$dataset) %>% 
         addProviderTiles(providers$CartoDB.Positron) %>% 
         addPolygons(color = "navy", weight = 1, 
                     highlightOptions = highlightOptions(color = "black", 
                                                         weight = 2),
-                    label = ~htmlEscape(datasetInput()$NAAM)) %>% 
-        addAwesomeMarkers(lng = datasetInput()$centroidxx,
-                          lat = datasetInput()$centroidyy,
+                    label = ~htmlEscape(datasetInput()$dataset$NAAM)) %>% 
+        addAwesomeMarkers(lng = datasetInput()$dataset$centroidxx,
+                          lat = datasetInput()$dataset$centroidyy,
                           icon = iconblue) %>% 
         addAwesomeMarkers(data = top5_distances_overall(),
                           lng = ~centroidx,
@@ -407,7 +413,7 @@ shinyServer(function(input, output, session) {
     plot4 <- function(column1, column2, column3){
       
       #Calculating the mean values of the input columns
-      df <- as.data.frame(datasetInput())
+      df <- as.data.frame(datasetInput()$dataset)
       df_gem <- select(df, column1, column2, column3)
       df_gem <- as.data.frame(colMeans(df_gem, na.rm = TRUE))
       df_gem <-  rownames_to_column(df_gem)
