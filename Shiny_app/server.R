@@ -101,6 +101,12 @@ shinyServer(function(input, output, session) {
           stedelijkheid_num <- df[df$WK_NAAM == input$wijken2 & df$GM_NAAM == input$gemeente2, "Stedelijkheid (1=zeer sterk stedelijk, 5=niet stedelijk)"]
           comparable_df <- df[df$`Stedelijkheid (1=zeer sterk stedelijk, 5=niet stedelijk)`== stedelijkheid_num, ]
           comparable_df <- comparable_df %>% drop_na(CODE)
+          output$ink_vergelijkbaarheid <- renderText(
+            print("")
+          )
+          output$opl_vergelijkbaarheid <- renderText(
+            print("")
+          )
         }else if (input$vergelijkbaar2 == "Inkomensniveau"){
           inkomen_num <- df[df$WK_NAAM == input$wijken2 & df$GM_NAAM == input$gemeente2, 'inkomengroep']
           if(is.na(inkomen_num)){
@@ -111,6 +117,9 @@ shinyServer(function(input, output, session) {
           }else{
             comparable_df <- df[df$inkomengroep == inkomen_num, ]
             comparable_df <- comparable_df %>% drop_na(CODE)
+            output$ink_vergelijkbaarheid <- renderText(
+              print("")
+            )
           }
         }else if (input$vergelijkbaar2 == "Opleidingsniveau"){
           opleiding_num <- df[df$WK_NAAM == input$wijken2 & df$GM_NAAM == input$gemeente2, 'opleidingsgroep']
@@ -122,9 +131,18 @@ shinyServer(function(input, output, session) {
           }else{
             comparable_df <- df[df$opleidingsgroep == opleiding_num, ]
             comparable_df <- comparable_df %>% drop_na(CODE)
+            output$opl_vergelijkbaarheid <- renderText(
+              print("")
+            )
           }
         } else if(input$vergelijkbaar2 == "Nederland"){
           comparable_df <- df
+          output$ink_vergelijkbaarheid <- renderText(
+            print("")
+          )
+          output$opl_vergelijkbaarheid <- renderText(
+            print("")
+          )
         }
         comparable_df$selected_area_code <- comparable_df %>% filter(GM_NAAM == input$gemeente2 & WK_NAAM == input$wijken2) %>%pull(CODE)
         comparable_df$selected_area_label <- comparable_df %>% filter(GM_NAAM == input$gemeente2 & WK_NAAM == input$wijken2) %>%pull(NAAM)
