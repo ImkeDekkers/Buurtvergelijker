@@ -147,7 +147,7 @@ ui <- dashboardPage(
                                                                       "2018" = "2018",
                                                                       "2019" = "2019",
                                                                       "2020" = "2020")), # Select input jaar
-                                       actionButton("action", "Indienen")
+                                       actionButton("action2", "Indienen")
                                    ) # Box input
                             ), # Column 1
                             column(width = 5,

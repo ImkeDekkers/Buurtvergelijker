@@ -645,7 +645,7 @@ shinyServer(function(input, output, session) {
     })
     
     # Create input dataset for further analysis
-    incidents <- reactive({
+    incidents <- eventReactive(input$action2, {
       sf_use_s2(F)
       polygons_niveau <- all_polygons %>% filter(Niveau == input$niveau2)       # Only polygons on selected niveau (gemeente, wijk, buurt)
       ongevallen_year <- ongevallen %>% filter(JAAR_VKL == input$jaar)          # Only ongevallen/incidents for selected year
@@ -653,16 +653,26 @@ shinyServer(function(input, output, session) {
       
       if (input$niveau2 == "Gemeenten"){
         pol_select <- polygons_niveau %>% filter(GM_NAAM == input$gemeente21)
+        total_incidents <- intersection %>% 
+          group_by(GM_NAAM) %>% 
+          count()
       } else if(input$niveau2 == "Wijken"){
         pol_select <- polygons_niveau %>% filter(GM_NAAM == input$gemeente22 & WK_NAAM == input$wijken22)
+        total_incidents <- intersection %>% 
+          group_by(WK_NAAM, GM_NAAM) %>% 
+          count()
       } else if (input$niveau2 == "Buurten"){
         pol_select <- polygons_niveau %>% filter(GM_NAAM == input$gemeente23 & WK_NAAM == input$wijken23 & BU_NAAM == input$buurten23)
+        total_incidents <- intersection %>% 
+          group_by(BU_NAAM, WK_NAAM, GM_NAAM) %>% 
+          count()
       }
       
       list_ongevallen_return <- list("intersection" = intersection,       # Dataset with points of incidents and names of corresponding gemeente/wijk/buurt
                                      "ongevallen_year" = ongevallen_year, # Dataset with points of incidents in selected year to plot
                                      "polygons_niveau" = polygons_niveau, # Dataset with polygons of selected niveau
-                                     "pol_select" = pol_select)           # Row with information of selected polygon/area
+                                     "pol_select" = pol_select,           # Row with information of selected polygon/area
+                                     "tot_incidents" = tot_incidents)           
       
       return(list_ongevallen_return)   
     })
@@ -676,11 +686,18 @@ shinyServer(function(input, output, session) {
         setView(lng = incidents()$pol_select$centroidx,           # Make sure that the zoom is concentrated on selected area
                 lat = incidents()$pol_select$centroidy,
                 zoom = 10) %>%
-        addPolygons(data = incidents()$polygons_niveau,           # Add polygons of selected niveau to see in which area the incidents took place
-                    fillColor = "transparant", weight = 0.4,
-                    highlightOptions = highlightOptions(color = 'white', weight = 0.4, fillOpacity = 0.3, bringToFront = TRUE),
-                    label = ~NAAM)
+        # addPolygons(data = incidents()$polygons_niveau,           # Add polygons of selected niveau to see in which area the incidents took place
+        #             fillColor = "blue", weight = 0.4, fillOpacity = 0.1, color = "blue",
+        #             highlightOptions = highlightOptions(color = 'white', weight = 0.4, fillOpacity = 0.2, bringToFront = TRUE),
+        #             label = ~NAAM) 
+        addPolylines(data = incidents()$polygons_niveau,
+                     stroke = T,
+                     weight = 1,
+                     label = ~NAAM)
     }) # Render leaflet
+    
+    # Create output for number of incidents in selected area
+    
     
 })
 
