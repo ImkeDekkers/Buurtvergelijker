@@ -656,23 +656,27 @@ shinyServer(function(input, output, session) {
         total_incidents <- intersection %>% 
           group_by(GM_NAAM) %>% 
           count()
+        top5_incidents <- head(incidents()$total_incidents[order(n),],5)
       } else if(input$niveau2 == "Wijken"){
         pol_select <- polygons_niveau %>% filter(GM_NAAM == input$gemeente22 & WK_NAAM == input$wijken22)
         total_incidents <- intersection %>% 
           group_by(WK_NAAM, GM_NAAM) %>% 
           count()
+        top5_incidents <- head(incidents()$total_incidents[order(n),],5)
       } else if (input$niveau2 == "Buurten"){
         pol_select <- polygons_niveau %>% filter(GM_NAAM == input$gemeente23 & WK_NAAM == input$wijken23 & BU_NAAM == input$buurten23)
         total_incidents <- intersection %>% 
           group_by(BU_NAAM, WK_NAAM, GM_NAAM) %>% 
           count()
+        top5_incidents <- head(incidents()$total_incidents[order(n),],5)
       }
       
       list_ongevallen_return <- list("intersection" = intersection,       # Dataset with points of incidents and names of corresponding gemeente/wijk/buurt
                                      "ongevallen_year" = ongevallen_year, # Dataset with points of incidents in selected year to plot
                                      "polygons_niveau" = polygons_niveau, # Dataset with polygons of selected niveau
                                      "pol_select" = pol_select,           # Row with information of selected polygon/area
-                                     "tot_incidents" = tot_incidents)           
+                                     "total_incidents" = total_incidents, # Count data for each area
+                                     "top5_incidents" = top5_incidents)   # Top5 most incidents in area          
       
       return(list_ongevallen_return)   
     })
@@ -693,11 +697,19 @@ shinyServer(function(input, output, session) {
         addPolylines(data = incidents()$polygons_niveau,
                      stroke = T,
                      weight = 1,
-                     label = ~NAAM)
+                     label = ~NAAM) %>% 
+        addAwesomeMarkers(data = incidents()$pol_select,
+                          lng = incidents()$pol_select$centroidx,
+                          lat = incidents()$pol_select$centroidy,
+                          icon = iconblue,
+                          label = ~NAAM)
     }) # Render leaflet
     
     # Create output for number of incidents in selected area
-    
+    output$top5_incidents <- renderTable(
+      incidents()$top5_incidents,
+      rownames = T
+    )
     
 })
 

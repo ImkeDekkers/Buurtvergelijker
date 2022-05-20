@@ -85,3 +85,13 @@ ongevallen_sf <- st_as_sf(ongevallen_reduced_no_dup, coords = c("X_COORD", "Y_CO
 ongevallen_transformed <- ongevallen_sf %>% st_transform("EPSG:4326")
 
 write_rds(ongevallen_transformed, "Data/ongevallen_W84.rds")
+
+# Full_data used from main branche
+all_polygons <- full_data %>% 
+  select(BU_CODE, BU_NAAM, WK_CODE, WK_NAAM, GM_CODE, GM_NAAM, POSTCODE, geometry, centroid, Niveau, CODE, NAAM, centroidx, centroidy)
+
+# Already calculate all intersections of points an polygons
+intersection <- st_intersection(x = all_polygons, y = ongevallen_transformed)
+
+write_rds(intersection, "Data/intersection.rds")
+
