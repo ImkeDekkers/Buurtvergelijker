@@ -18,7 +18,8 @@ full_data <- readRDS("../Data/full_data.rds")
 ongevallen <- readRDS("../Data/ongevallen_W84.rds")
 all_polygons <- full_data %>% 
   select(BU_CODE, BU_NAAM, WK_CODE, WK_NAAM, GM_CODE, GM_NAAM, POSTCODE, geometry, centroid, Niveau, CODE, NAAM, centroidx, centroidy)
-
+intersection <- readRDS("../Data/intersection.rds")
+  
 shinyServer(function(input, output, session) {
     
     #remove spaces and change lower case to upper case in postcode
@@ -645,71 +646,100 @@ shinyServer(function(input, output, session) {
     })
     
     # Create input dataset for further analysis
-    incidents <- eventReactive(input$action2, {
+    incidents_input <- eventReactive(input$action2, {
       sf_use_s2(F)
-      polygons_niveau <- all_polygons %>% filter(Niveau == input$niveau2)       # Only polygons on selected niveau (gemeente, wijk, buurt)
-      ongevallen_year <- ongevallen %>% filter(JAAR_VKL == input$jaar)          # Only ongevallen/incidents for selected year
-      intersection <- st_intersection(x = polygons_niveau, y = ongevallen_year) # Intersect points with polygons of gemeente/wijk/buurt 
+      polygons_niveau <- all_polygons %>% filter(Niveau == input$niveau2)                       # Only polygons on selected niveau (gemeente, wijk, buurt)
+      ongevallen_year <- ongevallen %>% filter(JAAR_VKL == input$jaar)                          # Only ongevallen/incidents for selected year
+      
       
       if (input$niveau2 == "Gemeenten"){
         pol_select <- polygons_niveau %>% filter(GM_NAAM == input$gemeente21)
-        total_incidents <- intersection %>% 
-          group_by(GM_NAAM) %>% 
-          count()
-        top5_incidents <- head(incidents()$total_incidents[order(n),],5)
       } else if(input$niveau2 == "Wijken"){
         pol_select <- polygons_niveau %>% filter(GM_NAAM == input$gemeente22 & WK_NAAM == input$wijken22)
-        total_incidents <- intersection %>% 
-          group_by(WK_NAAM, GM_NAAM) %>% 
-          count()
-        top5_incidents <- head(incidents()$total_incidents[order(n),],5)
       } else if (input$niveau2 == "Buurten"){
         pol_select <- polygons_niveau %>% filter(GM_NAAM == input$gemeente23 & WK_NAAM == input$wijken23 & BU_NAAM == input$buurten23)
-        total_incidents <- intersection %>% 
-          group_by(BU_NAAM, WK_NAAM, GM_NAAM) %>% 
-          count()
-        top5_incidents <- head(incidents()$total_incidents[order(n),],5)
       }
       
-      list_ongevallen_return <- list("intersection" = intersection,       # Dataset with points of incidents and names of corresponding gemeente/wijk/buurt
-                                     "ongevallen_year" = ongevallen_year, # Dataset with points of incidents in selected year to plot
+      list_ongevallen_return <- list("ongevallen_year" = ongevallen_year, # Dataset with points of incidents in selected year to plot
                                      "polygons_niveau" = polygons_niveau, # Dataset with polygons of selected niveau
-                                     "pol_select" = pol_select,           # Row with information of selected polygon/area
-                                     "total_incidents" = total_incidents, # Count data for each area
-                                     "top5_incidents" = top5_incidents)   # Top5 most incidents in area          
-      
+                                     "pol_select" = pol_select)           # Row with information of selected polygon/area
+                                      
+                                     
       return(list_ongevallen_return)   
     })
     
     # Create map with incidents as points
     output$cluster_ongevallen <- renderLeaflet({
-      leaflet(incidents()$ongevallen_year) %>% 
+      leaflet(incidents_input()$ongevallen_year) %>% 
         addProviderTiles(providers$CartoDB.Positron) %>%
-        addMarkers(data = incidents()$ongevallen_year,
+        addMarkers(data = incidents_input()$ongevallen_year,
                    clusterOptions = markerClusterOptions()) %>% 
-        setView(lng = incidents()$pol_select$centroidx,           # Make sure that the zoom is concentrated on selected area
-                lat = incidents()$pol_select$centroidy,
+        setView(lng = incidents_input()$pol_select$centroidx,           # Make sure that the zoom is concentrated on selected area
+                lat = incidents_input()$pol_select$centroidy,
                 zoom = 10) %>%
-        # addPolygons(data = incidents()$polygons_niveau,           # Add polygons of selected niveau to see in which area the incidents took place
+        # addPolygons(data = incidents_input()$polygons_niveau,           # Add polygons of selected niveau to see in which area the incidents took place
         #             fillColor = "blue", weight = 0.4, fillOpacity = 0.1, color = "blue",
         #             highlightOptions = highlightOptions(color = 'white', weight = 0.4, fillOpacity = 0.2, bringToFront = TRUE),
         #             label = ~NAAM) 
-        addPolylines(data = incidents()$polygons_niveau,
+        addPolylines(data = incidents_input()$polygons_niveau,
                      stroke = T,
                      weight = 1,
                      label = ~NAAM) %>% 
-        addAwesomeMarkers(data = incidents()$pol_select,
-                          lng = incidents()$pol_select$centroidx,
-                          lat = incidents()$pol_select$centroidy,
+        addAwesomeMarkers(data = incidents_input()$pol_select,
+                          lng = incidents_input()$pol_select$centroidx,
+                          lat = incidents_input()$pol_select$centroidy,
                           icon = iconblue,
                           label = ~NAAM)
     }) # Render leaflet
     
-    # Create output for number of incidents in selected area
-    output$top5_incidents <- renderTable(
-      incidents()$top5_incidents,
-      rownames = T
-    )
+    # Create function for number of incidents in selected area
+    top_incidents <- function(){
+      intersection <- intersection %>% filter(Niveau == input$niveau2 & 
+                                                JAAR_VKL == input$jaar) # Precalculated intersection filtered on niveau and year of input
+      df_intersection <- as.data.frame(intersection) 
+      if (input$niveau2 == "Gemeenten"){
+        incidents_count_niveau <- df_intersection %>% 
+          group_by(GM_NAAM) %>% 
+          count()
+        sorted <- incidents_count_niveau %>% arrange(desc(n))           # In descending order, so most incidents are at top
+        sorted$Rank <- seq.int(nrow(sorted))                            # Add row numbers to dataframe as indication of place in order
+        sorted <- sorted %>% relocate(Rank)                             # Rank as first column 
+        pol_selected <- sorted %>% filter(GM_NAAM == input$gemeente21)
+      } else if(input$niveau2 == "Wijken"){
+        incidents_count_niveau <- df_intersection %>% 
+          group_by(WK_NAAM, GM_NAAM) %>% 
+          count()
+        sorted <- incidents_count_niveau %>% arrange(desc(n)) 
+        sorted$Rank <- seq.int(nrow(sorted))                   
+        sorted <- sorted %>% relocate(Rank)
+        pol_selected <- sorted %>% filter(GM_NAAM == input$gemeente22 & 
+                                            WK_NAAM == input$wijken22)
+      } else if(input$niveau2 == "Buurten"){
+        incidents_count_niveau <- df_intersection %>% 
+          group_by(BU_NAAM, WK_NAAM, GM_NAAM) %>% 
+          count()
+        sorted <- incidents_count_niveau %>% arrange(desc(n))  
+        sorted$Rank <- seq.int(nrow(sorted))                   
+        sorted <- sorted %>% relocate(Rank) 
+        pol_selected <- sorted %>% filter(GM_NAAM == input$gemeente23 & 
+                                            WK_NAAM == input$wijken23 & 
+                                            BU_NAAM == input$buurten23)      
+      }
+      
+      top5_incidents <- head(sorted)
+      top5_and1_incidents <- rbind(top5_incidents, pol_selected)
+
+      return(top5_and1_incidents)
+      
+    } # Function
+    
+    # Output number of incidents in selected area
+    output$count_incidents <- renderTable(
+      top_incidents(),
+      rownames = F,
+    ) # Render table
+
+    # Create output for general trend in selected area
     
 })
 

@@ -159,9 +159,9 @@ ui <- dashboardPage(
                             column(width = 4,
                                    box(title = "Algemene trend", width = NULL, status = "warning", solidHeader = T,
                                        "Hier komt de algemene trend van het aantal verkeersongelukken in NL (op het juiste niveau) en de geselecteerde gemeente/wijk/buurt"), # Box algemene trend
-                                   box(title = "Aantal verkeersongelukken in geselecteerd gebied", width = NULL, background = "red", solidHeader = T,
+                                   box(title = "Aantal verkeersongelukken in geselecteerd gebied", width = NULL, background = "green", solidHeader = T,
                                        "Hier komt een groot getal met het aantal ongelukken in het geselecteerde gebied en jaar",
-                                       tableOutput("top5_incidents"))
+                                       shinycssloaders::withSpinner(tableOutput("count_incidents")))
                             ) # Column 3
                           ), # fluid row niveau
                           fluidRow(
