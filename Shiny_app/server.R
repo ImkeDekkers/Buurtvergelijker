@@ -1,3 +1,4 @@
+# Load libraries
 library(shiny)
 library(ggplot2)
 library(sf)
@@ -8,11 +9,15 @@ library(shinythemes)
 library(shinydashboard)
 library(htmltools)
 
+# Load data
 gemeenten <- readRDS("../Data/gemeenten.rds")
 wijken <- readRDS("../Data/wijken.rds")
 buurten <- readRDS("../Data/buurten.rds")
 postcodes_final <- readRDS("../Data/postcodes_final.rds")
 full_data <- readRDS("../Data/full_data.rds")
+ongevallen <- readRDS("../Data/ongevallen_W84.rds")
+all_polygons <- full_data %>% 
+  select(BU_CODE, BU_NAAM, WK_CODE, WK_NAAM, GM_CODE, GM_NAAM, POSTCODE, geometry, centroid, Niveau, CODE, NAAM, centroidx, centroidy)
 
 shinyServer(function(input, output, session) {
     
@@ -622,6 +627,60 @@ shinyServer(function(input, output, session) {
                 "Aantal musea binnen 20 km")
       }
       })
+    
+    # ONGEVALLEN/TRAFFIC INCIDENTS
+    # Make selection dependent on previous input
+    observeEvent(input$gemeente22, {
+      updateSelectInput(session, 'wijken22',
+                        choices = unique(postcodes_final$wijknaam2020[postcodes_final$Gemeentenaam2020 == input$gemeente22]))  # Only display that are in the selected gemeente
+    })
+    observeEvent(input$gemeente23, {
+      updateSelectInput(session, 'wijken23',
+                        choices = unique(postcodes_final$wijknaam2020[postcodes_final$Gemeentenaam2020 == input$gemeente23]))  # Only display that are in the selected gemeente
+    })
+    observeEvent(input$wijken23,{
+      updateSelectInput(session, 'buurten23',
+                        choices = unique(postcodes_final$buurtnaam2020[postcodes_final$Gemeentenaam2020 == input$gemeente23 & 
+                                                                         postcodes_final$wijknaam2020==input$wijken23]))       # Only display buurten that are in the selected wijk
+    })
+    
+    # Create input dataset for further analysis
+    incidents <- reactive({
+      sf_use_s2(F)
+      polygons_niveau <- all_polygons %>% filter(Niveau == input$niveau2)       # Only polygons on selected niveau (gemeente, wijk, buurt)
+      ongevallen_year <- ongevallen %>% filter(JAAR_VKL == input$jaar)          # Only ongevallen/incidents for selected year
+      intersection <- st_intersection(x = polygons_niveau, y = ongevallen_year) # Intersect points with polygons of gemeente/wijk/buurt 
+      
+      if (input$niveau2 == "Gemeenten"){
+        pol_select <- polygons_niveau %>% filter(GM_NAAM == input$gemeente21)
+      } else if(input$niveau2 == "Wijken"){
+        pol_select <- polygons_niveau %>% filter(GM_NAAM == input$gemeente22 & WK_NAAM == input$wijken22)
+      } else if (input$niveau2 == "Buurten"){
+        pol_select <- polygons_niveau %>% filter(GM_NAAM == input$gemeente23 & WK_NAAM == input$wijken23 & BU_NAAM == input$buurten23)
+      }
+      
+      list_ongevallen_return <- list("intersection" = intersection,       # Dataset with points of incidents and names of corresponding gemeente/wijk/buurt
+                                     "ongevallen_year" = ongevallen_year, # Dataset with points of incidents in selected year to plot
+                                     "polygons_niveau" = polygons_niveau, # Dataset with polygons of selected niveau
+                                     "pol_select" = pol_select)           # Row with information of selected polygon/area
+      
+      return(list_ongevallen_return)   
+    })
+    
+    # Create map with incidents as points
+    output$cluster_ongevallen <- renderLeaflet({
+      leaflet(incidents()$ongevallen_year) %>% 
+        addProviderTiles(providers$CartoDB.Positron) %>%
+        addMarkers(data = incidents()$ongevallen_year,
+                   clusterOptions = markerClusterOptions()) %>% 
+        setView(lng = incidents()$pol_select$centroidx,           # Make sure that the zoom is concentrated on selected area
+                lat = incidents()$pol_select$centroidy,
+                zoom = 10) %>%
+        addPolygons(data = incidents()$polygons_niveau,           # Add polygons of selected niveau to see in which area the incidents took place
+                    fillColor = "transparant", weight = 0.4,
+                    highlightOptions = highlightOptions(color = 'white', weight = 0.4, fillOpacity = 0.3, bringToFront = TRUE),
+                    label = ~NAAM)
+    }) # Render leaflet
     
 })
 

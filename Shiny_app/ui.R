@@ -22,7 +22,7 @@ ui <- dashboardPage(
       menuItem("Dashboard", tabName = "Dashboard", icon = icon("dashboard")),
       menuItem("Gezondheidszorg", tabName = "Gezondheidszorg", icon = icon("th")),
       menuItem("Onderwijs", tabName = "Onderwijs", icon = icon("th")),
-      menuItem("Huizenmarkt", tabName = "Huizenmarkt", icon = icon("th")))
+      menuItem("Verkeersveiligheid", tabName = "Verkeersveiligheid", icon = icon("th")))
   ), # Dashboard sidebar
   dashboardBody(tags$head(tags$style(HTML('.box{box-shadow: none;border-style: none;}.content-wrapper { overflow: auto; }'))),
                 tabItems(
@@ -114,9 +114,62 @@ ui <- dashboardPage(
                           h2("Eventueel voor onderwijs")
                   ), # Tab item onderwijs
                   
-                  tabItem(tabName = "Huizenmarkt",
-                          h2("Eventueel voor huizenmarkt")
-                  ) # Tab Item huizenmarkt
+                  tabItem(tabName = "Verkeersveiligheid",
+                          h2("Inzicht in verkeersongevallen"),
+                          fluidRow(
+                            column(width = 3,
+                                   box(title = "Selecteer het gebied van interesse", width = NULL, status = "primary", solidHeader = T,
+                                       selectInput("niveau2", "Niveau:", c("Gemeenten" = "Gemeenten",
+                                                                           "Wijken" = "Wijken",
+                                                                           "Buurten" = "Buurten")), # Select input niveau2
+                                       conditionalPanel(
+                                         condition = "input.niveau2 == 'Gemeenten'",
+                                         selectInput("gemeente21", "Gemeente:", choices = unique(gemeenten$GM_NAAM)) # Select input gemeente21
+                                       ), # Conditional panel 1 gemeenten
+                                       conditionalPanel(
+                                         condition = "input.niveau2 == 'Wijken'",
+                                         selectInput("gemeente22", "Gemeente:", choices = unique(gemeenten$GM_NAAM)), # Select input gemeente22
+                                         selectInput("wijken22", "Wijk:", choices = NULL) # Select input wijken22
+                                       ), # Conditional panel 2 wijken
+                                       conditionalPanel(
+                                         condition = "input.niveau2 == 'Buurten'",
+                                         selectInput("gemeente23", "Gemeente:", choices = unique(gemeenten$GM_NAAM)), # Select input gemeente23
+                                         selectInput("wijken23", "Wijk:", choices = NULL), # Select input wijken23
+                                         selectInput("buurten23", "Buurt:", choices = NULL) # Select input buurten23
+                                       ), # Conditional panel 3 buurten
+                                       selectInput("jaar", "Jaar:", c("2011" = "2011",
+                                                                      "2012" = "2012",
+                                                                      "2013" = "2013",
+                                                                      "2014" = "2014",
+                                                                      "2015" = "2015",
+                                                                      "2016" = "2016",
+                                                                      "2017" = "2017",
+                                                                      "2018" = "2018",
+                                                                      "2019" = "2019",
+                                                                      "2020" = "2020")), # Select input jaar
+                                       actionButton("action", "Indienen")
+                                   ) # Box input
+                            ), # Column 1
+                            column(width = 5,
+                                   box(title = "Ongelukken op de kaart", width = NULL, status = "warning", solidHeader = T,
+                                       "Hier komt de kaart waarin wordt geclusterd hoeveel incidenten hebben plaatsgevonden. 
+                                De zoom gaat automatisch naar het geselecteerde gebied",
+                                       shinycssloaders::withSpinner(leafletOutput("cluster_ongevallen"))) # Box ongelukken kaart
+                            ), # Column 2
+                            column(width = 4,
+                                   box(title = "Algemene trend", width = NULL, status = "warning", solidHeader = T,
+                                       "Hier komt de algemene trend van het aantal verkeersongelukken in NL (op het juiste niveau) en de geselecteerde gemeente/wijk/buurt"), # Box algemene trend
+                                   box(title = "Aantal verkeersongelukken in geselecteerd gebied", width = NULL, background = "red", solidHeader = T,
+                                       "Hier komt een groot getal met het aantal ongelukken in het geselecteerde gebied en jaar")
+                            ) # Column 3
+                          ), # fluid row niveau
+                          fluidRow(
+                            column(width = 12,
+                                   box(title = "Grafieken en diagrammen", width = NULL, status = "warning", solidHeader = T,
+                                       "Hier komen verschillende grafieken en diagrammen van ongelukken naar aard, afloop of trend") # Box grafieken en diagrammen
+                            ) # Column 1 fluid row 2
+                          ) # Fluid row grafieken
+                  ) # Tab Item verkeersveiligheid
                 ) # TabItems
   ) # Dashboard body
 ) # Dashboard page
