@@ -648,9 +648,8 @@ shinyServer(function(input, output, session) {
     # Create input dataset for further analysis
     incidents_input <- eventReactive(input$action2, {
       sf_use_s2(F)
-      polygons_niveau <- all_polygons %>% filter(Niveau == input$niveau2)                       # Only polygons on selected niveau (gemeente, wijk, buurt)
-      ongevallen_year <- ongevallen %>% filter(JAAR_VKL == input$jaar)                          # Only ongevallen/incidents for selected year
-      
+      polygons_niveau <- all_polygons %>% filter(Niveau == input$niveau2)  # Only polygons on selected niveau (gemeente, wijk, buurt)
+      ongevallen_year <- ongevallen %>% filter(JAAR_VKL == input$jaar)     # Only ongevallen/incidents for selected year
       
       if (input$niveau2 == "Gemeenten"){
         pol_select <- polygons_niveau %>% filter(GM_NAAM == input$gemeente21)
@@ -664,7 +663,6 @@ shinyServer(function(input, output, session) {
                                      "polygons_niveau" = polygons_niveau, # Dataset with polygons of selected niveau
                                      "pol_select" = pol_select)           # Row with information of selected polygon/area
                                       
-                                     
       return(list_ongevallen_return)   
     })
     
@@ -677,7 +675,7 @@ shinyServer(function(input, output, session) {
         setView(lng = incidents_input()$pol_select$centroidx,           # Make sure that the zoom is concentrated on selected area
                 lat = incidents_input()$pol_select$centroidy,
                 zoom = 10) %>%
-        # addPolygons(data = incidents_input()$polygons_niveau,           # Add polygons of selected niveau to see in which area the incidents took place
+        # addPolygons(data = incidents_input()$polygons_niveau,         # Add polygons of selected niveau to see in which area the incidents took place
         #             fillColor = "blue", weight = 0.4, fillOpacity = 0.1, color = "blue",
         #             highlightOptions = highlightOptions(color = 'white', weight = 0.4, fillOpacity = 0.2, bringToFront = TRUE),
         #             label = ~NAAM) 
@@ -738,8 +736,67 @@ shinyServer(function(input, output, session) {
       top_incidents(),
       rownames = F,
     ) # Render table
+    
+    # New map with coloring of selected variable
+    color_map_incidents <- function(){
+      df <- incidents_input()$ongevallen_year
+      input_subthema <- input$subthema2
+      n_distnct_col <- length(unique(df$AP3_OMS))
+      color_incidents <- colorFactor(palette = "Set3", df$input$subthema2)
+        #colorFactor(topo.colors(n_distnct_col), df$input_subthema)
+      
+      map_color_incidents <- leaflet(df) %>%
+        addProviderTiles(providers$CartoDB.Positron) %>%
+        addCircleMarkers(radius = 5, 
+                         color = ~color_incidents(df$input$subthema2), 
+                         group = df$input$subthema2,
+                         label = ~input$subthema2) %>%
+        setView(lng = incidents_input()$pol_select$centroidx,           # Make sure that the zoom is concentrated on selected area
+                lat = incidents_input()$pol_select$centroidy,
+                zoom = 10) %>%
+        addPolylines(data = incidents_input()$polygons_niveau,
+                     stroke = T,
+                     weight = 1,
+                     label = ~NAAM) %>%
+        addLegend(pal = color_incidents, 
+                  values = ~input$subthema2,
+                  title = as.character(input$subthema2))
 
-    # Create output for general trend in selected area
+      return(map_color_incidents)
+    } # Function
+
+    output$map_color_incidents <- renderLeaflet({
+      color_map_incidents()
+    })
+    
+    # General trend in selected area
+    input_trend <- eventReactive(input$action2, {
+      if (input$niveau2 == "Gemeenten"){
+        area <- intersection %>% filter(GM_NAAM == input$gemeente21 & 
+                                          Niveau == "Gemeenten")
+      } else if(input$niveau2 == "Wijken"){
+        area <- intersection %>% filter(GM_NAAM == input$gemeente22 & 
+                                          WK_NAAM == input$wijken22 & 
+                                          Niveau == "Wijken")
+      } else if (input$niveau2 == "Buurten"){
+        area <- intersection %>% filter(GM_NAAM == input$gemeente23 & 
+                                          WK_NAAM == input$wijken23 & 
+                                          BU_NAAM == input$buurten23 & 
+                                          Niveau == "Buurten")
+      }
+      return(area)
+    })
+
+    output$total_accidents_graph <- renderPlot({
+      input_trend() %>% count(JAAR_VKL) %>%
+      ggplot() +
+      geom_line(aes(x = as.factor(JAAR_VKL), y = n, group = 1), color = "Red") +
+      labs(title = "Aantal ongevallen per jaar",
+           x = "Jaar",
+           y = "Aantal")+
+      theme_classic()
+    })
+      
     
 })
 

@@ -120,8 +120,8 @@ ui <- dashboardPage(
                             column(width = 3,
                                    box(title = "Selecteer het gebied van interesse", width = NULL, status = "primary", solidHeader = T,
                                        selectInput("niveau2", "Niveau:", c("Gemeenten" = "Gemeenten",
-                                                                           "Wijken" = "Wijken",
-                                                                           "Buurten" = "Buurten")), # Select input niveau2
+                                                                           "Wijken" = "Wijken")),
+                                                                           #"Buurten" = "Buurten")), # Select input niveau2
                                        conditionalPanel(
                                          condition = "input.niveau2 == 'Gemeenten'",
                                          selectInput("gemeente21", "Gemeente:", choices = unique(gemeenten$GM_NAAM)) # Select input gemeente21
@@ -147,18 +147,32 @@ ui <- dashboardPage(
                                                                       "2018" = "2018",
                                                                       "2019" = "2019",
                                                                       "2020" = "2020")), # Select input jaar
-                                       actionButton("action2", "Indienen")
+                                       
+                                       selectInput("subthema2", "Subthema:", c("Weersgesteldheid" = "WGD_CODE_1",
+                                                                               "Afloop" = "AP3_OMS",
+                                                                               "Uitgangspositie" = "UITGPOS1",
+                                                                               "Voorgenomen beweging" = "VOORGBEW",
+                                                                               "Beweging ten gevolge van ongeval" = "BWG_OMS",
+                                                                               "Objecttype" = "OTE_OMS",
+                                                                               "Wegsituatie" = "WSE_OMS",
+                                                                               "Bijzonderheid verkeersmaatregel" = "BZD_ID_VM1",
+                                                                               "Bijzonderheid infrastructuur" = "BZD_ID_IF1")), # Select input
+                                   actionButton("action2", "Indienen")
                                    ) # Box input
                             ), # Column 1
                             column(width = 5,
                                    box(title = "Ongelukken op de kaart", width = NULL, status = "warning", solidHeader = T,
                                        "Hier komt de kaart waarin wordt geclusterd hoeveel incidenten hebben plaatsgevonden. 
                                 De zoom gaat automatisch naar het geselecteerde gebied",
-                                       shinycssloaders::withSpinner(leafletOutput("cluster_ongevallen"))) # Box ongelukken kaart
+                                       shinycssloaders::withSpinner(leafletOutput("cluster_ongevallen"))), # Box ongelukken kaart
+                                   box(title = "Kaart met incidenten en kleur van variabele", width = NULL, status = "warning", solidHeader = T,
+                                       "Hier wordt de kaart weergegeven met punten op de kaart die de kleur hebben van de geselecteerde variabele",
+                                       shinycssloaders::withSpinner(leafletOutput("map_color_incidents"))) # Box incidenten en kleur
                             ), # Column 2
                             column(width = 4,
                                    box(title = "Algemene trend", width = NULL, status = "warning", solidHeader = T,
-                                       "Hier komt de algemene trend van het aantal verkeersongelukken in NL (op het juiste niveau) en de geselecteerde gemeente/wijk/buurt"), # Box algemene trend
+                                       "Hier komt de algemene trend van het aantal verkeersongelukken in NL (op het juiste niveau) en de geselecteerde gemeente/wijk/buurt",
+                                       plotOutput("total_accidents_graph")), # Box algemene trend
                                    box(title = "Aantal verkeersongelukken in geselecteerd gebied", width = NULL, background = "green", solidHeader = T,
                                        "Hier komt een groot getal met het aantal ongelukken in het geselecteerde gebied en jaar",
                                        shinycssloaders::withSpinner(tableOutput("count_incidents")))
@@ -166,13 +180,10 @@ ui <- dashboardPage(
                           ), # fluid row niveau
                           fluidRow(
                             column(width = 3,
-                                   box(title = "Selecteer een subthema", width = NULL, status = "primary", solidHeader = T,
-                                       "Hier kan worden gekozen van welke variabele meer inzichten worden gegeven",
-                                       selectInput("subthema2", "Subthema:")) # Box selecteer subthema
+                                   "test"
                             ), # Column 1, fluid row 2
                             column(width = 5,
-                                   box(title = "Kaart met incidenten en kleur van variabele", width = NULL, status = "warning", solidHeader = T,
-                                       "Hier wordt de kaart weergegeven met punten op de kaart die de kleur hebben van de geselecteerde variabele") # Box incidenten en kleur
+                                   "Test"
                                    ), # Column 2 fluid row 2
                             column(width = 4,
                                    box(title = "Grafiek of diagram van geselecteerde variabele", width = NULL, status = "warning", solidHeader = T,
