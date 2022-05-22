@@ -165,10 +165,19 @@ ui <- dashboardPage(
                             ) # Column 3
                           ), # fluid row niveau
                           fluidRow(
-                            column(width = 12,
-                                   box(title = "Grafieken en diagrammen", width = NULL, status = "warning", solidHeader = T,
-                                       "Hier komen verschillende grafieken en diagrammen van ongelukken naar aard, afloop of trend") # Box grafieken en diagrammen
-                            ) # Column 1 fluid row 2
+                            column(width = 3,
+                                   box(title = "Selecteer een subthema", width = NULL, status = "primary", solidHeader = T,
+                                       "Hier kan worden gekozen van welke variabele meer inzichten worden gegeven",
+                                       selectInput("subthema2", "Subthema:")) # Box selecteer subthema
+                            ), # Column 1, fluid row 2
+                            column(width = 5,
+                                   box(title = "Kaart met incidenten en kleur van variabele", width = NULL, status = "warning", solidHeader = T,
+                                       "Hier wordt de kaart weergegeven met punten op de kaart die de kleur hebben van de geselecteerde variabele") # Box incidenten en kleur
+                                   ), # Column 2 fluid row 2
+                            column(width = 4,
+                                   box(title = "Grafiek of diagram van geselecteerde variabele", width = NULL, status = "warning", solidHeader = T,
+                                       "Hier wordt een staafdiagram of taartdiagram weergegeven voor de geselecteerde variabele")
+                                   ) # Column 3 fluid row 2
                           ) # Fluid row grafieken
                   ) # Tab Item verkeersveiligheid
                 ) # TabItems

@@ -16,6 +16,8 @@ bewegingen <- read.csv("Data/Verkeertrend/ReferentiebestandenOngevallen/beweging
 objecttypes <- read.csv("Data/Verkeertrend/ReferentiebestandenOngevallen/objecttypes.txt")
 toedrachten <- read.csv("Data/Verkeertrend/ReferentiebestandenOngevallen/toedrachten.txt")
 wegsituaties <- read.csv("Data/Verkeertrend/ReferentiebestandenOngevallen/wegsituaties.txt")
+wegverharding <- read.csv("Data/Verkeertrend/ReferentiebestandenOngevallen/wegverhardingen.txt")
+full_data <- readRDS("Data/full_data.rds")
 
 ongevallen_joined <- ongevallen_csv %>% 
   left_join(puntlocaties, by = "FK_VELD5") %>% 
@@ -25,15 +27,14 @@ ongevallen_joined <- ongevallen_csv %>%
   left_join(bewegingen, by = c("BWG_ID_1" = "BWG_ID")) %>% 
   left_join(objecttypes, by = "OTE_ID") %>% 
   left_join(toedrachten, by = c("TDT_ID_1" = "TDT_ID")) %>% 
-  left_join(wegsituaties, by = "WSE_ID")
+  left_join(wegsituaties, by = "WSE_ID") %>% 
+  left_join(wegverharding, by = "WVG_ID")
 
 # Reduce dataset to what is important for further analysis
 ongevallen_reduced <- ongevallen_joined %>% 
   select(VKL_NUMMER, JAAR_VKL, ANTL_PTJ, MAXSNELHD, WVG_ID, WGD_CODE_1, FK_VELD5, GME_ID, 
          GME_NAAM, PVE_NAAM, X_COORD, Y_COORD, AP3_OMS,AOL_OMS, UITGPOS1, 
          VOORGBEW, BWG_OMS, OTE_OMS, TDT_OMS, WSE_OMS, BZD_ID_VM1, BZD_ID_IF1) 
-
-summary(ongevallen_reduced$BZD_ID_VM1)
 
 # Manually recode values of variables that have no reference file
 ongevallen_reduced <- ongevallen_reduced %>% 
@@ -74,7 +75,13 @@ ongevallen_reduced <- ongevallen_reduced %>%
                              "260" = "Parkeervoorziening",
                              "270" = "Spoorwegovergan",
                              "280" = "Tunnel",
-                             "290" = "Versmalling"))
+                             "290" = "Versmalling")) %>% 
+  mutate(WGD_CODE_1 = recode(WGD_CODE_1, "D" = "Droog",
+                             "R" = "Regen",
+                             "M" = "Mist",
+                             "S" = "Sneeuw of Hagel",
+                             "H" = "Harde windstoten",
+                             "O" = "Onbekend"))
 
 # Remove duplicates to have the same number of rows as original data
 ongevallen_reduced_no_dup <- ongevallen_reduced %>% 
@@ -94,4 +101,3 @@ all_polygons <- full_data %>%
 intersection <- st_intersection(x = all_polygons, y = ongevallen_transformed)
 
 write_rds(intersection, "Data/intersection.rds")
-
