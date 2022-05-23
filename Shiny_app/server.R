@@ -623,5 +623,25 @@ shinyServer(function(input, output, session) {
       }
       })
     
+    #Info box, title changes based on the selected area
+    output$info_box = renderUI({
+      
+      if(input$niveau=="Gemeenten"){
+        title <- paste0("Informatie over: ", input$gemeente1)
+      }else if(input$niveau=="Wijken"){
+        title <- paste0("Informatie over: ", input$wijken2)
+      }else if(input$niveau=="Buurten"){
+        title <- paste0("Informatie over: ", input$buurten3)
+      }
+      box(title = title, width = 3, status = "warning", solidHeader = T,
+            "In de onderstaande tabel kan worden afgelezen wat het stedelijkheidsniveau, de inkomensgroep en de opleidingsgroep zijn voor het geselecteerde gebied.",
+            tableOutput("info_area"),
+            "Stedelijkheid: 1 = zeer sterk stedelijk, 5 = niet stedelijk.", br(),
+            "Inkomensniveau: 1 = zeer laag percentage, 4 = hoog percentage van huishoudens met een inkomen onder het sociaal minimum.",br(),
+            "Opleidingsniveau: 1 = zeer laag percentage, 4 = zeer hoog percentage van personen met een lage opleiding.",
+            span(textOutput("ink_vergelijkbaarheid"), style="color:red"),
+            span(textOutput("opl_vergelijkbaarheid"), style="color:red")) # Box informatie 
+    })
+    
 })
 
