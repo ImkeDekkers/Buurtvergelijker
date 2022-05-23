@@ -619,7 +619,7 @@ shinyServer(function(input, output, session) {
         title <- paste0("Informatie over: ", input$buurten3)
       }
       box(title = title, width = 3, status = "warning", solidHeader = T,
-            "In de onderstaande tabel kan worden afgelezen wat het stedelijkheidsniveau, de inkomensgroep en de opleidingsgroep zijn voor het geselecteerde gebied.",
+            "In de tabel hieronder ziet u wat de stedelijkheid, de inkomensgroep en de opleidingsgroep zijn voor het gekozen gebied.",
             tableOutput("info_area"),
             "Stedelijkheid: 1 = zeer sterk stedelijk, 5 = niet stedelijk.", br(),
             "Inkomensniveau: 1 = zeer laag percentage, 4 = hoog percentage van huishoudens met een inkomen onder het sociaal minimum.",br(),
@@ -647,7 +647,7 @@ shinyServer(function(input, output, session) {
     output$top5 = renderUI({
       title <- paste0("Top 5 ",input$thema)
       box(title = title, width = NULL, background = "green",
-          "Top 5 met vergelijkbare gebieden op basis van het gekozen thema",
+          "Top 5 met vergelijkbare gebieden voor het gekozen thema",
           #"Hier komt de top 5 van vergelijkbare g/w/b voor een bepaald thema",
           tableOutput('top5_theme')) 
     })
@@ -656,7 +656,7 @@ shinyServer(function(input, output, session) {
     output$kaartNL = renderUI({
       title <- paste0("Kaart van Nederland: ",input$subthema)
       box(title = title, width = 6, status = "warning", solidHeader = T,
-          "Kaart van Nederland met de geselecteerde vergelijkbare gebieden van het gekozen subthema.",
+          "Kaart van Nederland met het gekozen subthema.",
           #"Hier komt de kaart van Nederland met geselecteerde vergelijkbare g/w/b op bepaalde variabele",
           shinycssloaders::withSpinner(leafletOutput("map_variable"))) 
     })
@@ -674,7 +674,7 @@ shinyServer(function(input, output, session) {
       #if the selected subthemes is in these subthemes with count, show the "staafdiagram" box
       if(input$subthema %in% subthemes_count){
         box(title = title, width = 4, status = "warning", solidHeader = T,
-            "Aantallen van het gekozen subthema binnen een bepaalde straal, voor het geselecteerde gebied (roze) en andere vergelijkbare gebieden (blauw).",
+            "Aantal van het gekozen subthema binnen een bepaalde afstand, voor het gekozen gebied (roze) en andere vergelijkbare gebieden (blauw).",
             #"Hier komt een staafdiagram om je wijk te vergelijken met het gemiddelde van vergelijkbare wijken",
             plotOutput("plot_variable"))
       }

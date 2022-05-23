@@ -19,7 +19,7 @@ ui <- dashboardPage(
   dashboardHeader(title = "Buurtvergelijker"),
   dashboardSidebar(
     sidebarMenu(
-      menuItem("Dashboard", tabName = "Dashboard", icon = icon("dashboard")),
+      menuItem("Voorzieningen", tabName = "Voorzieningen", icon = icon("dashboard")),
       menuItem("Gezondheidszorg", tabName = "Gezondheidszorg", icon = icon("th")),
       menuItem("Onderwijs", tabName = "Onderwijs", icon = icon("th")),
       menuItem("Huizenmarkt", tabName = "Huizenmarkt", icon = icon("th")))
@@ -27,15 +27,15 @@ ui <- dashboardPage(
   dashboardBody(tags$head(tags$style(HTML('.box{box-shadow: none;border-style: none;}.content-wrapper { overflow: auto; }'))),
                 tabItems(
                   tabItem(
-                    tabName = "Dashboard",
-                    h2("Dashboard nabijheid voorzieningen op gemeente-, wijk- of buurtniveau"),
+                    tabName = "Voorzieningen",
+                    h2("Voorzieningen op gemeente-, wijk- of buurtniveau"),
                     fluidRow(
                       column(width = 3,
                              box(title = "Postcode zoeken?", width = NULL, status = "primary", solidHeader = T, collapsible = T, collapsed = T,
-                                 textInput("postcode", "Weet u niet uw exacte gemeente, wijk of buurt? Vul dan hier uw postcode in:"),
+                                 textInput("postcode", "Weet u niet uw precieze gemeente, wijk of buurt? Vul dan hier uw postcode in:"),
                                  textOutput("postcode_info")), # Box postcode zoeken
-                             box(title = "Selecteer een niveau", width = NULL, status = "primary", solidHeader = T,
-                                 "Selecteer het gewenste niveau, gebied en vergelijkbaarheidniveau en druk op 'indienen' om door te gaan",
+                             box(title = "Kies een niveau", width = NULL, status = "primary", solidHeader = T,
+                                 "Kies het gewenste niveau, gebied en waar u mee wilt vergelijken en druk op 'zoeken' om door te gaan",
                                  selectInput("niveau", "Niveau:", c("Gemeenten" = "Gemeenten",
                                                                     "Wijken" = "Wijken",
                                                                     "Buurten" = "Buurten")), # Select input niveau
@@ -43,18 +43,18 @@ ui <- dashboardPage(
                                    condition = "input.niveau == 'Gemeenten'",
                                    selectInput("gemeente1", "Gemeente:", choices = unique(gemeenten$GM_NAAM)), # Select input gemeente1
                                    selectInput("vergelijkbaar1", "Vergelijken met:", c("Alle gebieden in Nederland" = "Nederland", 
-                                                                                       "Gebieden met hetzelfde stedelijkheidsniveau" = "Stedelijkheidsniveau",
-                                                                                       "Gebieden met hetzelfde inkomensniveau" = "Inkomensniveau",
-                                                                                       "Gebieden met hetzelfde opleidingsniveau" = "Opleidingsniveau")) # Select input vergelijkbaar1
+                                                                                       "Gebieden met dezelfde stedelijkheid" = "Stedelijkheidsniveau",
+                                                                                       "Gebieden met ongeveer hetzelfde inkomen" = "Inkomensniveau",
+                                                                                       "Gebieden met ongeveer dezelfde opleiding" = "Opleidingsniveau")) # Select input vergelijkbaar1
                                  ), # Conditional panel 1 gemeenten
                                  conditionalPanel(
                                    condition = "input.niveau == 'Wijken'",
                                    selectInput("gemeente2", "Gemeente:", choices = unique(gemeenten$GM_NAAM)), # Select input gemeente2
                                    selectInput("wijken2", "Wijk:", choices = NULL), # Select input wijken2,
                                    selectInput("vergelijkbaar2", "Vergelijken met:", c("Alle gebieden in Nederland" = "Nederland", 
-                                                                                       "Gebieden met hetzelfde stedelijkheidsniveau" = "Stedelijkheidsniveau",
-                                                                                       "Gebieden met hetzelfde inkomensniveau" = "Inkomensniveau",
-                                                                                       "Gebieden met hetzelfde opleidingsniveau" = "Opleidingsniveau")) # Select input vergelijkbaar 2
+                                                                                       "Gebieden met dezelfde stedelijkheid" = "Stedelijkheidsniveau",
+                                                                                       "Gebieden met ongeveer hetzelfde inkomen" = "Inkomensniveau",
+                                                                                       "Gebieden met ongeveer dezelfde opleiding" = "Opleidingsniveau")) # Select input vergelijkbaar 2
                                  ), # Conditional panel 2 wijken
                                  conditionalPanel(
                                    condition = "input.niveau == 'Buurten'",
@@ -62,15 +62,15 @@ ui <- dashboardPage(
                                    selectInput("wijken3", "Wijk:", choices = NULL), # Select input wijken3
                                    selectInput("buurten3", "Buurt:", choices = NULL), # Select input buurten3
                                    selectInput("vergelijkbaar3", "Vergelijken met:", c("Alle gebieden in Nederland" = "Nederland", 
-                                                                                       "Gebieden met hetzelfde stedelijkheidsniveau" = "Stedelijkheidsniveau")) # Select input vergelijkbaar3
+                                                                                       "Gebieden met dezelfde stedelijkheid" = "Stedelijkheidsniveau")) # Select input vergelijkbaar3
                                  ), # Conditional panel 3 buurten
-                                 actionButton("action", "Indienen")
+                                 actionButton("action", "Zoeken")
                              ), # Box selecteer niveau
                       ), # Column
                       uiOutput("info_box"), # Box informatie
                       uiOutput("kaart_box"), # Box geselecteerde plek
-                      box(title = "Top 5 algemeen", width = 2, background = "red", 
-                          "Top 5 met vergelijkbare gebieden op basis van alle voorzieningenthema's",
+                      box(title = "Top 5 alle voorzieningen", width = 2, background = "red", 
+                          "Top 5 met vergelijkbare gebieden voor alle voorzieningen",
                           #"Hier komt de algemene top 5 zonder geselecteerd thema",
                           tableOutput('top5_algemeen')) # Box top 5 algemeen
                     ), # Fluid row 1 postcode, thema, algemene top 5, niveau, geselecteerde plek
