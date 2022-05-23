@@ -68,11 +68,7 @@ ui <- dashboardPage(
                              ), # Box selecteer niveau
                       ), # Column
                       uiOutput("info_box"), # Box informatie
-                      box(title = "Geselecteerde plek op de kaart", width = 4, status = "warning", solidHeader = T,
-                          "Kaart waarop het gekozen gebied te zien is (blauwe pointer), de top 5 meest vergelijkbare gebieden (rode pointers) en de gebieden waarmee wordt vergeleken.",
-                          #"Hier komt de prime map van leaflet met pointer naar centroid van de geselecteerde g/w/b",
-                          shinycssloaders::withSpinner(leafletOutput("prime_map"))
-                          ), # Box geselecteerde plek
+                      uiOutput("kaart_box"), # Box geselecteerde plek
                       box(title = "Top 5 algemeen", width = 2, background = "red", 
                           "Top 5 met vergelijkbare gebieden op basis van alle voorzieningenthema's",
                           #"Hier komt de algemene top 5 zonder geselecteerd thema",
@@ -85,16 +81,9 @@ ui <- dashboardPage(
                                                                   "Kinderopvang", "Onderwijs", "Verkeer en vervoer", 
                                                                   "Vrije tijd en cultuur")), 
                                  selectInput("subthema", "Subthema:", choices = NULL)), # Box thema
-                             box(title = "Top 5 geselecteerd thema", width = NULL, background = "green",
-                                 "Top 5 met vergelijkbare gebieden op basis van het gekozen thema",
-                                 #"Hier komt de top 5 van vergelijkbare g/w/b voor een bepaald thema",
-                                 tableOutput('top5_theme')), # Box top 5 thema
+                             uiOutput("top5"), # Box top 5 thema
                       ),
-                      box(title = "Kaart van Nederland", width = 6, status = "warning", solidHeader = T,
-                          "Kaart van Nederland met de geselecteerde vergelijkbare gebieden van het gekozen subthema.",
-                          #"Hier komt de kaart van Nederland met geselecteerde vergelijkbare g/w/b op bepaalde variabele",
-                          shinycssloaders::withSpinner(leafletOutput("map_variable"))
-                          ), # Box kaart
+                      uiOutput("kaartNL"), # Box kaart
                       uiOutput("box_staafdiagram"),
                     ) # Fluid row 2 histogram, kaart, thema top 5
                   ), # Tab item dashboard

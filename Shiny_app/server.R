@@ -462,22 +462,7 @@ shinyServer(function(input, output, session) {
         scale_x_discrete(labels = function(x) 
           stringr::str_wrap(x, width = 15))
     }
-    
-    #Creates box for staafdiagram only when one of the subthemes is selected that has one
-    output[["box_staafdiagram"]] <- renderUI({
-      
-      #subthemes that have data available on the count inside a radius
-      subthemes_count <- c("Huisartsenpraktijk","Ziekenhuis", "Supermarkt", "Overige dagelijkse levensmiddelen", "Warenhuis",
-                     "Café", "Cafetaria", "Restaurant", "Hotel", "Kinderdagverblijf", "Buitenschoolse opvang", "Basisschool",
-                     "Voortgezet onderwijs", "VMBO school", "HAVO/VWO school", "Bioscoop", "Attractie", "Podiumkunsten", "Museum")
-      #if the selected subthemes is in these subthemes with count, show the "staafdiagram" box
-      if(input$subthema %in% subthemes_count){
-        box(title = "Staafdiagram", width = 4, status = "warning", solidHeader = T,
-            "Aantallen van het gekozen subthema binnen een bepaalde straal, voor het geselecteerde gebied (roze) en andere vergelijkbare gebieden (blauw).",
-            #"Hier komt een staafdiagram om je wijk te vergelijken met het gemiddelde van vergelijkbare wijken",
-            plotOutput("plot_variable"))
-      }
-    })
+
     
     #Maps for all variables with distance to closest spot
     output$map_variable <- renderLeaflet({
@@ -643,5 +628,56 @@ shinyServer(function(input, output, session) {
             span(textOutput("opl_vergelijkbaarheid"), style="color:red")) # Box informatie 
     })
     
+    #Kaart box, title changes based on the selected area
+    output$kaart_box = renderUI({
+      if(input$niveau=="Gemeenten"){
+        title <- paste0(input$gemeente1, " op de kaart")
+      }else if(input$niveau=="Wijken"){
+        title <- paste0(input$wijken2, " op de kaart")
+      }else if(input$niveau=="Buurten"){
+        title <- paste0(input$buurten3, " op de kaart")
+      }
+      box(title = title, width = 4, status = "warning", solidHeader = T,
+          "Kaart waarop het gekozen gebied te zien is (blauwe pointer), de top 5 meest vergelijkbare gebieden (rode pointers) en de gebieden waarmee wordt vergeleken.",
+          #"Hier komt de prime map van leaflet met pointer naar centroid van de geselecteerde g/w/b",
+          shinycssloaders::withSpinner(leafletOutput("prime_map"))) 
+    })
+    
+    #Top 5 voor thema, title changes based on the selected theme
+    output$top5 = renderUI({
+      title <- paste0("Top 5 ",input$thema)
+      box(title = title, width = NULL, background = "green",
+          "Top 5 met vergelijkbare gebieden op basis van het gekozen thema",
+          #"Hier komt de top 5 van vergelijkbare g/w/b voor een bepaald thema",
+          tableOutput('top5_theme')) 
+    })
+    
+    #Top 5 voor thema, title changes based on the selected theme
+    output$kaartNL = renderUI({
+      title <- paste0("Kaart van Nederland: ",input$subthema)
+      box(title = title, width = 6, status = "warning", solidHeader = T,
+          "Kaart van Nederland met de geselecteerde vergelijkbare gebieden van het gekozen subthema.",
+          #"Hier komt de kaart van Nederland met geselecteerde vergelijkbare g/w/b op bepaalde variabele",
+          shinycssloaders::withSpinner(leafletOutput("map_variable"))) 
+    })
+    
+    #Creates box for staafdiagram only when one of the subthemes is selected that has one
+    output[["box_staafdiagram"]] <- renderUI({
+      
+      #subthemes that have data available on the count inside a radius
+      subthemes_count <- c("Huisartsenpraktijk","Ziekenhuis", "Supermarkt", "Overige dagelijkse levensmiddelen", "Warenhuis",
+                           "Café", "Cafetaria", "Restaurant", "Hotel", "Kinderdagverblijf", "Buitenschoolse opvang", "Basisschool",
+                           "Voortgezet onderwijs", "VMBO school", "HAVO/VWO school", "Bioscoop", "Attractie", "Podiumkunsten", "Museum")
+      
+      title <- paste0("Staafdiagram: ",input$subthema)
+      
+      #if the selected subthemes is in these subthemes with count, show the "staafdiagram" box
+      if(input$subthema %in% subthemes_count){
+        box(title = title, width = 4, status = "warning", solidHeader = T,
+            "Aantallen van het gekozen subthema binnen een bepaalde straal, voor het geselecteerde gebied (roze) en andere vergelijkbare gebieden (blauw).",
+            #"Hier komt een staafdiagram om je wijk te vergelijken met het gemiddelde van vergelijkbare wijken",
+            plotOutput("plot_variable"))
+      }
+    })
 })
 
