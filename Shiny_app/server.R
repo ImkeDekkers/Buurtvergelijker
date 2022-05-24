@@ -666,30 +666,6 @@ shinyServer(function(input, output, session) {
       return(list_ongevallen_return)   
     })
     
-    # Create map with incidents as points
-    output$cluster_ongevallen <- renderLeaflet({
-      leaflet(incidents_input()$ongevallen_year) %>% 
-        addProviderTiles(providers$CartoDB.Positron) %>%
-        addMarkers(data = incidents_input()$ongevallen_year,
-                   clusterOptions = markerClusterOptions()) %>% 
-        setView(lng = incidents_input()$pol_select$centroidx,           # Make sure that the zoom is concentrated on selected area
-                lat = incidents_input()$pol_select$centroidy,
-                zoom = 10) %>%
-        # addPolygons(data = incidents_input()$polygons_niveau,         # Add polygons of selected niveau to see in which area the incidents took place
-        #             fillColor = "blue", weight = 0.4, fillOpacity = 0.1, color = "blue",
-        #             highlightOptions = highlightOptions(color = 'white', weight = 0.4, fillOpacity = 0.2, bringToFront = TRUE),
-        #             label = ~NAAM) 
-        addPolylines(data = incidents_input()$polygons_niveau,
-                     stroke = T,
-                     weight = 1,
-                     label = ~NAAM) %>% 
-        addAwesomeMarkers(data = incidents_input()$pol_select,
-                          lng = incidents_input()$pol_select$centroidx,
-                          lat = incidents_input()$pol_select$centroidy,
-                          icon = iconblue,
-                          label = ~NAAM)
-    }) # Render leaflet
-    
     # Create function for number of incidents in selected area
     top_incidents <- function(){
       intersection <- intersection %>% filter(Niveau == input$niveau2 & 
@@ -740,7 +716,7 @@ shinyServer(function(input, output, session) {
     # New map with coloring of selected variable
     color_map_incidents <- function(){
       df <- incidents_input()$ongevallen_year
-      input_subthema <- input$subthema2
+      input_subthema <- noquote(input$subthema2)
       n_distnct_col <- length(unique(df$AP3_OMS))
       color_incidents <- colorFactor(palette = "Set3", df$input$subthema2)
         #colorFactor(topo.colors(n_distnct_col), df$input_subthema)
