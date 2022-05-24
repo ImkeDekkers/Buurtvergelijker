@@ -608,9 +608,8 @@ shinyServer(function(input, output, session) {
       }
       })
     
-    #Info box, title changes based on the selected area
-    output$info_box = renderUI({
-      
+    #Selected area name for the box titles (changes only when 'zoeken' button is clicked)
+    selected_area_title <- eventReactive(input$action,{
       if(input$niveau=="Gemeenten"){
         title <- paste0("Informatie over: ", input$gemeente1)
       }else if(input$niveau=="Wijken"){
@@ -618,6 +617,12 @@ shinyServer(function(input, output, session) {
       }else if(input$niveau=="Buurten"){
         title <- paste0("Informatie over: ", input$buurten3)
       }
+      return(title)
+    })
+    
+    #Info box, title changes based on the selected area
+    output$info_box = renderUI({
+      title <- selected_area_title()
       box(title = title, width = 3, status = "warning", solidHeader = T,
             "In de tabel hieronder ziet u wat de stedelijkheid, de inkomensgroep en de opleidingsgroep zijn voor het gekozen gebied.",
             tableOutput("info_area"),
@@ -630,13 +635,7 @@ shinyServer(function(input, output, session) {
     
     #Kaart box, title changes based on the selected area
     output$kaart_box = renderUI({
-      if(input$niveau=="Gemeenten"){
-        title <- paste0(input$gemeente1, " op de kaart")
-      }else if(input$niveau=="Wijken"){
-        title <- paste0(input$wijken2, " op de kaart")
-      }else if(input$niveau=="Buurten"){
-        title <- paste0(input$buurten3, " op de kaart")
-      }
+      title <- selected_area_title()
       box(title = title, width = 4, status = "warning", solidHeader = T,
           "Kaart waarop het gekozen gebied te zien is (blauwe pointer), de top 5 meest vergelijkbare gebieden (rode pointers) en de gebieden waarmee wordt vergeleken.",
           #"Hier komt de prime map van leaflet met pointer naar centroid van de geselecteerde g/w/b",

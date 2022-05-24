@@ -88,7 +88,7 @@ ui <- dashboardPage(
                     ) # Fluid row 2 histogram, kaart, thema top 5
                   ), # Tab item dashboard
                   
-                  tabItem(tabName = "Gezondheidszorg",
+                  tabItem(tabName = "Gezondheid",
                           h2("Eventueel voor gezondheidszorg")
                   ), # tab item gezondheidszorg
                   
