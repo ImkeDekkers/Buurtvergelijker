@@ -155,7 +155,7 @@ ui <- dashboardPage(
                                    valueBoxOutput("number_incidents", width = NULL)
                             ), # Column 2
                             column(width = 5,
-                                   box(title = "Algemene trend", width = NULL, status = "warning", solidHeader = T,
+                                   box(title = "Algemene trend", width = NULL, status = "danger", solidHeader = T,
                                        "Hier komt de algemene trend van het aantal verkeersongelukken in NL (op het juiste niveau) en de geselecteerde gemeente/wijk/buurt",
                                        plotOutput("general_trend")), # Box algemene trend
                             ) # Column 3
@@ -184,12 +184,14 @@ ui <- dashboardPage(
                             column(width = 3,
                                    tabBox(width = NULL, id="tabset1",
                                           tabPanel("Staafdiagram", "Hier komt een staafdiagram", plotOutput("bar_chart")),
-                                          tabPanel("Taartdiagram", "Hier komt een taartdiagram")
+                                          tabPanel("Taartdiagram", "Hier komt een taartdiagram", plotOutput("pie_chart"))
                                        ) # Tabbox diagram
                                    ), # Column diagram variabele
                             column(width = 3,
                                    box(title = "Trend van thema in geselecteerd gebied", status = "warning", width = NULL, solidHeader = T,
-                                       "Hier komt een trendlijn van het aantal incidenten per categorie in het geselecteerde thema")
+                                       "Hier komt een trendlijn van het aantal incidenten per categorie in het geselecteerde thema",
+                                       plotOutput("trend_theme")
+                                       ) # Box trend thema
                             ) # Column trend geselecteerde variabele
                           ), # Fluid row grafieken thema
                           h3("Vergelijk uw wijk met een andere wijk"),

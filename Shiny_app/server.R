@@ -742,48 +742,314 @@ shinyServer(function(input, output, session) {
     # Reaction on subthema input with the correct dataset
     reaction3 <- eventReactive(input$action3, {
       intersection_select <- reaction2()$intersection_select   # Points in selected polygon (filtered on niveau, naam and year)
-      if (input$subthema2 == "WGD_CODE_1"){                    # Weersgesteldheid
-        color_incidents <- colorFactor(topo.colors(6), intersection_select$WGD_CODE_1)
-        subthema <- intersection_select$WGD_CODE_1 
-        subthema_char <-"Weersgesteldheid"
+      if (input$subthema2 == "WGD_CODE_1"){
+        color_incidents <- colorFactor(topo.colors(6), intersection_select$WGD_CODE_1)   # Create color palette for categoric variable
+        subthema <- intersection_select$WGD_CODE_1                                       # Set subthema that can be used for color map
+        subthema_char <-"Weersgesteldheid"                                               # Character of subthema for title
+        
+        bar_chart <- intersection_select %>%                                             # Bar chart for tab1 in dashboard
+          count(WGD_CODE_1) %>% 
+          ggplot() +
+          geom_col(aes(x = WGD_CODE_1, y=n, fill = WGD_CODE_1), show.legend = F) +
+          labs(title = "Aantal ongevallen binnen geselecteerd subthema",
+               x = subthema_char,
+               y = "Aantal") + 
+          theme_classic() +
+          theme(axis.text.x = element_text(angle = 45))
+        
+        pie_chart <- intersection_select %>%                                             # Pie chart for tab2 in dashboard
+          count(WGD_CODE_1) %>% 
+          ggplot(aes(x = "", y = n, fill = WGD_CODE_1)) +
+          geom_bar(stat = "identity") +
+          coord_polar("y", start = 0) +
+          theme_void() +
+          labs(title = "Aantal ongevallen binnen geselecteerd subthema",
+               fill = subthema_char)
+        
+        trend_theme <- input_trend() %>% count(JAAR_VKL, WGD_CODE_1) %>% 
+          ggplot(aes(x = as.factor(JAAR_VKL), y = n, group = WGD_CODE_1, color = WGD_CODE_1))+
+          geom_line() +
+          labs(title = "Aantal ongevallen binnen geselecteerd subthema",
+               x = "Jaar",
+               y = "Aantal",
+               color = subthema_char)+
+          theme_classic()
+
       } else if (input$subthema2 == "AP3_OMS"){
         color_incidents <- colorFactor(topo.colors(3), intersection_select$AP3_OMS)
         subthema <- intersection_select$AP3_OMS 
         subthema_char <-"Afloop"
+        
+        bar_chart <- intersection_select %>% 
+          count(AP3_OMS) %>% 
+          ggplot() +
+          geom_col(aes(x = AP3_OMS, y=n, fill = AP3_OMS), show.legend = F) +
+          labs(title = "Aantal ongevallen binnen geselecteerd subthema",
+               x = subthema_char,
+               y = "Aantal") + 
+          theme_classic()+
+          theme(axis.text.x = element_text(angle = 45))
+        
+        pie_chart <- intersection_select %>%
+          count(AP3_OMS) %>% 
+          ggplot(aes(x = "", y = n, fill = AP3_OMS)) +
+          geom_bar(stat = "identity") +
+          coord_polar("y", start = 0) +
+          theme_void() +
+          labs(title = "Aantal ongevallen binnen geselecteerd subthema",
+               fill = subthema_char)
+        
+        trend_theme <- input_trend() %>% count(JAAR_VKL, AP3_OMS) %>% 
+          ggplot(aes(x = as.factor(JAAR_VKL), y = n, group = AP3_OMS, color = AP3_OMS))+
+          geom_line() +
+          labs(title = "Aantal ongevallen binnen geselecteerd subthema",
+               x = "Jaar",
+               y = "Aantal",
+               color = subthema_char)+
+          theme_classic()
+        
       } else if (input$subthema2 == "UITGPOS1"){
         color_incidents <- colorFactor(topo.colors(8), intersection_select$UITGPOS1)
         subthema <- intersection_select$UITGPOS1 
         subthema_char <-"Uitgangspositie"
+        
+        bar_chart <- intersection_select %>% 
+          count(UITGPOS1) %>% 
+          ggplot() +
+          geom_col(aes(x = UITGPOS1, y=n, fill = UITGPOS1), show.legend = F) +
+          labs(title = "Aantal ongevallen binnen geselecteerd subthema",
+               x = subthema_char,
+               y = "Aantal") + 
+          theme_classic()+
+          theme(axis.text.x = element_text(angle = 45))
+        
+        pie_chart <- intersection_select %>%
+          count(UITGPOS1) %>% 
+          ggplot(aes(x = "", y = n, fill = UITGPOS1)) +
+          geom_bar(stat = "identity") +
+          coord_polar("y", start = 0) +
+          theme_void() +
+          labs(title = "Aantal ongevallen binnen geselecteerd subthema",
+               fill = subthema_char)
+        
+        trend_theme <- input_trend() %>% count(JAAR_VKL, UITGPOS1) %>% 
+          ggplot(aes(x = as.factor(JAAR_VKL), y = n, group = UITGPOS1, color = UITGPOS1))+
+          geom_line() +
+          labs(title = "Aantal ongevallen binnen geselecteerd subthema",
+               x = "Jaar",
+               y = "Aantal",
+               color = subthema_char)+
+          theme_classic()
+        
       } else if (input$subthema2 == "VOORGBEW"){
         color_incidents <- colorFactor(topo.colors(11), intersection_select$VOORGBEW)
         subthema <- intersection_select$VOORGBEW 
         subthema_char <-"Voorgenomen beweging"
+        
+        bar_chart <- intersection_select %>% 
+          count(VOORGBEW) %>% 
+          ggplot() +
+          geom_col(aes(x = VOORGBEW, y=n, fill = VOORGBEW), show.legend = F) +
+          labs(title = "Aantal ongevallen binnen geselecteerd subthema",
+               x = subthema_char,
+               y = "Aantal") + 
+          theme_classic()+
+          theme(axis.text.x = element_text(angle = 45))
+        
+        pie_chart <- intersection_select %>%
+          count(VOORGBEW) %>% 
+          ggplot(aes(x = "", y = n, fill = VOORGBEW)) +
+          geom_bar(stat = "identity") +
+          coord_polar("y", start = 0) +
+          theme_void() +
+          labs(title = "Aantal ongevallen binnen geselecteerd subthema",
+               fill = subthema_char)
+        
+        trend_theme <- input_trend() %>% count(JAAR_VKL, VOORGBEW) %>% 
+          ggplot(aes(x = as.factor(JAAR_VKL), y = n, group = VOORGBEW, color = VOORGBEW))+
+          geom_line() +
+          labs(title = "Aantal ongevallen binnen geselecteerd subthema",
+               x = "Jaar",
+               y = "Aantal",
+               color = subthema_char)+
+          theme_classic()
+        
       } else if (input$subthema2 == "BWG_OMS"){
         color_incidents <- colorFactor(topo.colors(9), intersection_select$BWG_OMS)
         subthema <- intersection_select$BWG_OMS 
         subthema_char <-"Beweging ten gevolge van ongeval"
+        
+        bar_chart <- intersection_select %>% 
+          count(BWG_OMS) %>% 
+          ggplot() +
+          geom_col(aes(x = BWG_OMS, y=n, fill = BWG_OMS), show.legend = F) +
+          labs(title = "Aantal ongevallen binnen geselecteerd subthema",
+               x = subthema_char,
+               y = "Aantal") + 
+          theme_classic() +
+          theme(axis.text.x = element_text(angle = 45))
+        
+        pie_chart <- intersection_select %>%
+          count(BWG_OMS) %>% 
+          ggplot(aes(x = "", y = n, fill = BWG_OMS)) +
+          geom_bar(stat = "identity") +
+          coord_polar("y", start = 0) +
+          theme_void() +
+          labs(title = "Aantal ongevallen binnen geselecteerd subthema",
+               fill = subthema_char)
+        
+        trend_theme <- input_trend() %>% count(JAAR_VKL, BWG_OMS) %>% 
+          ggplot(aes(x = as.factor(JAAR_VKL), y = n, group = BWG_OMS, color = BWG_OMS))+
+          geom_line() +
+          labs(title = "Aantal ongevallen binnen geselecteerd subthema",
+               x = "Jaar",
+               y = "Aantal",
+               color = subthema_char)+
+          theme_classic()
+        
       } else if (input$subthema2 == "OTE_OMS"){
         color_incidents <- colorFactor(topo.colors(23), intersection_select$OTE_OMS)
         subthema <- intersection_select$OTE_OMS 
         subthema_char <-"Objecttype"
+        
+        bar_chart <- intersection_select %>% 
+          count(OTE_OMS) %>% 
+          ggplot() +
+          geom_col(aes(x = OTE_OMS, y=n, fill = OTE_OMS), show.legend = F) +
+          labs(title = "Aantal ongevallen binnen geselecteerd subthema",
+               x = subthema_char,
+               y = "Aantal") + 
+          theme_classic()+
+          theme(axis.text.x = element_text(angle = 45))
+        
+        pie_chart <- intersection_select %>%
+          count(OTE_OMS) %>% 
+          ggplot(aes(x = "", y = n, fill = OTE_OMS)) +
+          geom_bar(stat = "identity") +
+          coord_polar("y", start = 0) +
+          theme_void() +
+          labs(title = "Aantal ongevallen binnen geselecteerd subthema",
+               fill = subthema_char)
+        
+        trend_theme <- input_trend() %>% count(JAAR_VKL, OTE_OMS) %>% 
+          ggplot(aes(x = as.factor(JAAR_VKL), y = n, group = OTE_OMS, color = OTE_OMS))+
+          geom_line() +
+          labs(title = "Aantal ongevallen binnen geselecteerd subthema",
+               x = "Jaar",
+               y = "Aantal",
+               color = subthema_char)+
+          theme_classic()
+        
       } else if (input$subthema2 == "WSE_OMS"){
         color_incidents <- colorFactor(topo.colors(9), intersection_select$WSE_OMS)
         subthema <- intersection_select$WSE_OMS 
         subthema_char <-"Wegsituatie"
+        
+        bar_chart <- intersection_select %>% 
+          count(WSE_OMS) %>% 
+          ggplot() +
+          geom_col(aes(x = WSE_OMS, y=n, fill = WSE_OMS), show.legend = F) +
+          labs(title = "Aantal ongevallen binnen geselecteerd subthema",
+               x = subthema_char,
+               y = "Aantal") + 
+          theme_classic()+
+          theme(axis.text.x = element_text(angle = 45))
+        
+        pie_chart <- intersection_select %>%
+          count(WSE_OMS) %>% 
+          ggplot(aes(x = "", y = n, fill = WSE_OMS)) +
+          geom_bar(stat = "identity") +
+          coord_polar("y", start = 0) +
+          theme_void() +
+          labs(title = "Aantal ongevallen binnen geselecteerd subthema",
+               fill = subthema_char)
+        
+        trend_theme <- input_trend() %>% count(JAAR_VKL, WSE_OMS) %>% 
+          ggplot(aes(x = as.factor(JAAR_VKL), y = n, group = WSE_OMS, color = WSE_OMS))+
+          geom_line() +
+          labs(title = "Aantal ongevallen binnen geselecteerd subthema",
+               x = "Jaar",
+               y = "Aantal",
+               color = subthema_char)+
+          theme_classic()
+        
       } else if (input$subthema2 == "BZD_ID_VM1"){
         color_incidents <- colorFactor(topo.colors(9), intersection_select$BZD_ID_VM1)
         subthema <- intersection_select$BZD_ID_VM1 
         subthema_char <-"Bijzonderheid verkeersmaatregel"
+        
+        bar_chart <- intersection_select %>% 
+          count(BZD_ID_VM1) %>% 
+          ggplot() +
+          geom_col(aes(x = BZD_ID_VM1, y=n, fill = BZD_ID_VM1), show.legend = F) +
+          labs(title = "Aantal ongevallen binnen geselecteerd subthema",
+               x = subthema_char,
+               y = "Aantal") + 
+          theme_classic()+
+          theme(axis.text.x = element_text(angle = 45))
+        
+        pie_chart <- intersection_select %>%
+          count(BZD_ID_VM1) %>% 
+          ggplot(aes(x = "", y = n, fill = BZD_ID_VM1)) +
+          geom_bar(stat = "identity") +
+          coord_polar("y", start = 0) +
+          theme_void() +
+          labs(title = "Aantal ongevallen binnen geselecteerd subthema",
+               fill = subthema_char)
+        
+        trend_theme <- input_trend() %>% count(JAAR_VKL, BZD_ID_VM1) %>% 
+          ggplot(aes(x = as.factor(JAAR_VKL), y = n, group = BZD_ID_VM1, color = BZD_ID_VM1))+
+          geom_line() +
+          labs(title = "Aantal ongevallen binnen geselecteerd subthema",
+               x = "Jaar",
+               y = "Aantal",
+               color = subthema_char)+
+          theme_classic()
+        
+        
       } else if (input$subthema2 == "BZD_ID_IF1"){
         color_incidents <- colorFactor(topo.colors(9), intersection_select$BZD_ID_IF1)
         subthema <- intersection_select$BZD_ID_IF1 
         subthema_char <-"Bijzonderheid infrastructuur"
+        
+        bar_chart <- intersection_select %>% 
+          count(BZD_ID_IF1) %>% 
+          ggplot() +
+          geom_col(aes(x = BZD_ID_IF1, y=n, fill = BZD_ID_IF1), show.legend = F) +
+          labs(title = "Aantal ongevallen binnen geselecteerd subthema",
+               x = subthema_char,
+               y = "Aantal") + 
+          theme_classic() +
+          theme(axis.text.x = element_text(angle = 45))
+        
+        pie_chart <- intersection_select %>%
+          count(BZD_ID_IF1) %>% 
+          ggplot(aes(x = "", y = n, fill = BZD_ID_IF1)) +
+          geom_bar(stat = "identity") +
+          coord_polar("y", start = 0) +
+          theme_void() +
+          labs(title = "Aantal ongevallen binnen geselecteerd subthema",
+               fill = subthema_char)
+        
+        trend_theme <- input_trend() %>% count(JAAR_VKL, BZD_ID_IF1) %>% 
+          ggplot(aes(x = as.factor(JAAR_VKL), y = n, group = BZD_ID_IF1, color = BZD_ID_IF1))+
+          geom_line() +
+          labs(title = "Aantal ongevallen binnen geselecteerd subthema",
+               x = "Jaar",
+               y = "Aantal",
+               color = subthema_char)+
+          theme_classic()
+        
       } 
 
       list_return <- list("color_incidents" = color_incidents,         # Color palette for categorical variable
                           "subthema" = subthema,                       # Name of subthema variable for the function 
                           "intersection_select" = intersection_select, # All points of incidents in selected area for selected year 
-                          "subthema_char" = subthema_char)             # Character: title of legend
+                          "subthema_char" = subthema_char,             # Character: title of legend
+                          "pie_chart" = pie_chart,                     # Pie chart with ggplot reactive on subthema
+                          "bar_chart" = bar_chart,                     # Bar chart with ggplot reactive on subthema
+                          "trend_theme" = trend_theme                  # Trend line with ggplot reactive on subthema
+                          )                     
       
       return(list_return)
     }) # Function reaction 3
@@ -800,7 +1066,7 @@ shinyServer(function(input, output, session) {
                          label = ~subthema) %>% 
         setView(lng = reaction2()$pol_select$centroidx,     # Make sure that the zoom is concentrated on selected area
                 lat = reaction2()$pol_select$centroidy,
-                zoom = 9) %>%
+                zoom = 13) %>%
         addPolylines(data = reaction2()$pol_select,
                      stroke = T,
                      weight = 3) %>%
@@ -810,23 +1076,6 @@ shinyServer(function(input, output, session) {
       
       return(map)
     } # Color_map_incidents function
-    
-    # Function to create bar chart 
-    bar_chart <- function(df, subthema){
-      bar_chart <- df %>% 
-        count(subthema) %>% 
-        ggplot(aes(x = subthema, y = n, fill = subthema)) +
-        geom_bar(show.legend = F, stat = "identity") +
-        labs(title = "Aantal ongevallen van geselecteerde variabele",
-             x = "Geselecteerde variabele",
-             y = "Aantal") + 
-        theme_classic()
-      
-      return(bar_chart)
-    }
-    
-    # Function to create pie chart
-    
 
     # Map output of the incidents colored by the selected variable
     output$map_color_incidents <- renderLeaflet({
@@ -838,9 +1087,18 @@ shinyServer(function(input, output, session) {
     
     # Bar chart 
     output$bar_chart <- renderPlot({
-      bar_chart(reaction3()$intersection_select,
-                noquote(input$subthema2))
+      reaction3()$bar_chart
     })
-
+    
+    # Pie chart
+    output$pie_chart <- renderPlot({
+      reaction3()$pie_chart
+    })
+    
+    # Trend line selected subtheme
+    output$trend_theme <- renderPlot({
+      reaction3()$trend_theme
+    })
+      
 })
 
