@@ -662,7 +662,7 @@ shinyServer(function(input, output, session) {
     })
     
     #Change input choices for histogram depending on subtheme
-    observeEvent(input$subthema_gez, {
+    observeEvent(input$action_thema_gez, {
       if (input$subthema_gez == "Beperking") {
         updateSelectInput(session, 'categorie_hist', 
                           choices = c("Lichamelijke beperking (%)", "Beperking in horen (%)", "Beperking in zien (%)","Beperking in bewegen (%)"))
@@ -688,7 +688,7 @@ shinyServer(function(input, output, session) {
     })
     
     #Change input choices for line plot depending on subtheme
-    observeEvent(input$subthema_gez, {
+    observeEvent(input$action_thema_gez, {
       if (input$subthema_gez == "Beperking") {
         updateSelectInput(session, 'categorie_line', 
                           choices = c("Lichamelijke beperking (%)", "Beperking in horen (%)", "Beperking in zien (%)","Beperking in bewegen (%)"))
@@ -714,7 +714,7 @@ shinyServer(function(input, output, session) {
     })
     
     #Change input choices for staafdiagram depending on subtheme
-    observeEvent(input$subthema_gez, {
+    observeEvent(input$action_thema_gez, {
       if (input$subthema_gez == "Beperking") {
         updateSelectInput(session, 'categorie_staaf', 
                           choices = c("Lichamelijke beperking (%)", "Beperking in horen (%)", "Beperking in zien (%)","Beperking in bewegen (%)"))
@@ -972,11 +972,18 @@ shinyServer(function(input, output, session) {
                           icon = iconblue) 
     })
     
-    #Function creates a barplot of the selected area and the mean of comparable areas
+    #Selected subtheme
+    selected_subtheme_gez <- eventReactive(input$action_thema_gez,{
+      subtheme <- input$subthema_gez
+      return(subtheme)
+    })
+    
+    #Function creates a barplot of the selected area and the mean of comparable areas for all age classes
     plot_gez <- function(){
-      if (input$subthema_gez %in% Normal){
-        column <- input$subthema_gez
-      }else if (input$subthema_gez %in% Special){
+      subtheme <- selected_subtheme_gez()
+      if (subtheme %in% Normal){
+        column <- subtheme
+      }else if (subtheme %in% Special){
         column <- input$categorie_staaf
       }
       
@@ -1019,15 +1026,16 @@ shinyServer(function(input, output, session) {
     #Line plot for changes over the years
     line_plot_gez <- function(){
       df <- as.data.frame(Gez_datasetInput()$dataset)
+      subtheme <- selected_subtheme_gez()
       
-      if (input$subthema_gez %in% Normal){
-        column <- input$subthema_gez
+      if (subtheme %in% Normal){
+        column <- subtheme
         if(input$norm_age_line == "18-65 65+"){
           df <- df[df$Leeftijd!="18+",]  
         }else{
           df <- df[df$Leeftijd==input$norm_age_line,]  
         }
-      }else if (input$subthema_gez %in% Special){
+      }else if (subtheme %in% Special){
         column <- input$categorie_line
         if(input$spec_age_line == "18-65 65+"){
           df <- df[df$Leeftijd!="18+",]  
@@ -1078,12 +1086,13 @@ shinyServer(function(input, output, session) {
       df <- as.data.frame(Gez_datasetInput()$dataset)
       df <- df[df$Perioden=="2020",]
       df <- df %>% drop_na(Perioden)
+      subtheme <- selected_subtheme_gez()
       
-      if (input$subthema_gez %in% Normal){
-        column <- input$subthema_gez
+      if (subtheme %in% Normal){
+        column <- subtheme
         df <- df[df$Leeftijd==input$norm_age_hist,]
-        df$column <- as.numeric(as.character(df[[input$subthema_gez]]))
-      }else if (input$subthema_gez %in% Special){
+        df$column <- as.numeric(as.character(df[[subtheme]]))
+      }else if (subtheme %in% Special){
         column <- input$categorie_hist
         df <- df[df$Leeftijd==input$spec_age_hist,]
         df$column <- as.numeric(as.character(df[[input$categorie_hist]]))
@@ -1103,20 +1112,21 @@ shinyServer(function(input, output, session) {
     
     #Staafdiagram per categorie
     staaf_categorie <- function(){
+      subtheme <- selected_subtheme_gez()
       #Take the necessary columns, based on what the selected subtheme is
-      if(input$subthema_gez=="Beperking"){
+      if(subtheme=="Beperking"){
         columns <- c("Lichamelijke beperking (%)","Beperking in horen (%)", "Beperking in zien (%)", "Beperking in bewegen (%)")
-      }else if(input$subthema_gez=="Beperkt vanwege gezondheid"){
+      }else if(subtheme=="Beperkt vanwege gezondheid"){
         columns <- c("Beperkt vanwege gezondheid (%)","Ernstig beperkt vanwege gezondheid (%)")
-      }else if(input$subthema_gez=="Risico op angststoornis of depressie"){
+      }else if(subtheme=="Risico op angststoornis of depressie"){
         columns <- c("Matig tot hoog risico op angststoornis of depressie (%)","Hoog risico op angststoornis of depressie (%)")
-      }else if(input$subthema_gez=="Gewicht"){
+      }else if(subtheme=="Gewicht"){
         columns <- c("Ondergewicht (%)","Normaal gewicht (%)","Overgewicht (%)","Ernstig overgewicht (%)")
-      }else if(input$subthema_gez=="Alcoholgebruik"){
+      }else if(subtheme=="Alcoholgebruik"){
         columns <- c("Voldoet aan alcoholrichtlijn (%)","Drinkers (%)","Zware drinkers (%)","Overmatige drinkers (%)")
-      }else if(input$subthema_gez=="Lopen/fietsen naar school of werk"){
+      }else if(subtheme=="Lopen/fietsen naar school of werk"){
         columns <- c("Lopen en of fietsen naar school of werk (%)","Lopen naar school of werk (%)","Fietsen naar school of werk (%)")
-      }else if(input$subthema_gez=="Eenzaamheid"){
+      }else if(subtheme=="Eenzaamheid"){
         columns <- c("Eenzaam (%)","Ernstig eenzaam (%)","Emotioneel eenzaam (%)","Sociaal eenzaam (%)")
       }
       
@@ -1186,23 +1196,65 @@ shinyServer(function(input, output, session) {
         coord_flip() + theme(text = element_text(size = 14))
     })
     
+    #Selected area name for the box titles (changes only when 'zoeken' button is clicked)
+    selected_area_title_gez <- eventReactive(input$action_gez,{
+      if(input$niveau=="Gemeenten"){
+        title <- input$gemeente1_gez
+      }else if(input$niveau=="Wijken"){
+        title <- input$wijken2_gez
+      }else if(input$niveau=="Buurten"){
+        title <- input$buurten3_gez
+      }
+      return(title)
+    })
+    
+    #Info box, title changes based on the selected area
+    output$info_box_gez = renderUI({
+      title <- paste0("Informatie over ", selected_area_title_gez())
+      box(title = title, width = 3, status = "warning", solidHeader = T,
+          "In de tabel hieronder ziet u wat de stedelijkheid, de inkomensgroep en de opleidingsgroep zijn voor het gekozen gebied.",
+          tableOutput("info_area_gez"),
+          "Stedelijkheid: 1 = zeer sterk stedelijk, 5 = niet stedelijk.", br(),
+          "Inkomensniveau: 1 = zeer laag percentage, 4 = hoog percentage van huishoudens met een inkomen onder het sociaal minimum.",br(),
+          "Opleidingsniveau: 1 = zeer laag percentage, 4 = zeer hoog percentage van personen met een lage opleiding.",
+         ) # Box informatie
+    })
+    
+    #Age box, title changes based on the selected area
+    output$age_box_gez = renderUI({
+      title <- paste0("Leeftijdsopbouw ", selected_area_title_gez())
+      box(title = title, width = 3, status = "warning", solidHeader = T,
+          "In onderstaande staafdiagram  ziet u de leeftijdsopbouw van het gekozen gebied.",
+          shinycssloaders::withSpinner(plotOutput("age_distr"))) 
+      
+    })
+    
+    #Kaart box, title changes based on the selected area
+    output$kaart_box_gez = renderUI({
+      title <- paste0("Kaart met ", selected_area_title_gez())
+      box(title = title, width = 3, status = "warning", solidHeader = T,
+          "Kaart waarop het gekozen gebied te zien is (blauwe pointer) en de gebieden waarmee wordt vergeleken.",
+          shinycssloaders::withSpinner(leafletOutput("prime_map2")),
+          span(textOutput("error_vergelijkbaarheid_gez"), style="color:red")) 
+    })
     
     #Base which plots and where to place them on whether the chosen subtheme is normal or special
-    output$plots<-renderUI(
-      if(input$subthema_gez %in% Normal){
+    output$plots<-renderUI({
+      subtheme <- selected_subtheme_gez()
+      if(subtheme %in% Normal){
         column(width =9, 
                fluidRow(
                  box(title="Histogram", width=6, status="warning", solidHeader = T,
                      "In onderstaande histogram is de frequentieverdeling voor het geselecteerde subthema  te zien.
                            De zwarte verticale lijn is de waarde van het geselecteerde gebied. Hiermee kunt u zien hoe uw gebied het doet ten opzichte van de andere gebieden.", br(),
                      br(),
-                     selectInput("norm_age_hist", "Leeftijd:", c("18+"="18+", "18-65"="18-65", "65+"="65+")),
+                     selectInput("norm_age_hist", "Leeftijd:", c("18-65"="18-65", "65+"="65+","18+"="18+")),
                      shinycssloaders::withSpinner(plotOutput("gez_hist"))),
                  box(title = "Lijndiagram", width = 6, status = "warning", solidHeader = T,
                      "In onderstaande lijndiagram is de ontwikkeling van het geselecteerde subthema in de tijd te zien. 
                            De roze lijn is voor het geselecteerde gebied en de blauwe lijn is het gemiddelde van de gebieden waarmee wordt vergeleken (zie kaart hierboven).",br(),
                      br(),
-                     selectInput("norm_age_line", "Leeftijd:", c("18+"="18+", "18-65"="18-65", "65+"="65+")),
+                     selectInput("norm_age_line", "Leeftijd:", c("18-65"="18-65", "65+"="65+","18+"="18+")),
                      shinycssloaders::withSpinner(plotOutput("gez_line_plot")))
                ),
                fluidRow(
@@ -1213,21 +1265,21 @@ shinyServer(function(input, output, session) {
                      shinycssloaders::withSpinner(plotOutput("gez_plot"))),
                )
         )
-      }else if(input$subthema_gez %in% Special){
+      }else if(subtheme %in% Special){
         column(width =9, 
                fluidRow(
                  box(title = "Staafdiagram per categorie", width = 6, status = "warning", solidHeader = T,
                      "In onderstaande staafdiagram is het percentage voor de verschillende categorieën binnen het subthema te zien.
                            In het roze is het geselecteerde gebied te zien en in het blauw het gemiddelde van de gebieden waarmee wordt vergeleken (zie kaart hierboven).", br(),
                      br(),
-                     selectInput("spec_age_cat", "Leeftijd:", c("18+"="18+", "18-65"="18-65", "65+"="65+")),
+                     selectInput("spec_age_cat", "Leeftijd:", c("18-65"="18-65", "65+"="65+","18+"="18+")),
                      shinycssloaders::withSpinner(plotOutput("staaf_cat"))
                  ),
                  box(title="Histogram", width=6, status="warning", solidHeader = T,
                      "In onderstaande histogram is de frequentieverdeling voor de geselecteerde categorie  te zien. 
                            De zwarte verticale lijn is de waarde van het geselecteerde gebied. Hiermee kunt u zien hoe uw gebied het doet ten opzichte van de andere gebieden.", br(),
                      br(),
-                     selectInput("spec_age_hist", "Leeftijd:", c("18+"="18+", "18-65"="18-65", "65+"="65+")),
+                     selectInput("spec_age_hist", "Leeftijd:", c("18-65"="18-65", "65+"="65+","18+"="18+")),
                      selectInput("categorie_hist", "Categorie:", choices = NULL),
                      shinycssloaders::withSpinner(plotOutput("gez_hist"))
                  )
@@ -1237,7 +1289,7 @@ shinyServer(function(input, output, session) {
                      "In onderstaande lijndiagram is de ontwikkeling van de geselecteerde categorie in de tijd te zien. 
                            De roze lijn is voor het geselecteerde gebied en de blauwe lijn is het gemiddelde van de gebieden waarmee wordt vergeleken (zie kaart hierboven).",br(),
                      br(),
-                     selectInput("spec_age_line", "Leeftijd:", c("18+"="18+", "18-65"="18-65", "65+"="65+")),
+                     selectInput("spec_age_line", "Leeftijd:", c("18-65"="18-65", "65+"="65+","18+"="18+")),
                      selectInput("categorie_line", "Categorie:", choices = NULL),
                      shinycssloaders::withSpinner(plotOutput("gez_line_plot"))
                  ),
@@ -1251,6 +1303,6 @@ shinyServer(function(input, output, session) {
                )
         )
       }
-    )
+    })
 })
 
