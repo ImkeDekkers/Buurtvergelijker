@@ -115,7 +115,8 @@ ui <- dashboardPage(
                   ), # Tab item onderwijs
                   
                   tabItem(tabName = "Verkeersveiligheid",
-                          h2("Inzicht in verkeersongevallen"),
+                          h2("Verkeersongevallen in gemeenten, wijken en buurten van Nederland"),
+                          h3("Algemeen overzicht van verkeersongevallen"),
                           fluidRow(
                             column(width = 3,
                                    box(title = "Selecteer het gebied van interesse", width = NULL, status = "primary", solidHeader = T,
@@ -151,16 +152,15 @@ ui <- dashboardPage(
                                    ) # Box input
                             ), # Column 1
                             column(width = 4,
-                                   infoBox(title = "Aantal", value = "Print number of incidents", icon = icon("calculator-simple"), fill = T, color = "orange",
-                                             width = NULL), # Infobox aantal incidenten
-                                           infoBoxOutput("number_incidents")
+                                   valueBoxOutput("number_incidents", width = NULL)
                             ), # Column 2
                             column(width = 5,
                                    box(title = "Algemene trend", width = NULL, status = "warning", solidHeader = T,
                                        "Hier komt de algemene trend van het aantal verkeersongelukken in NL (op het juiste niveau) en de geselecteerde gemeente/wijk/buurt",
-                                       plotOutput("total_accidents_graph")), # Box algemene trend
+                                       plotOutput("general_trend")), # Box algemene trend
                             ) # Column 3
                           ), # fluid row algemene trend en aantal
+                          h3("Inzicht in subthema in uw buurt"),
                           fluidRow(
                             column(width = 2,
                                    box(title = "Selecteer een subthema", width = NULL, status = "primary", solidHeader = T,
@@ -182,14 +182,17 @@ ui <- dashboardPage(
                                        shinycssloaders::withSpinner(leafletOutput("map_color_incidents"))) # Box incidenten en kleur
                             ), # Column kaart
                             column(width = 3,
-                                   box(title = "Staafdiagram of taartdiagram", width = NULL, status = "warning", solidHeader = T,
-                                       "Hier komt de staafdiagram of het taartdiagram van de geselecteerde variabele") # Box diagram
+                                   tabBox(width = NULL, id="tabset1",
+                                          tabPanel("Staafdiagram", "Hier komt een staafdiagram", plotOutput("bar_chart")),
+                                          tabPanel("Taartdiagram", "Hier komt een taartdiagram")
+                                       ) # Tabbox diagram
                                    ), # Column diagram variabele
                             column(width = 3,
                                    box(title = "Trend van thema in geselecteerd gebied", status = "warning", width = NULL, solidHeader = T,
                                        "Hier komt een trendlijn van het aantal incidenten per categorie in het geselecteerde thema")
                             ) # Column trend geselecteerde variabele
                           ), # Fluid row grafieken thema
+                          h3("Vergelijk uw wijk met een andere wijk"),
                           fluidRow(
                             column(width = 3,
                                    box(title = "Selecteer een wijk om mee te vergelijken", width = NULL, status = "primary", solidHeader = T,
