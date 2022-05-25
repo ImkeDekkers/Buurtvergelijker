@@ -21,7 +21,7 @@ ui <- dashboardPage(
   dashboardSidebar(
     sidebarMenu(
       menuItem("Dashboard", tabName = "Dashboard", icon = icon("dashboard")),
-      menuItem("Gezondheidszorg", tabName = "Gezondheidszorg", icon = icon("th")),
+      menuItem("Gezondheid", tabName = "Gezondheid", icon = icon("th")),
       menuItem("Onderwijs", tabName = "Onderwijs", icon = icon("th")),
       menuItem("Huizenmarkt", tabName = "Huizenmarkt", icon = icon("th")))
   ), # Dashboard sidebar
@@ -113,15 +113,15 @@ ui <- dashboardPage(
                           h2("Dashboard gezondheid op  gemeente-, wijk-, of buurtniveau"),
                           fluidRow(
                             column(width = 3,
-                                   box(title="Niveau selecteren", width = NULL, status = 'primary', solidHeader = T,
-                                       "Selecteer het gewenste niveau, gebied en vergelijkbaarheidniveau en druk op 'indienen' om door te gaan.",
+                                   box(title="Niveau en gebied selecteren", width = NULL, status = 'primary', solidHeader = T,
+                                       "Selecteer het gewenste niveau, gebied en vergelijkbaarheidniveau en druk op 'zoeken' om door te gaan.",
                                        selectInput("niveau_gez", "Niveau:", c("Gemeenten" = "Gemeenten",
                                                                               "Wijken" = "Wijken",
                                                                               "Buurten" = "Buurten")),
                                        conditionalPanel(
                                          condition = "input.niveau_gez == 'Gemeenten'",
                                          selectInput("gemeente1_gez", "Gemeente:", choices = unique(gemeenten$GM_NAAM)), # Select input gemeente1
-                                         selectInput("vergelijkbaar1_gez", "Vergelijkbaar:", c("Gebieden met dezelfde leeftijdsopbouw" = "age_distribution",
+                                         selectInput("vergelijkbaar1_gez", "Vergelijken met:", c("Gebieden met dezelfde leeftijdsopbouw" = "age_distribution",
                                                                                                "Alle gebieden in Nederland" = "Nederland", 
                                                                                                "Gebieden met hetzelfde stedelijkheidsniveau" = "Stedelijkheidsniveau",
                                                                                                "Gebieden met hetzelfde inkomensniveau" = "Inkomensniveau",
@@ -131,7 +131,7 @@ ui <- dashboardPage(
                                          condition = "input.niveau_gez == 'Wijken'",
                                          selectInput("gemeente2_gez", "Gemeente:", choices = unique(gemeenten$GM_NAAM)), # Select input gemeente2
                                          selectInput("wijken2_gez", "Wijk:", choices = NULL), # Select input wijken2,
-                                         selectInput("vergelijkbaar2_gez", "Vergelijkbaar:", c("Gebieden met dezelfde leeftijdsopbouw" = "age_distribution",
+                                         selectInput("vergelijkbaar2_gez", "Vergelijken met:", c("Gebieden met dezelfde leeftijdsopbouw" = "age_distribution",
                                                                                                "Alle gebieden in Nederland" = "Nederland", 
                                                                                                "Gebieden met hetzelfde stedelijkheidsniveau" = "Stedelijkheidsniveau",
                                                                                                "Gebieden met hetzelfde inkomensniveau" = "Inkomensniveau",
@@ -142,11 +142,11 @@ ui <- dashboardPage(
                                          selectInput("gemeente3_gez", "Gemeente:", choices = unique(gemeenten$GM_NAAM)), # Select input gemeente3
                                          selectInput("wijken3_gez", "Wijk:", choices = NULL), # Select input wijken3
                                          selectInput("buurten3_gez", "Buurt:", choices = NULL), # Select input buurten3
-                                         selectInput("vergelijkbaar3_gez", "Vergelijkbaar:", c("Gebieden met dezelfde leeftijdsopbouw" = "age_distribution",
+                                         selectInput("vergelijkbaar3_gez", "Vergelijken met:", c("Gebieden met dezelfde leeftijdsopbouw" = "age_distribution",
                                                                                                "Alle gebieden in Nederland" = "Nederland", 
                                                                                                "Gebieden met hetzelfde stedelijkheidsniveau" = "Stedelijkheidsniveau")) # Select input vergelijkbaar3
                                        ), # Conditional panel 3 buurten
-                                       actionButton("action_gez", "Indienen")
+                                       actionButton("action_gez", "Zoeken")
                                    ) #box voor niveau 
                             ), #column 
                             box(title = "Informatie over het geselecteerde gebied", width = 3, status = "warning", solidHeader = T,
