@@ -13,6 +13,7 @@ wijken <- readRDS("../Data/wijken.rds")
 buurten <- readRDS("../Data/buurten.rds")
 postcodes_final <- readRDS("../Data/postcodes_final.rds")
 full_data <- readRDS("../Data/full_data.rds")
+gezondheid_all <-readRDS("../Data/gezondheid_all.rds")
 
 shinyServer(function(input, output, session) {
     
@@ -623,5 +624,633 @@ shinyServer(function(input, output, session) {
       }
       })
     
+    
+    ######START GEZONDHEID
+    
+    
+    
+    # Make selection dependent on previous input
+    observeEvent(input$gemeente2_gez, {
+      updateSelectInput(session, 'wijken2_gez',
+                        choices = unique(postcodes_final$wijknaam2020[postcodes_final$Gemeentenaam2020 == input$gemeente2_gez]))  # Only display that are in the selected gemeente
+    })
+    observeEvent(input$gemeente3_gez, {
+      updateSelectInput(session, 'wijken3_gez',
+                        choices = unique(postcodes_final$wijknaam2020[postcodes_final$Gemeentenaam2020 == input$gemeente3_gez]))  # Only display that are in the selected gemeente
+    })
+    observeEvent(input$wijken3_gez,{
+      updateSelectInput(session, 'buurten3_gez',
+                        choices = unique(postcodes_final$buurtnaam2020[postcodes_final$Gemeentenaam2020 == input$gemeente3_gez & 
+                                                                         postcodes_final$wijknaam2020==input$wijken3_gez]))       # Only display buurten that are in the selected wijk
+    })
+    
+    observeEvent(input$thema_gez, {
+      if (input$thema_gez == "Gezondheid en beperkingen") {
+        updateSelectInput(session, 'subthema_gez', 
+                          choices = c("Zeer goede of goede gezondheid (%)", "Langdurige aandoening (%)", 
+                                      "Langdurige ziekte en beperkt (%)", "Beperking", "Beperkt vanwege gezondheid",
+                                      "Risico op angststoornis of depressie", "(heel) veel stress (%)"))
+      }else if (input$thema_gez == "Leefstijl") {
+        updateSelectInput(session, 'subthema_gez', 
+                          choices = c("Voldoet aan beweegrichtlijn (%)", "Wekelijkse sporters (%)", "Gewicht",
+                                      "Rokers (%)", "Alcoholgebruik", "Lopen/fietsen naar school of werk"))
+      }else if (input$thema_gez == "Participatie en omgeving") {
+        updateSelectInput(session, 'subthema_gez', 
+                          choices = c("Matig tot veel regie over eigen leven (%)", "Eenzaamheid", "Mantelzorger (%)", "Vrijwilligerswerk (%)", 
+                                      "Ernstige geluidhinder door buren (%)", "Moeite met rondkomen (%)"))
+      }
+    })
+    
+    #Change input choices for histogram depending on subtheme
+    observeEvent(input$subthema_gez, {
+      if (input$subthema_gez == "Beperking") {
+        updateSelectInput(session, 'categorie_hist', 
+                          choices = c("Lichamelijke beperking (%)", "Beperking in horen (%)", "Beperking in zien (%)","Beperking in bewegen (%)"))
+      }else if(input$subthema_gez == "Beperkt vanwege gezondheid") {
+        updateSelectInput(session, 'categorie_hist', 
+                          choices = c("Beperkt vanwege gezondheid (%)","Ernstig beperkt vanwege gezondheid (%)"))
+      }else if(input$subthema_gez == "Risico op angststoornis of depressie") {
+        updateSelectInput(session, 'categorie_hist', 
+                          choices = c("Matig tot hoog risico op angststoornis of depressie (%)","Hoog risico op angststoornis of depressie (%)"))
+      }else if(input$subthema_gez == "Gewicht") {
+        updateSelectInput(session, 'categorie_hist', 
+                          choices = c("Ondergewicht (%)","Normaal gewicht (%)","Overgewicht (%)","Ernstig overgewicht (%)"))
+      }else if(input$subthema_gez == "Alcoholgebruik") {
+        updateSelectInput(session, 'categorie_hist', 
+                          choices = c("Voldoet aan alcoholrichtlijn (%)","Drinkers (%)","Zware drinkers (%)","Overmatige drinkers (%)"))
+      }else if(input$subthema_gez == "Lopen/fietsen naar school of werk") {
+        updateSelectInput(session, 'categorie_hist', 
+                          choices = c("Lopen en of fietsen naar school of werk (%)","Lopen naar school of werk (%)","Fietsen naar school of werk (%)"))
+      }else if(input$subthema_gez == "Eenzaamheid") {
+        updateSelectInput(session, 'categorie_hist', 
+                          choices = c("Eenzaam (%)","Ernstig eenzaam (%)","Emotioneel eenzaam (%)","Sociaal eenzaam (%)"))
+      }
+    })
+    
+    #Change input choices for line plot depending on subtheme
+    observeEvent(input$subthema_gez, {
+      if (input$subthema_gez == "Beperking") {
+        updateSelectInput(session, 'categorie_line', 
+                          choices = c("Lichamelijke beperking (%)", "Beperking in horen (%)", "Beperking in zien (%)","Beperking in bewegen (%)"))
+      }else if(input$subthema_gez == "Beperkt vanwege gezondheid") {
+        updateSelectInput(session, 'categorie_line', 
+                          choices = c("Beperkt vanwege gezondheid (%)","Ernstig beperkt vanwege gezondheid (%)"))
+      }else if(input$subthema_gez == "Risico op angststoornis of depressie") {
+        updateSelectInput(session, 'categorie_line', 
+                          choices = c("Matig tot hoog risico op angststoornis of depressie (%)","Hoog risico op angststoornis of depressie (%)"))
+      }else if(input$subthema_gez == "Gewicht") {
+        updateSelectInput(session, 'categorie_line', 
+                          choices = c("Ondergewicht (%)","Normaal gewicht (%)","Overgewicht (%)","Ernstig overgewicht (%)"))
+      }else if(input$subthema_gez == "Alcoholgebruik") {
+        updateSelectInput(session, 'categorie_line', 
+                          choices = c("Voldoet aan alcoholrichtlijn (%)","Drinkers (%)","Zware drinkers (%)","Overmatige drinkers (%)"))
+      }else if(input$subthema_gez == "Lopen/fietsen naar school of werk") {
+        updateSelectInput(session, 'categorie_line', 
+                          choices = c("Lopen en of fietsen naar school of werk (%)","Lopen naar school of werk (%)","Fietsen naar school of werk (%)"))
+      }else if(input$subthema_gez == "Eenzaamheid") {
+        updateSelectInput(session, 'categorie_line', 
+                          choices = c("Eenzaam (%)","Ernstig eenzaam (%)","Emotioneel eenzaam (%)","Sociaal eenzaam (%)"))
+      }
+    })
+    
+    #Change input choices for staafdiagram depending on subtheme
+    observeEvent(input$subthema_gez, {
+      if (input$subthema_gez == "Beperking") {
+        updateSelectInput(session, 'categorie_staaf', 
+                          choices = c("Lichamelijke beperking (%)", "Beperking in horen (%)", "Beperking in zien (%)","Beperking in bewegen (%)"))
+      }else if(input$subthema_gez == "Beperkt vanwege gezondheid") {
+        updateSelectInput(session, 'categorie_staaf', 
+                          choices = c("Beperkt vanwege gezondheid (%)","Ernstig beperkt vanwege gezondheid (%)"))
+      }else if(input$subthema_gez == "Risico op angststoornis of depressie") {
+        updateSelectInput(session, 'categorie_staaf', 
+                          choices = c("Matig tot hoog risico op angststoornis of depressie (%)","Hoog risico op angststoornis of depressie (%)"))
+      }else if(input$subthema_gez == "Gewicht") {
+        updateSelectInput(session, 'categorie_staaf', 
+                          choices = c("Ondergewicht (%)","Normaal gewicht (%)","Overgewicht (%)","Ernstig overgewicht (%)"))
+      }else if(input$subthema_gez == "Alcoholgebruik") {
+        updateSelectInput(session, 'categorie_staaf', 
+                          choices = c("Voldoet aan alcoholrichtlijn (%)","Drinkers (%)","Zware drinkers (%)","Overmatige drinkers (%)"))
+      }else if(input$subthema_gez == "Lopen/fietsen naar school of werk") {
+        updateSelectInput(session, 'categorie_staaf', 
+                          choices = c("Lopen en of fietsen naar school of werk (%)","Lopen naar school of werk (%)","Fietsen naar school of werk (%)"))
+      }else if(input$subthema_gez == "Eenzaamheid") {
+        updateSelectInput(session, 'categorie_staaf', 
+                          choices = c("Eenzaam (%)","Ernstig eenzaam (%)","Emotioneel eenzaam (%)","Sociaal eenzaam (%)"))
+      }
+    })
+    
+    #Dividing the subthemes about health between normal and special (having multiple closely related variables)
+    Normal <- c("Zeer goede of goede gezondheid (%)", "Langdurige aandoening (%)", 
+                "Langdurige ziekte en beperkt (%)",  "(heel) veel stress (%)",
+                "Voldoet aan beweegrichtlijn (%)", "Wekelijkse sporters (%)", 
+                "Rokers (%)", "Matig tot veel regie over eigen leven (%)", 
+                "Mantelzorger (%)", "Vrijwilligerswerk (%)", 
+                "Ernstige geluidhinder door buren (%)","Moeite met rondkomen (%)")
+    Special <- c("Beperking", "Gewicht", "Alcoholgebruik", "Lopen/fietsen naar school of werk", "Eenzaamheid", 
+                 "Risico op angststoornis of depressie", "Beperkt vanwege gezondheid")
+    
+    #Function that searches for the top  20% most similar areas as the selected area, based on age distribution
+    similar_age <- function(data){
+      df_original <- as.data.frame(data)
+      df <- df_original[df_original$Perioden=="2020" & df_original$Leeftijd=="18+",]
+      df <- df %>% drop_na(Perioden)
+      
+      #Making CODE the row index so all rows are identifiable 
+      result <-  subset(df, select = -c(CODE))
+      row.names(result) <- df$CODE
+      
+      #subset df so it only contains age variables and transform the data with z-score (scale function)
+      result <- subset(result, select= `Personen 0 tot 15 jaar (%)`: `Personen 65 jaar en ouder (%)`)
+      normalized <- as.data.frame(scale(result))
+      
+      #Making a df for the selected area 
+      selected_area_code <- df[1, "selected_area_code"]
+      selected_area <- normalized[rownames(normalized) == selected_area_code,]
+      
+      #Calculating distance from the selected area to all areas
+      dist_matrix <- apply(selected_area,1,function(selected_area)apply(normalized,1,function(normalized,selected_area)dist(rbind(normalized,selected_area),method = 'manhattan'),selected_area))
+      dist_df <- as.data.frame(dist_matrix)
+      colnames(dist_df) <- "afstand"
+      dist_df$CODE <- row.names(dist_df)
+      
+      #Ordering the distances and returning top 20%
+      sorted <-  dist_df[order(dist_df$`afstand`),]
+      top <- head(sorted, round(nrow(sorted)*0.2))
+      
+      #Merging with original df to get the names of the areas
+      final <- merge(top, df, by="CODE")
+      
+      #Keep only the areas in the original dataframe that are in the top 20% similar areas
+      similar_codes <- unique(final$CODE)
+      df_final <- df_original%>% filter(CODE %in% similar_codes)
+      
+      return(df_final)
+    }
+    
+    #make used GEZONDHEID data reactive on the selected niveau
+    Gez_datasetInput <- eventReactive(input$action_gez,{
+      df <- as.data.frame(gezondheid_all)
+      df <- df[df$Niveau == input$niveau_gez,]
+      if(input$niveau_gez == 'Gemeenten'){
+        if(input$vergelijkbaar1_gez == "Stedelijkheidsniveau"){
+          stedelijkheid_num <- df %>% filter(GM_NAAM == input$gemeente1_gez) %>% pull(`Stedelijkheid (1=zeer sterk stedelijk, 5=niet stedelijk)`)
+          stedelijkheid_num <- stedelijkheid_num[1]
+          comparable_df <- df[df$`Stedelijkheid (1=zeer sterk stedelijk, 5=niet stedelijk)`== stedelijkheid_num, ]
+        }else if (input$vergelijkbaar1_gez == "Inkomensniveau"){
+          inkomen_num <- df %>% filter(GM_NAAM == input$gemeente1_gez) %>% pull(`inkomengroep`)         
+          inkomen_num<-inkomen_num[1]
+          comparable_df <- df[df$inkomengroep == inkomen_num, ]
+        }else if (input$vergelijkbaar1_gez == "Opleidingsniveau"){
+          opleiding_num <- df %>% filter(GM_NAAM == input$gemeente1_gez) %>% pull(`opleidingsgroep`)        
+          opleiding_num <- opleiding_num[1]
+          comparable_df <- df[df$opleidingsgroep == opleiding_num, ]
+        } else if(input$vergelijkbaar1_gez == "Nederland"){
+          comparable_df <- df
+        }else if(input$vergelijkbaar1_gez == "age_distribution"){
+          comparable_df <- df
+        }
+        selected_area_code <- comparable_df %>% filter(GM_NAAM == input$gemeente1_gez) %>% pull(CODE)
+        comparable_df$selected_area_code <- selected_area_code[1]
+        if(input$vergelijkbaar1_gez=="age_distribution"){
+          comparable_df <- similar_age(comparable_df)
+          selected_area_code <- comparable_df %>% filter(GM_NAAM == input$gemeente1_gez) %>% pull(CODE)
+          comparable_df$selected_area_code <- selected_area_code[1]
+        }
+        selected_area_label <- comparable_df %>% filter(GM_NAAM == input$gemeente1_gez) %>% pull(NAAM)
+        comparable_df$selected_area_label <- selected_area_label[1]
+        selected_polygon <- comparable_df %>% filter(GM_NAAM == input$gemeente1)
+        selected_polygon <- selected_polygon[1,]
+        row_num_selected <- which(comparable_df$GM_NAAM == input$gemeente1_gez)
+        row_num_selected <-row_num_selected[1]
+      }else if(input$niveau_gez == 'Wijken'){
+        if(input$vergelijkbaar2_gez == "Stedelijkheidsniveau"){
+          stedelijkheid_num <- df %>% filter(WK_NAAM == input$wijken2_gez & GM_NAAM == input$gemeente2_gez) %>% pull(`Stedelijkheid (1=zeer sterk stedelijk, 5=niet stedelijk)`)
+          stedelijkheid_num <- stedelijkheid_num[1]
+          comparable_df <- df[df$`Stedelijkheid (1=zeer sterk stedelijk, 5=niet stedelijk)`== stedelijkheid_num, ]
+          comparable_df <- comparable_df %>% drop_na(CODE)
+          output$error_vergelijkbaarheid_gez <- renderText(
+            print("")
+          )
+        }else if (input$vergelijkbaar2_gez == "Inkomensniveau"){
+          inkomen_num <-df %>% filter(WK_NAAM == input$wijken2_gez & GM_NAAM == input$gemeente2_gez) %>% pull(`inkomengroep`)
+          inkomen_num<-inkomen_num[1]
+          if(is.na(inkomen_num)){
+            comparable_df <- df[df$Niveau == input$niveau_gez,]
+            output$error_vergelijkbaarheid_gez <- renderText(
+              print("Let op, door een missende waarde van het inkomensniveau voor uw wijk, wordt er nu met heel Nederland vergeleken.")
+            )
+          }else{
+            comparable_df <- df[df$inkomengroep == inkomen_num, ]
+            comparable_df <- comparable_df %>% drop_na(CODE)
+            output$error_vergelijkbaarheid_gez <- renderText(
+              print("")
+            )
+          }
+        }else if (input$vergelijkbaar2_gez == "Opleidingsniveau"){
+          opleiding_num <-df %>% filter(WK_NAAM == input$wijken2_gez & GM_NAAM == input$gemeente2_gez) %>% pull(`opleidingsgroep`)
+          opleiding_num<-opleiding_num[1]
+          if(is.na(opleiding_num)){
+            comparable_df <- df[df$Niveau == input$niveau_gez,]
+            output$error_vergelijkbaarheid_gez <- renderText(
+              print("Let op, door een missende waarde van het opleidingsniveau voor uw wijk, wordt er nu met heel Nederland vergeleken.")
+            )
+          }else{
+            comparable_df <- df[df$opleidingsgroep == opleiding_num, ]
+            comparable_df <- comparable_df %>% drop_na(CODE)
+            output$error_vergelijkbaarheid_gez <- renderText(
+              print("")
+            )
+          }
+        }else if(input$vergelijkbaar2_gez == "Nederland"){
+          comparable_df <- df
+          output$error_vergelijkbaarheid_gez <- renderText(
+            print("")
+          )
+        }else if(input$vergelijkbaar2_gez == "age_distribution"){
+          comparable_df <- df
+        }
+        selected_area_code <- comparable_df %>% filter(GM_NAAM == input$gemeente2_gez & WK_NAAM == input$wijken2_gez) %>%pull(CODE)
+        comparable_df$selected_area_code <- selected_area_code[1]
+        if(input$vergelijkbaar2_gez == "age_distribution"){
+          comp_df <- similar_age(comparable_df)
+          if(any(is.na(comp_df$`Personen 0 tot 15 jaar (%)`))){
+            comparable_df <- df 
+            output$error_vergelijkbaarheid_gez <- renderText(
+              print("Let op, door missende gegevens over de leeftijdsopbouw voor uw wijk, wordt er nu met heel Nederland vergeleken.")
+            )
+          }else{
+            comparable_df <- comp_df
+            output$error_vergelijkbaarheid_gez <- renderText(
+              print("")
+            )
+          }
+          selected_area_code <- comparable_df %>% filter(GM_NAAM == input$gemeente2_gez & WK_NAAM == input$wijken2_gez) %>%pull(CODE)
+          comparable_df$selected_area_code <- selected_area_code[1]
+        }
+        selected_area_label <- comparable_df %>% filter(GM_NAAM == input$gemeente2_gez & WK_NAAM == input$wijken2_gez) %>%pull(NAAM)
+        comparable_df$selected_area_label <- selected_area_label[1]
+        selected_polygon <- comparable_df %>% filter(GM_NAAM == input$gemeente2_gez & WK_NAAM == input$wijken2_gez)
+        selected_polygon <- selected_polygon[1,]
+        row_num_selected <- which(comparable_df$GM_NAAM == input$gemeente2_gez & comparable_df$WK_NAAM == input$wijken2_gez)
+        row_num_selected <-row_num_selected[1]
+      }else if(input$niveau_gez == 'Buurten'){
+        if(input$vergelijkbaar3_gez == "Stedelijkheidsniveau"){
+          stedelijkheid_num <- df%>% filter(BU_NAAM==input$buurten3_gez & GM_NAAM == input$gemeente3_gez & WK_NAAM == input$wijken3_gez) %>% pull(`Stedelijkheid (1=zeer sterk stedelijk, 5=niet stedelijk)`)
+          stedelijkheid_num <- stedelijkheid_num[1]
+          comparable_df <- df[df$`Stedelijkheid (1=zeer sterk stedelijk, 5=niet stedelijk)`== stedelijkheid_num, ]
+          comparable_df <- comparable_df %>% drop_na(CODE)
+          output$error_vergelijkbaarheid_gez <- renderText(
+            print("")
+          )
+        } else if(input$vergelijkbaar3_gez == "Nederland"){
+          comparable_df <- df
+          output$error_vergelijkbaarheid_gez <- renderText(
+            print("")
+          )
+        }else if(input$vergelijkbaar3_gez == "age_distribution"){
+          comparable_df <- df
+        }
+        selected_area_code <- comparable_df %>% filter(GM_NAAM == input$gemeente3_gez & WK_NAAM == input$wijken3_gez & BU_NAAM == input$buurten3_gez) %>%pull(CODE)
+        comparable_df$selected_area_code <- selected_area_code[1]
+        if(input$vergelijkbaar3_gez == "age_distribution"){
+          comp_df <- similar_age(comparable_df)
+          if(any(is.na(comp_df$`Personen 0 tot 15 jaar (%)`))){
+            comparable_df <- df 
+            output$error_vergelijkbaarheid_gez <- renderText(
+              print("Let op, door missende gegevens over de leeftijdsopbouw voor uw buurt, wordt er nu met heel Nederland vergeleken.")
+            )
+          }else{
+            comparable_df <- comp_df
+            output$error_vergelijkbaarheid_gez <- renderText(
+              print("")
+            )
+          }
+          selected_area_code <- comparable_df %>% filter(GM_NAAM == input$gemeente3_gez & WK_NAAM == input$wijken3_gez & BU_NAAM == input$buurten3_gez) %>%pull(CODE)
+          comparable_df$selected_area_code <- selected_area_code[1]
+        }
+        selected_area_label <- comparable_df %>% filter(GM_NAAM == input$gemeente3_gez & WK_NAAM == input$wijken3_gez & BU_NAAM == input$buurten3_gez) %>%pull(NAAM)
+        comparable_df$selected_area_label <- selected_area_label[1]
+        selected_polygon <- comparable_df %>% filter(GM_NAAM == input$gemeente3_gez & WK_NAAM == input$wijken3_gez & BU_NAAM == input$buurten3_gez)
+        selected_polygon <- selected_polygon[1,]
+        row_num_selected <- which(comparable_df$GM_NAAM == input$gemeente3_gez & comparable_df$WK_NAAM == input$wijken3_gez & comparable_df$BU_NAAM == input$buurten3_gez)
+        row_num_selected <-row_num_selected[1]
+        
+      }
+      comparable_df$centroidxx <- comparable_df[row_num_selected, 'centroidx']
+      comparable_df$centroidyy <- comparable_df[row_num_selected, 'centroidy']
+      dataset <- st_as_sf(comparable_df)
+      
+      list_return <- list("dataset" = dataset, "selected_polygon" = selected_polygon)
+      return(list_return)
+    })
+    
+    # Get information about selected area in table
+    output$info_area_gez <- renderTable({
+      df <- as.data.frame(Gez_datasetInput()$dataset)
+      df <- df[df$Perioden=="2020",]
+      df <- df %>% drop_na(Perioden)
+      selected_area_code <- df[1, "selected_area_code"]
+      df <- df[df$CODE==selected_area_code,]
+      df <- df %>%
+        select(c("Stedelijkheid (1=zeer sterk stedelijk, 5=niet stedelijk)", "inkomengroep", "opleidingsgroep"))
+      df <- rename(df, "Stedelijkheid"= `Stedelijkheid (1=zeer sterk stedelijk, 5=niet stedelijk)`)
+      df[1,]
+    })
+    
+    # Create map to point to the selected location and comparable polygons
+    output$prime_map2 <- renderLeaflet({
+      data<-Gez_datasetInput()$dataset
+      data <- data[!duplicated(data[ , c("CODE")]), ]
+      leaflet(data) %>% 
+        addProviderTiles(providers$CartoDB.Positron) %>% 
+        addPolygons(color = "navy", weight = 1, 
+                    highlightOptions = highlightOptions(color = "black", 
+                                                        weight = 2),
+                    label = ~htmlEscape(data$NAAM)) %>% 
+        addAwesomeMarkers(lng = data$centroidxx,
+                          lat = data$centroidyy,
+                          icon = iconblue) 
+    })
+    
+    #Function creates a barplot of the selected area and the mean of comparable areas
+    plot_gez <- function(){
+      if (input$subthema_gez %in% Normal){
+        column <- input$subthema_gez
+      }else if (input$subthema_gez %in% Special){
+        column <- input$categorie_staaf
+      }
+      
+      df <- as.data.frame(Gez_datasetInput()$dataset)
+      df <- df[df$Perioden=="2020",]
+      df <- df %>% drop_na(Perioden)
+      
+      #Calculating the mean values of the input columns
+      df_gem <- select(df, "CODE", "Leeftijd", column)
+      df_gem <- df_gem %>% group_by(Leeftijd) %>% 
+        summarise_at(vars(column), funs(mean(., na.rm=TRUE)))
+      df_gem <- df_gem %>% drop_na(Leeftijd)
+      df_gem$groep <- "Gemiddelde"
+      
+      #Looking for the values of the input columns from the selected areas
+      selected_area_code <- df[1, "selected_area_code"]
+      selected_area_label <- df[1, "selected_area_label"]
+      df_selected <- df %>% subset(CODE == selected_area_code) %>% select("Leeftijd", column)
+      df_selected$groep <- selected_area_label
+      
+      #adding mean and selected together
+      df_final <- rbind(df_selected,df_gem)
+      df_final$groep <- as.character(df_final$groep)
+      df_final$groep <- factor(df_final$groep, levels=unique(df_final$groep))
+      df_final$Leeftijd <- as.character(df_final$Leeftijd)
+      df_final$Leeftijd <- factor(df_final$Leeftijd, levels=unique(df_final$Leeftijd))
+      
+      #Plot
+      ggplot(df_final, aes(x = Leeftijd, y = .data[[column]], fill = groep)) + geom_col(position = "dodge")+ 
+        ylab(column) + theme(text = element_text(size=14),legend.title = element_blank()) + 
+        scale_x_discrete(labels = function(x)
+          stringr::str_wrap(x, width = 15))
+      
+    }
+    
+    output$gez_plot <- renderPlot({
+      plot_gez()
+    })
+    
+    #Line plot for changes over the years
+    line_plot_gez <- function(){
+      df <- as.data.frame(Gez_datasetInput()$dataset)
+      
+      if (input$subthema_gez %in% Normal){
+        column <- input$subthema_gez
+        if(input$norm_age_line == "18-65 65+"){
+          df <- df[df$Leeftijd!="18+",]  
+        }else{
+          df <- df[df$Leeftijd==input$norm_age_line,]  
+        }
+      }else if (input$subthema_gez %in% Special){
+        column <- input$categorie_line
+        if(input$spec_age_line == "18-65 65+"){
+          df <- df[df$Leeftijd!="18+",]  
+        }else{
+          df <- df[df$Leeftijd==input$spec_age_line,]  
+        }
+      }
+      df <- df %>% drop_na(Leeftijd)
+      
+      #Average 
+      gem <- select(df,"CODE", "Perioden", "Leeftijd",  column)
+      gem <- gem%>%
+        group_by(Perioden, Leeftijd) %>%
+        summarise_at(vars(column), funs(mean(., na.rm=TRUE)))
+      gem <- gem %>% drop_na(Leeftijd)
+      gem$groep <- "Gemiddelde"
+      
+      #Selected area 
+      selected_area_code <- df[1, "selected_area_code"]
+      selected_area_label <- df[1, "selected_area_label"]
+      df_selected <- df %>% subset(CODE == selected_area_code) %>% select("Perioden", "Leeftijd", column)
+      df_selected$groep <- selected_area_label
+      
+      #Merging together
+      df_together <- rbind(df_selected, gem)
+      # if(input$norm_age_line == "18-65 65+"){
+      #     df_together <- df_together %>% unite(., col = "groep",  groep, Leeftijd, na.rm=TRUE, sep = ", ")
+      # }else if(input$spec_age_line == "18-65 65+"){
+      #     df_together <- df_together %>% unite(., col = "groep",  groep, Leeftijd, na.rm=TRUE, sep = ", ")
+      # }
+      df_together$Groep <- as.character(df_together$groep)
+      df_together$Groep <- factor(df_together$groep, levels=unique(df_together$Groep))
+      
+      ggplot(df_together, aes(x=Perioden, y=.data[[column]], group=Groep)) +
+        geom_line(aes(color=Groep),size=1)+
+        geom_point(aes(color=Groep),size=3) +
+        theme(text = element_text(size=14),legend.title = element_blank()) + 
+        scale_y_continuous(expand = expansion(add = 5)) #To make sure the y-axis has at least 10 percent between the min and max
+    }
+    
+    #Line plot output
+    output$gez_line_plot <- renderPlot({
+      line_plot_gez()
+    })
+    
+    #Histogram
+    histogram <- function(){
+      df <- as.data.frame(Gez_datasetInput()$dataset)
+      df <- df[df$Perioden=="2020",]
+      df <- df %>% drop_na(Perioden)
+      
+      if (input$subthema_gez %in% Normal){
+        column <- input$subthema_gez
+        df <- df[df$Leeftijd==input$norm_age_hist,]
+        df$column <- as.numeric(as.character(df[[input$subthema_gez]]))
+      }else if (input$subthema_gez %in% Special){
+        column <- input$categorie_hist
+        df <- df[df$Leeftijd==input$spec_age_hist,]
+        df$column <- as.numeric(as.character(df[[input$categorie_hist]]))
+      }
+      
+      selected_area_line <- df %>% filter(CODE == selected_area_code) %>%pull(column)
+      #return(selected_area_line)
+      ggplot(df, aes(column)) + geom_histogram(fill='steelblue3', color='#e9ecef', bins=20) + geom_vline(xintercept = selected_area_line)  +
+        labs(x=column, y = "Aantal") +
+        theme(text = element_text(size=14))
+    }
+    #Histogram output
+    output$gez_hist <- renderPlot({
+      histogram()
+    })
+    
+    
+    #Staafdiagram per categorie
+    staaf_categorie <- function(){
+      #Take the necessary columns, based on what the selected subtheme is
+      if(input$subthema_gez=="Beperking"){
+        columns <- c("Lichamelijke beperking (%)","Beperking in horen (%)", "Beperking in zien (%)", "Beperking in bewegen (%)")
+      }else if(input$subthema_gez=="Beperkt vanwege gezondheid"){
+        columns <- c("Beperkt vanwege gezondheid (%)","Ernstig beperkt vanwege gezondheid (%)")
+      }else if(input$subthema_gez=="Risico op angststoornis of depressie"){
+        columns <- c("Matig tot hoog risico op angststoornis of depressie (%)","Hoog risico op angststoornis of depressie (%)")
+      }else if(input$subthema_gez=="Gewicht"){
+        columns <- c("Ondergewicht (%)","Normaal gewicht (%)","Overgewicht (%)","Ernstig overgewicht (%)")
+      }else if(input$subthema_gez=="Alcoholgebruik"){
+        columns <- c("Voldoet aan alcoholrichtlijn (%)","Drinkers (%)","Zware drinkers (%)","Overmatige drinkers (%)")
+      }else if(input$subthema_gez=="Lopen/fietsen naar school of werk"){
+        columns <- c("Lopen en of fietsen naar school of werk (%)","Lopen naar school of werk (%)","Fietsen naar school of werk (%)")
+      }else if(input$subthema_gez=="Eenzaamheid"){
+        columns <- c("Eenzaam (%)","Ernstig eenzaam (%)","Emotioneel eenzaam (%)","Sociaal eenzaam (%)")
+      }
+      
+      df <- as.data.frame(Gez_datasetInput()$dataset)
+      df <- df[df$Perioden=="2020",]
+      df <- df[df$Leeftijd==input$spec_age_cat,]
+      df <- df %>% drop_na(Leeftijd)
+      
+      #df for average 
+      df_gem <- df %>% select(columns)
+      df_gem <- as.data.frame(colMeans(x=df_gem, na.rm = TRUE))
+      df_gem <- rownames_to_column(df_gem)
+      df_gem$groep <- "Gemiddelde"
+      df_gem <- rename(df_gem, c(Variabele = 1, Percentage = 2, groep = 3))
+      
+      #df for selected area
+      selected_area_code <- df[1, "selected_area_code"]
+      selected_area_label <- df[1, "selected_area_label"]
+      df_selected <- df %>% subset(CODE == selected_area_code) %>% select(columns)
+      df_selected <- rownames_to_column(as.data.frame(t(df_selected)))
+      df_selected$groep <- selected_area_label
+      df_selected <- rename(df_selected, c(Variabele = 1, Percentage = 2, groep = 3))
+      
+      #binding average and selected area together
+      df_final <- rbind(df_selected, df_gem)
+      
+      #Making sure the groeps and variables appear in a consistent order in plot
+      df_final$groep <- as.character(df_final$groep)
+      df_final$groep <- factor(df_final$groep, levels=unique(df_final$groep))
+      df_final$Variabele <- as.character(df_final$Variabele)
+      df_final$Variabele <- factor(df_final$Variabele, levels=unique(df_final$Variabele))
+      
+      ggplot(df_final, aes(x = Variabele, y = Percentage, fill = groep)) + geom_col(position = "dodge") + coord_flip() +
+        theme(text = element_text(size=14),legend.title = element_blank()) + 
+        scale_x_discrete(labels = function(x) 
+          stringr::str_wrap(x, width = 15))
+    }
+    
+    output$staaf_cat <- renderPlot({
+      staaf_categorie()
+    })
+    
+    #Function for plotting the age distribution of the selected area
+    output$age_distr <- renderPlot({
+      df <- as.data.frame(Gez_datasetInput()$dataset)
+      df <- df[df$Perioden=="2020" & df$Leeftijd=="18+",]
+      df <- df %>% drop_na(Perioden)
+      
+      selected_area_code <- df[1, "selected_area_code"]
+      
+      selected_area <- df[df$CODE==selected_area_code,]
+      selected_area <- as.data.frame(selected_area)
+      selected_area <- select(selected_area,"Personen 0 tot 15 jaar (%)",
+                              "Personen 15 tot 25 jaar (%)",
+                              "Personen 25 tot 45 jaar (%)",
+                              "Personen 45 tot 65 jaar (%)",
+                              "Personen 65 jaar en ouder (%)")
+      selected_area <- rename(selected_area, c("0 tot 15"=`Personen 0 tot 15 jaar (%)`,
+                                               "15 tot 25"= `Personen 15 tot 25 jaar (%)`,
+                                               "25 tot 45" = `Personen 25 tot 45 jaar (%)`,
+                                               "45 tot 65" = `Personen 45 tot 65 jaar (%)`,
+                                               "65+"= `Personen 65 jaar en ouder (%)`))
+      selected_area <- rownames_to_column(as.data.frame(t(selected_area)))
+      selected_area <- rename(selected_area, c(Leeftijdsgroep = 1, Percentage = 2))
+      
+      ggplot(selected_area, aes(x = Leeftijdsgroep, y = Percentage)) + geom_col(width = 0.6,position = "dodge",fill = "steelblue3") + 
+        coord_flip() + theme(text = element_text(size = 14))
+    })
+    
+    
+    #Base which plots and where to place them on whether the chosen subtheme is normal or special
+    output$plots<-renderUI(
+      if(input$subthema_gez %in% Normal){
+        column(width =9, 
+               fluidRow(
+                 box(title="Histogram", width=6, status="warning", solidHeader = T,
+                     "In onderstaande histogram is de frequentieverdeling voor het geselecteerde subthema  te zien.
+                           De zwarte verticale lijn is de waarde van het geselecteerde gebied. Hiermee kunt u zien hoe uw gebied het doet ten opzichte van de andere gebieden.", br(),
+                     br(),
+                     selectInput("norm_age_hist", "Leeftijd:", c("18+"="18+", "18-65"="18-65", "65+"="65+")),
+                     shinycssloaders::withSpinner(plotOutput("gez_hist"))),
+                 box(title = "Lijndiagram", width = 6, status = "warning", solidHeader = T,
+                     "In onderstaande lijndiagram is de ontwikkeling van het geselecteerde subthema in de tijd te zien. 
+                           De roze lijn is voor het geselecteerde gebied en de blauwe lijn is het gemiddelde van de gebieden waarmee wordt vergeleken (zie kaart hierboven).",br(),
+                     br(),
+                     selectInput("norm_age_line", "Leeftijd:", c("18+"="18+", "18-65"="18-65", "65+"="65+")),
+                     shinycssloaders::withSpinner(plotOutput("gez_line_plot")))
+               ),
+               fluidRow(
+                 box(title = "Staafdiagram per leeftijdsklasse", width = 6, status = "warning", solidHeader = T,
+                     "In onderstaande staafdiagram is het percentage voor het geselecteerde subthema te zien voor de verschillende leeftijdsklasses.
+                           In het roze is het geselecteerde gebied te zien en in het blauw het gemiddelde van de gebieden waarmee wordt vergeleken (zie kaart hierboven).", br(),
+                     br(),
+                     shinycssloaders::withSpinner(plotOutput("gez_plot"))),
+               )
+        )
+      }else if(input$subthema_gez %in% Special){
+        column(width =9, 
+               fluidRow(
+                 box(title = "Staafdiagram per categorie", width = 6, status = "warning", solidHeader = T,
+                     "In onderstaande staafdiagram is het percentage voor de verschillende categorieën binnen het subthema te zien.
+                           In het roze is het geselecteerde gebied te zien en in het blauw het gemiddelde van de gebieden waarmee wordt vergeleken (zie kaart hierboven).", br(),
+                     br(),
+                     selectInput("spec_age_cat", "Leeftijd:", c("18+"="18+", "18-65"="18-65", "65+"="65+")),
+                     shinycssloaders::withSpinner(plotOutput("staaf_cat"))
+                 ),
+                 box(title="Histogram", width=6, status="warning", solidHeader = T,
+                     "In onderstaande histogram is de frequentieverdeling voor de geselecteerde categorie  te zien. 
+                           De zwarte verticale lijn is de waarde van het geselecteerde gebied. Hiermee kunt u zien hoe uw gebied het doet ten opzichte van de andere gebieden.", br(),
+                     br(),
+                     selectInput("spec_age_hist", "Leeftijd:", c("18+"="18+", "18-65"="18-65", "65+"="65+")),
+                     selectInput("categorie_hist", "Categorie:", choices = NULL),
+                     shinycssloaders::withSpinner(plotOutput("gez_hist"))
+                 )
+               ),
+               fluidRow(
+                 box(title = "Lijndiagram", width = 6, status = "warning", solidHeader = T,
+                     "In onderstaande lijndiagram is de ontwikkeling van de geselecteerde categorie in de tijd te zien. 
+                           De roze lijn is voor het geselecteerde gebied en de blauwe lijn is het gemiddelde van de gebieden waarmee wordt vergeleken (zie kaart hierboven).",br(),
+                     br(),
+                     selectInput("spec_age_line", "Leeftijd:", c("18+"="18+", "18-65"="18-65", "65+"="65+")),
+                     selectInput("categorie_line", "Categorie:", choices = NULL),
+                     shinycssloaders::withSpinner(plotOutput("gez_line_plot"))
+                 ),
+                 box(title = "Staafdiagram per leeftijdsklasse", width = 6, status = "warning", solidHeader = T,
+                     "In onderstaande staafdiagram is het percentage voor de geselecteerde categorie te zien voor de verschillende leeftijdsklasses.
+                           In het roze is het geselecteerde gebied te zien en in het blauw het gemiddelde van de gebieden waarmee wordt vergeleken (zie kaart hierboven).", br(),
+                     br(),
+                     selectInput("categorie_staaf", "Categorie:", choices = NULL),
+                     shinycssloaders::withSpinner(plotOutput("gez_plot"))
+                 ),
+               )
+        )
+      }
+    )
 })
 

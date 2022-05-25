@@ -14,6 +14,7 @@ wijken <- readRDS("../Data/wijken.rds")
 buurten <- readRDS("../Data/buurten.rds")
 postcodes_final <- readRDS("../Data/postcodes_final.rds")
 full_data <- readRDS("../Data/full_data.rds")
+gezondheid_all <-readRDS("../Data/gezondheid_all.rds")
 
 ui <- dashboardPage(
   dashboardHeader(title = "Buurtvergelijker"),
@@ -106,8 +107,77 @@ ui <- dashboardPage(
                     ) # Fluid row 2 histogram, kaart, thema top 5
                   ), # Tab item dashboard
                   
-                  tabItem(tabName = "Gezondheidszorg",
-                          h2("Eventueel voor gezondheidszorg")
+                  #####Start gezondheid   
+                  
+                  tabItem(tabName = "Gezondheid",
+                          h2("Dashboard gezondheid op  gemeente-, wijk-, of buurtniveau"),
+                          fluidRow(
+                            column(width = 3,
+                                   box(title="Niveau selecteren", width = NULL, status = 'primary', solidHeader = T,
+                                       "Selecteer het gewenste niveau, gebied en vergelijkbaarheidniveau en druk op 'indienen' om door te gaan.",
+                                       selectInput("niveau_gez", "Niveau:", c("Gemeenten" = "Gemeenten",
+                                                                              "Wijken" = "Wijken",
+                                                                              "Buurten" = "Buurten")),
+                                       conditionalPanel(
+                                         condition = "input.niveau_gez == 'Gemeenten'",
+                                         selectInput("gemeente1_gez", "Gemeente:", choices = unique(gemeenten$GM_NAAM)), # Select input gemeente1
+                                         selectInput("vergelijkbaar1_gez", "Vergelijkbaar:", c("Gebieden met dezelfde leeftijdsopbouw" = "age_distribution",
+                                                                                               "Alle gebieden in Nederland" = "Nederland", 
+                                                                                               "Gebieden met hetzelfde stedelijkheidsniveau" = "Stedelijkheidsniveau",
+                                                                                               "Gebieden met hetzelfde inkomensniveau" = "Inkomensniveau",
+                                                                                               "Gebieden met hetzelfde opleidingsniveau" = "Opleidingsniveau")) # Select input vergelijkbaar1
+                                       ), #conditionalpanel 1
+                                       conditionalPanel(
+                                         condition = "input.niveau_gez == 'Wijken'",
+                                         selectInput("gemeente2_gez", "Gemeente:", choices = unique(gemeenten$GM_NAAM)), # Select input gemeente2
+                                         selectInput("wijken2_gez", "Wijk:", choices = NULL), # Select input wijken2,
+                                         selectInput("vergelijkbaar2_gez", "Vergelijkbaar:", c("Gebieden met dezelfde leeftijdsopbouw" = "age_distribution",
+                                                                                               "Alle gebieden in Nederland" = "Nederland", 
+                                                                                               "Gebieden met hetzelfde stedelijkheidsniveau" = "Stedelijkheidsniveau",
+                                                                                               "Gebieden met hetzelfde inkomensniveau" = "Inkomensniveau",
+                                                                                               "Gebieden met hetzelfde opleidingsniveau" = "Opleidingsniveau")), # Select input vergelijkbaar 2
+                                       ), # Conditional panel 2
+                                       conditionalPanel(
+                                         condition = "input.niveau_gez == 'Buurten'",
+                                         selectInput("gemeente3_gez", "Gemeente:", choices = unique(gemeenten$GM_NAAM)), # Select input gemeente3
+                                         selectInput("wijken3_gez", "Wijk:", choices = NULL), # Select input wijken3
+                                         selectInput("buurten3_gez", "Buurt:", choices = NULL), # Select input buurten3
+                                         selectInput("vergelijkbaar3_gez", "Vergelijkbaar:", c("Gebieden met dezelfde leeftijdsopbouw" = "age_distribution",
+                                                                                               "Alle gebieden in Nederland" = "Nederland", 
+                                                                                               "Gebieden met hetzelfde stedelijkheidsniveau" = "Stedelijkheidsniveau")) # Select input vergelijkbaar3
+                                       ), # Conditional panel 3 buurten
+                                       actionButton("action_gez", "Indienen")
+                                   ) #box voor niveau 
+                            ), #column 
+                            box(title = "Informatie over het geselecteerde gebied", width = 3, status = "warning", solidHeader = T,
+                                "In de onderstaande tabel kan worden afgelezen wat het stedelijkheidsniveau, de inkomensgroep en de opleidingsgroep zijn voor het geselecteerde gebied.",
+                                tableOutput("info_area_gez"),
+                                "Stedelijkheid: 1 = zeer sterk stedelijk, 5 = niet stedelijk.", br(),
+                                "Inkomensniveau: 1 = zeer laag percentage, 4 = hoog percentage van huishoudens met een inkomen onder het sociaal minimum.",br(),
+                                "Opleidingsniveau: 1 = zeer laag percentage, 4 = zeer hoog percentage van personen met een lage opleiding.",
+                            ), # Box informatie
+                            box(title="Leeftijdsopbouw", width = 3, status = "warning", solidHeader = T,
+                                shinycssloaders::withSpinner(plotOutput("age_distr")),
+                            ),
+                            box(title = "Plek op de kaart en gebieden waarmee wordt vergeleken", width = 3, status = "warning", solidHeader = T,
+                                "Kaart waarop het gekozen gebied te zien is (blauwe pointer) en de gebieden waarmee wordt vergeleken.",
+                                shinycssloaders::withSpinner(leafletOutput("prime_map2")),
+                                span(textOutput("error_vergelijkbaarheid_gez"), style="color:red"),
+                            ), # Box geselecteerde plek
+                            
+                          ), #fluidrow gezondheid input
+                          fluidRow(
+                            column(width = 3,
+                                   box(title = "Kies een thema", width = NULL, status = "primary", solidHeader = T,
+                                       selectInput("thema_gez", "Thema:", c("Gezondheid en beperkingen", "Leefstijl", "Participatie en omgeving")
+                                       ), # Box thema
+                                       selectInput("subthema_gez", "Subthema:", choices = NULL)),
+                                   
+                            ),
+                            uiOutput("plots")
+                            
+                          ), #fluidrow gezondheid plots
+                          
                   ), # tab item gezondheidszorg
                   
                   tabItem(tabName = "Onderwijs",
@@ -120,4 +190,3 @@ ui <- dashboardPage(
                 ) # TabItems
   ) # Dashboard body
 ) # Dashboard page
-
