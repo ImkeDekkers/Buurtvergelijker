@@ -25,7 +25,9 @@ ui <- dashboardPage(
       menuItem("Onderwijs", tabName = "Onderwijs", icon = icon("th")),
       menuItem("Huizenmarkt", tabName = "Huizenmarkt", icon = icon("th")))
   ), # Dashboard sidebar
-  dashboardBody(tags$head(tags$style(HTML('.box{box-shadow: none;border-style: none;}.content-wrapper { overflow: auto; }'))),
+  dashboardBody(tags$head(tags$style(HTML('.box{box-shadow: none;border-style: none;}.content-wrapper { overflow: auto; }.leaflet-top, .leaflet-bottom {
+    z-index: unset !important;
+  }'))),
                 tabItems(
                   tabItem(
                     tabName = "Dashboard",
