@@ -17,7 +17,8 @@ postcodes_final <- readRDS("../Data/postcodes_final.rds")
 full_data <- readRDS("../Data/full_data.rds")
 ongevallen <- readRDS("../Data/ongevallen_W84.rds")
 all_polygons <- full_data %>% 
-  select(BU_CODE, BU_NAAM, WK_CODE, WK_NAAM, GM_CODE, GM_NAAM, POSTCODE, geometry, centroid, Niveau, CODE, NAAM, centroidx, centroidy)
+  select(BU_CODE, BU_NAAM, WK_CODE, WK_NAAM, GM_CODE, GM_NAAM, POSTCODE, geometry, 
+         centroid, Niveau, CODE, NAAM, centroidx, centroidy, `Stedelijkheid (1=zeer sterk stedelijk, 5=niet stedelijk)`)
 intersection <- readRDS("../Data/intersection.rds")
   
 shinyServer(function(input, output, session) {
@@ -808,7 +809,40 @@ shinyServer(function(input, output, session) {
                color = subthema_char)+
           theme_classic()
         
-      } else if (input$subthema2 == "UITGPOS1"){
+      } else if (input$subthema2 == "AOL_OMS"){
+        color_incidents <- colorFactor(topo.colors(10), intersection_select$AOL_OMS)
+        subthema <- intersection_select$AOL_OMS 
+        subthema_char <-"Afloop"
+        
+        bar_chart <- intersection_select %>% 
+          count(AOL_OMS) %>% 
+          ggplot() +
+          geom_col(aes(x = AOL_OMS, y=n, fill = AOL_OMS), show.legend = F) +
+          labs(title = "Aantal ongevallen binnen geselecteerd subthema",
+               x = subthema_char,
+               y = "Aantal") + 
+          theme_classic()+
+          theme(axis.text.x = element_text(angle = 45))
+        
+        pie_chart <- intersection_select %>%
+          count(AOL_OMS) %>% 
+          ggplot(aes(x = "", y = n, fill = AOL_OMS)) +
+          geom_bar(stat = "identity") +
+          coord_polar("y", start = 0) +
+          theme_void() +
+          labs(title = "Aantal ongevallen binnen geselecteerd subthema",
+               fill = subthema_char)
+        
+        trend_theme <- input_trend() %>% count(JAAR_VKL, AOL_OMS) %>% 
+          ggplot(aes(x = as.factor(JAAR_VKL), y = n, group = AOL_OMS, color = AOL_OMS))+
+          geom_line() +
+          labs(title = "Aantal ongevallen binnen geselecteerd subthema",
+               x = "Jaar",
+               y = "Aantal",
+               color = subthema_char)+
+          theme_classic()
+        
+      }else if (input$subthema2 == "UITGPOS1"){
         color_incidents <- colorFactor(topo.colors(8), intersection_select$UITGPOS1)
         subthema <- intersection_select$UITGPOS1 
         subthema_char <-"Uitgangspositie"

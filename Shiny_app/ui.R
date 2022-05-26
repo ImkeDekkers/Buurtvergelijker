@@ -166,13 +166,10 @@ ui <- dashboardPage(
                                    box(title = "Selecteer een subthema", width = NULL, status = "primary", solidHeader = T,
                                        selectInput("subthema2", "Subthema:", c("Weersgesteldheid" = "WGD_CODE_1",
                                                                                "Afloop" = "AP3_OMS",
-                                                                               "Uitgangspositie" = "UITGPOS1",
-                                                                               "Voorgenomen beweging" = "VOORGBEW",
-                                                                               "Beweging ten gevolge van ongeval" = "BWG_OMS",
                                                                                "Objecttype" = "OTE_OMS",
                                                                                "Wegsituatie" = "WSE_OMS",
-                                                                               "Bijzonderheid verkeersmaatregel" = "BZD_ID_VM1",
-                                                                               "Bijzonderheid infrastructuur" = "BZD_ID_IF1")), # Select input
+                                                                               "Aard" = "AOL_OMS",
+                                                                               )), # Select input
                                        actionButton("action3", "Zoeken")
                                    ) # Box selecteer subthema
                             ), # Column 1, fluid row 2)
