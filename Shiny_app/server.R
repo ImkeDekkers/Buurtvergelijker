@@ -1196,6 +1196,67 @@ shinyServer(function(input, output, session) {
         coord_flip() + theme(text = element_text(size = 14))
     })
     
+    #Function that makes map of the selected variable 
+    make_map_gez <- function(variable){
+      #get input for the map
+      map_data <- Gez_datasetInput()$dataset
+      map_data <- map_data[map_data$Perioden=="2020" & map_data$Leeftijd=="18-65",]
+      subtheme <- selected_subtheme_gez()
+      
+      map_data$subtheme <- map_data[[subtheme]]
+      
+      #define colors for polygons and legend 
+      pal <- colorBin("YlOrRd", domain = map_data$subtheme)
+      qpal <- colorQuantile("YlOrRd", map_data$subtheme, n = 6)
+      #for the colors in the map, colorQuantile is used, unless an error is given, then we use colorBin
+      coloring <- tryCatch({
+        qpal(map_data$subtheme)
+      } , error = function(e) {
+        pal(map_data$subtheme)
+      } )
+      legend_title <- as.character(subtheme)
+      labels <- sprintf("%s: %g", map_data$NAAM, map_data$subtheme) %>% 
+        lapply(htmltools::HTML)
+      #label_content <- sprintf("%s: %g <br/> %s: %g", 
+                              # map_data$selected_area_label, map_data$subtheme[map_data$CODE == map_data$selected_area_code], "Gemiddelde vergelijkbare gebieden", round(mean(map_data$subtheme, na.rm=TRUE), digits = 1))%>% lapply(htmltools::HTML)
+      
+      #selected_area_code <- df[1, "selected_area_code"]
+      
+      #map
+      output_map <- tryCatch({
+        leaflet(map_data)%>%
+          addPolygons(fillColor = ~coloring, color = "black", weight = 0.5, fillOpacity = 0.7,
+                      highlightOptions = highlightOptions(color='white',weight=0.5,fillOpacity = 0.7, bringToFront = TRUE), label = labels)%>%
+          addProviderTiles(providers$CartoDB.Positron)%>%
+          addMarkers(
+            lng = map_data$centroidxx, lat = map_data$centroidyy,
+            #label = label_content,
+            labelOptions = labelOptions(noHide = T)) %>% 
+          leaflet::addLegend(pal = qpal, values = ~map_data$subtheme, opacity = 0.7, title = legend_title, position = "bottomright", labFormat = function(type, cuts, p) {      #labformat function makes sure the actual values instead of the quantiles are displayed in the legend
+            n = length(cuts)
+            paste0(round(cuts[-n],2), " &ndash; ", round(cuts[-1],2))
+          }
+          )
+        
+      }, error = function(e) {
+        leaflet(map_data) %>%
+          addPolygons(fillColor = ~ coloring, color = "black", weight = 0.5, fillOpacity = 0.7,
+                      highlightOptions = highlightOptions(color='white',weight=0.5,fillOpacity = 0.7, bringToFront = TRUE), label = labels) %>%
+          addProviderTiles(providers$CartoDB.Positron) %>% 
+          addMarkers(
+            lng = map_data$centroidxx, lat = map_data$centroidyy,
+            #label = label_content,
+            labelOptions = labelOptions(noHide = T))%>% 
+          leaflet::addLegend(pal = pal, values = ~map_data$subtheme, opacity = 0.7, title = legend_title, position = "bottomright")
+      })
+      
+      return(output_map)
+    }
+    
+    output$map_subtheme <- renderLeaflet({
+      make_map_gez()
+    })
+    
     #Selected area name for the box titles (changes only when 'zoeken' button is clicked)
     selected_area_title_gez <- eventReactive(input$action_gez,{
       if(input$niveau=="Gemeenten"){
@@ -1242,7 +1303,7 @@ shinyServer(function(input, output, session) {
     output$plots<-renderUI({
       subtheme <- selected_subtheme_gez()
       if(subtheme %in% Normal){
-        column(width =9, 
+        column(width =8, 
                fluidRow(
                  box(title="Histogram", width=6, status="warning", solidHeader = T,
                      "In onderstaande histogram is de frequentieverdeling voor het geselecteerde subthema  te zien.
@@ -1266,7 +1327,7 @@ shinyServer(function(input, output, session) {
                )
         )
       }else if(subtheme %in% Special){
-        column(width =9, 
+        column(width =8, 
                fluidRow(
                  box(title = "Staafdiagram per categorie", width = 6, status = "warning", solidHeader = T,
                      "In onderstaande staafdiagram is het percentage voor de verschillende categorieën binnen het subthema te zien.
