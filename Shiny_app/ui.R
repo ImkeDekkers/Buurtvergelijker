@@ -157,6 +157,8 @@ ui <- dashboardPage(
                             uiOutput("kaart_box_gez"), # Box geselecteerde plek
                             
                           ), #fluidrow gezondheid input
+                          br(),
+                          br(),
                           fluidRow(
                                    box(title = "Kies een thema", width = 3, status = "primary", solidHeader = T,
                                        "Selecteer het gewenste thema en subthema en druk op 'zoeken' om door te gaan.", br(),
@@ -165,10 +167,6 @@ ui <- dashboardPage(
                                        selectInput("subthema_gez", "Subthema:", choices = NULL),
                                        actionButton("action_thema_gez", "Zoeken")
                                        ),
-                                   # box(title = "Kaart", width = NULL, status = "warning", solidHeader = T,
-                                   #     selectInput("age_map", "Leeftijd:", c("18-65"="18-65", "65+"="65+","18+"="18+")),
-                                   #     leafletOutput('map_subtheme')
-                                   #     ),
                             
                                   uiOutput("plots")
                             

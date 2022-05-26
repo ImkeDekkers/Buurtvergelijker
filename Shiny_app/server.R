@@ -1268,6 +1268,8 @@ shinyServer(function(input, output, session) {
         pal(map_data$subtheme)
       } )
       legend_title <- as.character(subtheme)
+      legend_title <- paste(strwrap(legend_title,20), collapse="<br/>")%>% 
+        lapply(htmltools::HTML)
       labels <- sprintf("%s: %g", map_data$NAAM, map_data$subtheme) %>% 
         lapply(htmltools::HTML)
       #label_content <- sprintf("%s: %g <br/> %s: %g", 
