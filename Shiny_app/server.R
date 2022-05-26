@@ -739,6 +739,32 @@ shinyServer(function(input, output, session) {
       }
     })
     
+    #Change input choices for map with variable depending on subtheme
+    observeEvent(input$action_thema_gez, {
+      if (input$subthema_gez == "Beperking") {
+        updateSelectInput(session, 'categorie_map', 
+                          choices = c("Lichamelijke beperking (%)", "Beperking in horen (%)", "Beperking in zien (%)","Beperking in bewegen (%)"))
+      }else if(input$subthema_gez == "Beperkt vanwege gezondheid") {
+        updateSelectInput(session, 'categorie_map', 
+                          choices = c("Beperkt vanwege gezondheid (%)","Ernstig beperkt vanwege gezondheid (%)"))
+      }else if(input$subthema_gez == "Risico op angststoornis of depressie") {
+        updateSelectInput(session, 'categorie_map', 
+                          choices = c("Matig tot hoog risico op angststoornis of depressie (%)","Hoog risico op angststoornis of depressie (%)"))
+      }else if(input$subthema_gez == "Gewicht") {
+        updateSelectInput(session, 'categorie_map', 
+                          choices = c("Ondergewicht (%)","Normaal gewicht (%)","Overgewicht (%)","Ernstig overgewicht (%)"))
+      }else if(input$subthema_gez == "Alcoholgebruik") {
+        updateSelectInput(session, 'categorie_map', 
+                          choices = c("Voldoet aan alcoholrichtlijn (%)","Drinkers (%)","Zware drinkers (%)","Overmatige drinkers (%)"))
+      }else if(input$subthema_gez == "Lopen/fietsen naar school of werk") {
+        updateSelectInput(session, 'categorie_map', 
+                          choices = c("Lopen en of fietsen naar school of werk (%)","Lopen naar school of werk (%)","Fietsen naar school of werk (%)"))
+      }else if(input$subthema_gez == "Eenzaamheid") {
+        updateSelectInput(session, 'categorie_map', 
+                          choices = c("Eenzaam (%)","Ernstig eenzaam (%)","Emotioneel eenzaam (%)","Sociaal eenzaam (%)"))
+      }
+    })
+    
     #Dividing the subthemes about health between normal and special (having multiple closely related variables)
     Normal <- c("Zeer goede of goede gezondheid (%)", "Langdurige aandoening (%)", 
                 "Langdurige ziekte en beperkt (%)",  "(heel) veel stress (%)",
@@ -1013,7 +1039,8 @@ shinyServer(function(input, output, session) {
       
       #Plot
       ggplot(df_final, aes(x = Leeftijd, y = .data[[column]], fill = groep)) + geom_col(position = "dodge")+ 
-        ylab(column) + theme(text = element_text(size=14),legend.title = element_blank()) + 
+        ylab(column) + theme(text = element_text(size=14),legend.title = element_blank(),legend.position="top",
+                             legend.text=element_text(size=12),axis.text = element_text(size = 12)) + 
         scale_x_discrete(labels = function(x)
           stringr::str_wrap(x, width = 15))
       
@@ -1072,7 +1099,8 @@ shinyServer(function(input, output, session) {
       ggplot(df_together, aes(x=Perioden, y=.data[[column]], group=Groep)) +
         geom_line(aes(color=Groep),size=1)+
         geom_point(aes(color=Groep),size=3) +
-        theme(text = element_text(size=14),legend.title = element_blank()) + 
+        theme(text = element_text(size=14),legend.title = element_blank(),legend.position="top",
+              legend.text=element_text(size=12),axis.text = element_text(size = 12)) + 
         scale_y_continuous(expand = expansion(add = 5)) #To make sure the y-axis has at least 10 percent between the min and max
     }
     
@@ -1102,7 +1130,7 @@ shinyServer(function(input, output, session) {
       #return(selected_area_line)
       ggplot(df, aes(column)) + geom_histogram(fill='steelblue3', color='#e9ecef', bins=20) + geom_vline(xintercept = selected_area_line)  +
         labs(x=column, y = "Aantal") +
-        theme(text = element_text(size=14))
+        theme(text = element_text(size=14),axis.text = element_text(size = 12))
     }
     #Histogram output
     output$gez_hist <- renderPlot({
@@ -1160,7 +1188,8 @@ shinyServer(function(input, output, session) {
       df_final$Variabele <- factor(df_final$Variabele, levels=unique(df_final$Variabele))
       
       ggplot(df_final, aes(x = Variabele, y = Percentage, fill = groep)) + geom_col(position = "dodge") + coord_flip() +
-        theme(text = element_text(size=14),legend.title = element_blank()) + 
+        theme(text = element_text(size=14),legend.title = element_blank(), legend.position="top",
+              legend.text=element_text(size=12),axis.text = element_text(size = 12)) + 
         scale_x_discrete(labels = function(x) 
           stringr::str_wrap(x, width = 15))
     }
@@ -1193,21 +1222,45 @@ shinyServer(function(input, output, session) {
       selected_area <- rename(selected_area, c(Leeftijdsgroep = 1, Percentage = 2))
       
       ggplot(selected_area, aes(x = Leeftijdsgroep, y = Percentage)) + geom_col(width = 0.6,position = "dodge",fill = "steelblue3") + 
-        coord_flip() + theme(text = element_text(size = 14))
+        coord_flip() + theme(text = element_text(size = 14),axis.text = element_text(size = 12))
     })
     
     #Function that makes map of the selected variable 
     make_map_gez <- function(variable){
       #get input for the map
-      map_data <- Gez_datasetInput()$dataset
-      map_data <- map_data[map_data$Perioden=="2020" & map_data$Leeftijd=="18-65",]
-      subtheme <- selected_subtheme_gez()
+      map_data <-Gez_datasetInput()$dataset
+      map_data <- map_data[map_data$Perioden=="2020" & map_data$Leeftijd==input$age_map,]
+      column <- selected_subtheme_gez()
+      
+      if (column %in% Normal){
+        subtheme <- column
+      }else if (column %in% Special){
+        subtheme <- input$categorie_map
+      }
       
       map_data$subtheme <- map_data[[subtheme]]
       
-      #define colors for polygons and legend 
-      pal <- colorBin("YlOrRd", domain = map_data$subtheme)
-      qpal <- colorQuantile("YlOrRd", map_data$subtheme, n = 6)
+      #Dividing the subthemes in the higher the better and the lower the better
+      higher_better <- c("Zeer goede of goede gezondheid (%)","Voldoet aan beweegrichtlijn (%)","Wekelijkse sporters (%)",
+                         "Normaal gewicht (%)","Voldoet aan alcoholrichtlijn (%)","Vrijwilligerswerk (%)",
+                         "Lopen en of fietsen naar school of werk (%)","Lopen naar school of werk (%)","Fietsen naar school of werk (%)")
+      lower_better <- c("Ondergewicht (%)", "Overgewicht (%)","Ernstig overgewicht (%)","Rokers (%)","Drinkers (%)",
+                        "Zware drinkers (%)","Overmatige drinkers (%)","Langdurige aandoening (%)","Beperkt vanwege gezondheid (%)",
+                        "Ernstig beperkt vanwege gezondheid (%)","Langdurige ziekte en beperkt (%)","Lichamelijke beperking (%)",
+                        "Beperking in horen (%)","Beperking in zien (%)","Beperking in bewegen (%)","Matig tot hoog risico op angststoornis of depressie (%)",
+                        "Hoog risico op angststoornis of depressie (%)","(heel) veel stress (%)","Matig tot veel regie over eigen leven (%)",
+                        "Eenzaam (%)","Ernstig eenzaam (%)","Emotioneel eenzaam (%)","Sociaal eenzaam (%)",
+                        "Mantelzorger (%)","Ernstige geluidhinder door buren (%)","Moeite met rondkomen (%)")
+     
+      #define colors for polygons and legend (if subtheme in higher the better, reverse=TRUE)
+      if(subtheme %in% higher_better){
+        pal <- colorBin("YlOrRd", domain = map_data$subtheme, n = 6, reverse = TRUE)
+        qpal <- colorQuantile("YlOrRd", map_data$subtheme, n = 6, reverse = TRUE)
+      }else if(subtheme %in% lower_better){
+        pal <- colorBin("YlOrRd", domain = map_data$subtheme, n = 6)
+        qpal <- colorQuantile("YlOrRd", map_data$subtheme, n = 6)
+      }
+      
       #for the colors in the map, colorQuantile is used, unless an error is given, then we use colorBin
       coloring <- tryCatch({
         qpal(map_data$subtheme)
@@ -1303,22 +1356,27 @@ shinyServer(function(input, output, session) {
     output$plots<-renderUI({
       subtheme <- selected_subtheme_gez()
       if(subtheme %in% Normal){
-        column(width =8, 
+        column(width =9, 
                fluidRow(
+                 box(title = "Kaart", width = 6, status = "warning", solidHeader = T,
+                     selectInput("age_map", "Leeftijd:", c("18-65"="18-65", "65+"="65+","18+"="18+")),
+                     shinycssloaders::withSpinner(leafletOutput('map_subtheme'))
+                 ),
                  box(title="Histogram", width=6, status="warning", solidHeader = T,
                      "In onderstaande histogram is de frequentieverdeling voor het geselecteerde subthema  te zien.
                            De zwarte verticale lijn is de waarde van het geselecteerde gebied. Hiermee kunt u zien hoe uw gebied het doet ten opzichte van de andere gebieden.", br(),
                      br(),
                      selectInput("norm_age_hist", "Leeftijd:", c("18-65"="18-65", "65+"="65+","18+"="18+")),
                      shinycssloaders::withSpinner(plotOutput("gez_hist"))),
+                 
+               ),
+               fluidRow(
                  box(title = "Lijndiagram", width = 6, status = "warning", solidHeader = T,
                      "In onderstaande lijndiagram is de ontwikkeling van het geselecteerde subthema in de tijd te zien. 
                            De roze lijn is voor het geselecteerde gebied en de blauwe lijn is het gemiddelde van de gebieden waarmee wordt vergeleken (zie kaart hierboven).",br(),
                      br(),
                      selectInput("norm_age_line", "Leeftijd:", c("18-65"="18-65", "65+"="65+","18+"="18+")),
-                     shinycssloaders::withSpinner(plotOutput("gez_line_plot")))
-               ),
-               fluidRow(
+                     shinycssloaders::withSpinner(plotOutput("gez_line_plot"))),
                  box(title = "Staafdiagram per leeftijdsklasse", width = 6, status = "warning", solidHeader = T,
                      "In onderstaande staafdiagram is het percentage voor het geselecteerde subthema te zien voor de verschillende leeftijdsklasses.
                            In het roze is het geselecteerde gebied te zien en in het blauw het gemiddelde van de gebieden waarmee wordt vergeleken (zie kaart hierboven).", br(),
@@ -1327,7 +1385,7 @@ shinyServer(function(input, output, session) {
                )
         )
       }else if(subtheme %in% Special){
-        column(width =8, 
+        column(width =9, 
                fluidRow(
                  box(title = "Staafdiagram per categorie", width = 6, status = "warning", solidHeader = T,
                      "In onderstaande staafdiagram is het percentage voor de verschillende categorieën binnen het subthema te zien.
@@ -1336,6 +1394,15 @@ shinyServer(function(input, output, session) {
                      selectInput("spec_age_cat", "Leeftijd:", c("18-65"="18-65", "65+"="65+","18+"="18+")),
                      shinycssloaders::withSpinner(plotOutput("staaf_cat"))
                  ),
+                 box(title = "Kaart", width = 6, status = "warning", solidHeader = T,
+                     selectInput("age_map", "Leeftijd:", c("18-65"="18-65", "65+"="65+","18+"="18+")),
+                     selectInput("categorie_map", "Categorie:", choices = NULL),
+                     shinycssloaders::withSpinner(leafletOutput('map_subtheme'))
+                 )
+               ),
+        
+              
+         fluidRow(
                  box(title="Histogram", width=6, status="warning", solidHeader = T,
                      "In onderstaande histogram is de frequentieverdeling voor de geselecteerde categorie  te zien. 
                            De zwarte verticale lijn is de waarde van het geselecteerde gebied. Hiermee kunt u zien hoe uw gebied het doet ten opzichte van de andere gebieden.", br(),
@@ -1343,9 +1410,7 @@ shinyServer(function(input, output, session) {
                      selectInput("spec_age_hist", "Leeftijd:", c("18-65"="18-65", "65+"="65+","18+"="18+")),
                      selectInput("categorie_hist", "Categorie:", choices = NULL),
                      shinycssloaders::withSpinner(plotOutput("gez_hist"))
-                 )
-               ),
-               fluidRow(
+                 ),
                  box(title = "Lijndiagram", width = 6, status = "warning", solidHeader = T,
                      "In onderstaande lijndiagram is de ontwikkeling van de geselecteerde categorie in de tijd te zien. 
                            De roze lijn is voor het geselecteerde gebied en de blauwe lijn is het gemiddelde van de gebieden waarmee wordt vergeleken (zie kaart hierboven).",br(),

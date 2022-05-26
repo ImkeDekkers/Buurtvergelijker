@@ -156,20 +156,19 @@ ui <- dashboardPage(
                             
                           ), #fluidrow gezondheid input
                           fluidRow(
-                            column(width = 4,
-                                   
-                                   box(title = "Kies een thema", width = NULL, status = "primary", solidHeader = T,
+                                   box(title = "Kies een thema", width = 3, status = "primary", solidHeader = T,
                                        "Selecteer het gewenste thema en subthema en druk op 'zoeken' om door te gaan.", br(),
                                        br(),
                                        selectInput("thema_gez", "Thema:", c("Gezondheid en beperkingen", "Leefstijl", "Participatie en omgeving") ), 
                                        selectInput("subthema_gez", "Subthema:", choices = NULL),
                                        actionButton("action_thema_gez", "Zoeken")
                                        ),
-                                   box(title = "Kaart", width = NULL, status = "warning", solidHeader = T,
-                                       leafletOutput('map_subtheme')
-                                       ),
-                            ),
-                            uiOutput("plots")
+                                   # box(title = "Kaart", width = NULL, status = "warning", solidHeader = T,
+                                   #     selectInput("age_map", "Leeftijd:", c("18-65"="18-65", "65+"="65+","18+"="18+")),
+                                   #     leafletOutput('map_subtheme')
+                                   #     ),
+                            
+                                  uiOutput("plots")
                             
                           ), #fluidrow gezondheid plots
                           
