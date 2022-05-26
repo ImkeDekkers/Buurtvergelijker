@@ -380,7 +380,7 @@ shinyServer(function(input, output, session) {
           #addCircleMarkers(lng = map_data$centroidxx, lat = map_data$centroidyy, color = "black", weight = 3, opacity = 0.75, fillOpacity = 0)%>%
           leaflet::addLegend(pal = qpal, values = ~map_data$variable, opacity = 0.7, title = legend_title, position = "bottomright", labFormat = function(type, cuts, p) {      #labformat function makes sure the actual values instead of the quantiles are displayed in the legend
             n = length(cuts)
-            paste0(cuts[-n], " &ndash; ", cuts[-1])
+            paste0(round(cuts[-n],2), " &ndash; ", round(cuts[-1],2))
           }#, labFormat = labelFormat(digits = 0)
           )
         
@@ -611,18 +611,18 @@ shinyServer(function(input, output, session) {
     #Selected area name for the box titles (changes only when 'zoeken' button is clicked)
     selected_area_title <- eventReactive(input$action,{
       if(input$niveau=="Gemeenten"){
-        title <- paste0("Informatie over: ", input$gemeente1)
+        title <- input$gemeente1
       }else if(input$niveau=="Wijken"){
-        title <- paste0("Informatie over: ", input$wijken2)
+        title <- input$wijken2
       }else if(input$niveau=="Buurten"){
-        title <- paste0("Informatie over: ", input$buurten3)
+        title <- input$buurten3
       }
       return(title)
     })
     
     #Info box, title changes based on the selected area
     output$info_box = renderUI({
-      title <- selected_area_title()
+      title <- paste0("Informatie over: ", selected_area_title())
       box(title = title, width = 3, status = "warning", solidHeader = T,
             "In de tabel hieronder ziet u wat de stedelijkheid, de inkomensgroep en de opleidingsgroep zijn voor het gekozen gebied.",
             tableOutput("info_area"),
@@ -635,7 +635,7 @@ shinyServer(function(input, output, session) {
     
     #Kaart box, title changes based on the selected area
     output$kaart_box = renderUI({
-      title <- selected_area_title()
+      title <- title <- paste0("Kaart met: ", selected_area_title())
       box(title = title, width = 4, status = "warning", solidHeader = T,
           "Kaart waarop het gekozen gebied te zien is (blauwe pointer), de top 5 meest vergelijkbare gebieden (rode pointers) en de gebieden waarmee wordt vergeleken.",
           #"Hier komt de prime map van leaflet met pointer naar centroid van de geselecteerde g/w/b",
