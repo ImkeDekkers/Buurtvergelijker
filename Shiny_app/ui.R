@@ -22,7 +22,7 @@ ui <- dashboardPage(
       menuItem("Dashboard", tabName = "Dashboard", icon = icon("dashboard")),
       menuItem("Gezondheidszorg", tabName = "Gezondheidszorg", icon = icon("th")),
       menuItem("Onderwijs", tabName = "Onderwijs", icon = icon("th")),
-      menuItem("Verkeersveiligheid", tabName = "Verkeersveiligheid", icon = icon("th")))
+      menuItem("Verkeersveiligheid", tabName = "Verkeersveiligheid", icon = icon("car-side", class = "fa-solid fa-car-side", lib = "font-awesome")))
   ), # Dashboard sidebar
   dashboardBody(tags$head(tags$style(HTML('.box{box-shadow: none;border-style: none;}.content-wrapper { overflow: auto; }'))),
                 tabItems(
@@ -148,11 +148,11 @@ ui <- dashboardPage(
                                                                        "2013" = "2013",
                                                                        "2012" = "2012",
                                                                        "2011" = "2011")), # Select input jaar
-                                       selectInput("subthema2", "Subthema:", c("Weersgesteldheid" = "WGD_CODE_1",
-                                                                               "Afloop" = "AP3_OMS",
+                                       selectInput("subthema2", "Subthema:", c("Afloop" = "AP3_OMS",
+                                                                               "Weersgesteldheid" = "WGD_CODE_1",
+                                                                               "Aard" = "AOL_OMS",
                                                                                "Objecttype" = "OTE_OMS",
                                                                                "Wegsituatie" = "WSE_OMS",
-                                                                               "Aard" = "AOL_OMS",
                                                                                "Maximum snelheid" = "MAXSNELHD",
                                                                                "Aantal betrokken partijen" = "ANTL_PTJ")),
                                    actionButton("action2", "Zoeken")
@@ -160,8 +160,8 @@ ui <- dashboardPage(
                             ), # Column 1
                             column(width = 5,
                                    box(title = "Algemene trend", width = NULL, status = "danger", solidHeader = T,
-                                       "Hier komt de algemene trend van het aantal verkeersongelukken in NL (op het juiste niveau) en de geselecteerde gemeente/wijk/buurt",
-                                       plotOutput("general_trend")) # Box algemene trend
+                                       "De lijn in de grafiek geeft aan hoeveel ongelukken er hebben plaatsgevonden in het geselecteerde gebied in verschillende jaren.",
+                                       shinycssloaders::withSpinner(plotOutput("general_trend"))) # Box algemene trend
                             ), # Column 2
                             column(width = 4,
                                    valueBoxOutput("number_incidents", width = NULL),
@@ -171,52 +171,37 @@ ui <- dashboardPage(
                           h3("Inzicht in subthema in uw buurt"),
                           fluidRow(
                             column(width = 4,
-                                   box(title = "Kaart met incidenten en kleur van variabele", width = NULL, status = "warning", solidHeader = T,
-                                       "Hier wordt de kaart weergegeven met punten op de kaart die de kleur hebben van de geselecteerde variabele",
+                                   box(title = "Kaart met incidenten", width = NULL, status = "warning", solidHeader = T,
+                                       HTML("Hier wordt de kaart weergegeven met punten van incidenten. De kleuren komen overeen met de categorieën van de geselecteerde variabele.<br>
+                                            U kunt de kaart vergroten en verkleinen door te scrollen. Door met uw muis over de punten te bewegen kunt u de categorie zien."),
                                        shinycssloaders::withSpinner(leafletOutput("map_color_incidents"))) # Box incidenten en kleur
                             ), # Column kaart
                             column(width = 4,
                                    tabBox(width = NULL, id="tabset1",
-                                          tabPanel("Staafdiagram", "Hier komt een staafdiagram", plotOutput("bar_chart")),
-                                          tabPanel("Taartdiagram", "Hier komt een taartdiagram", plotOutput("pie_chart"))
+                                          tabPanel("Staafdiagram", "Dit staafdiagram geeft het aantal ongelukken in een bepaalde categorie weer.", 
+                                                   plotOutput("bar_chart")),
+                                          tabPanel("Taartdiagram", "Dit taartdiagram geeft de verhouding van het aantal ongelukken in een bepaalde categorie weer", 
+                                                   plotOutput("pie_chart"))
                                        ) # Tabbox diagram
                                    ), # Column diagram variabele
                             column(width = 4,
-                                   box(title = "Trend van thema in geselecteerd gebied", status = "warning", width = NULL, solidHeader = T,
-                                       "Hier komt een trendlijn van het aantal incidenten per categorie in het geselecteerde thema",
-                                       plotOutput("trend_theme")
+                                   box(title = "Trend van subthema in geselecteerd gebied", status = "warning", width = NULL, solidHeader = T,
+                                       HTML("De lijn in de grafiek geeft aan hoeveel ongelukken hebben plaatsgevonden in het geselecteerde gebied in verschillende jaren. <br>
+                                            De kleuren komen overeen met de categorieën in het geselecteerde subthema."),
+                                       shinycssloaders::withSpinner(plotOutput("trend_theme"))
                                        ) # Box trend thema
                             ) # Column trend geselecteerde variabele
                           ), # Fluid row grafieken thema
-                          h3("Vergelijk uw wijk met een andere wijk"),
+                          h3("Vergelijk het geselecteerde gebied met andere, vergelijkbare gebieden"),
                           fluidRow(
-                            # column(width = 3,
-                            #        box(title = "Selecteer een wijk om mee te vergelijken", width = NULL, status = "primary", solidHeader = T,
-                            #            conditionalPanel(
-                            #              condition = "input.niveau2 == 'Gemeenten'",
-                            #              selectInput("gemeente31", "Gemeente:", choices = NULL) # Select input gemeente31
-                            #            ), # Conditional panel 1 gemeenten
-                            #            conditionalPanel(
-                            #              condition = "input.niveau2 == 'Wijken'",
-                            #              selectInput("gemeente32", "Gemeente:", choices = NULL), # Select input gemeente32
-                            #              selectInput("wijken32", "Wijk:", choices = NULL) # Select input wijken32
-                            #            ), # Conditional panel 2 wijken
-                            #            conditionalPanel(
-                            #              condition = "input.niveau2 == 'Buurten'",
-                            #              selectInput("gemeente33", "Gemeente:", choices = NULL), # Select input gemeente33
-                            #              selectInput("wijken33", "Wijk:", choices = NULL), # Select input wijken33
-                            #              selectInput("buurten33", "Buurt:", choices = NULL) # Select input buurten33
-                            #            ), # Conditional panel 3 buurten
-                            #            actionButton("action3", "Zoeken")
-                            #   ) # Box selecteer vergelijkbare wijk
-                            # ), # Column selecteer gebied om mee te vergelijken 
                             column(width = 5,
                                    box(title = "Vergelijking met andere buurt", width = NULL, status = "success", solidHeader = T,
                                        "Hier kan een vergelijking worden getoond van 2 geselecteerde gebieden") # Box grafieken of diagram
                             ), # Column vergelijking buurt
                             column(width = 4,
-                                   box(title = "Top-5 meeste incidenten in vergelijkbare gebieden", width = NULL, status = "success", solidHeader = T,
-                                       "Hier komt de top 5 van het aantal incidenten + de geselecteerde gemeente/wijk/buurt in een tabel",
+                                   box(title = "Top-5 incidenten in vergelijkbare gebieden", width = NULL, status = "success", solidHeader = T,
+                                       HTML("In deze tabel wordt de top-5 van gebieden met de meeste incidenten weergegeven. <br>
+                                            Staat uw wijk niet in de top-5? Dan ziet u onderaan de tabel op welke rank het geselecteerde gebied staat."),
                                        tableOutput("count_incidents")) # Box top 5
                                    ) # Column top 5
                           ) # Fluid row 3 vergelijkbaarheid

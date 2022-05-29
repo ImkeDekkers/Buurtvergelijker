@@ -705,6 +705,8 @@ shinyServer(function(input, output, session) {
       }
       
       number_incidents <- number_incidents$n
+      number_incidents <- ifelse(is.na(number_incidents), "0", number_incidents)
+      
       stedelijkheid_num <- stedelijkheid_num$`Stedelijkheid (1=zeer sterk stedelijk, 5=niet stedelijk)`
       
       list_ongevallen_return <- list(#"ongevallen_year" = ongevallen_year,          # Dataset with points of incidents in selected year of all polygons to plot
@@ -720,14 +722,14 @@ shinyServer(function(input, output, session) {
     
     # Output number of incidents in selected area
     output$number_incidents <- renderValueBox(
-      valueBox(reaction2()$number_incidents, "ongevallen in het door u geselecteerde gebied", 
+      valueBox(ifelse(is.na(reaction2()$number_incidents), "0", reaction2()$number_incidents), "ongevallen in het door u geselecteerde gebied", 
                icon = icon("car-crash", class = "fa-solid fa-car-burst", lib = "font-awesome"), 
                color = "red") # valuebox
     ) # rendervaluebox
     
     output$stedelijkheid_num <- renderValueBox(
-      valueBox(reaction2()$stedelijkheid_num, "Het stedelijkheidsniveau van het door u geselecteerde gebied.
-               1 = zeer stedelijk, 5 = niet stedelijk",
+      valueBox(reaction2()$stedelijkheid_num, HTML("Het stedelijkheidsniveau van het door u geselecteerde gebied. <br>
+               1 = zeer stedelijk, 5 = niet stedelijk"),
                icon = icon("city", class = "fa-solid fa-city", lib = "font-awesome"),
                color = "red") # Valuebox
     ) # Render valuebox
@@ -1021,7 +1023,7 @@ shinyServer(function(input, output, session) {
                          label = ~subthema) %>% 
         setView(lng = reaction2()$pol_select$centroidx,     # Make sure that the zoom is concentrated on selected area
                 lat = reaction2()$pol_select$centroidy,
-                zoom = 13) %>%
+                zoom = 9) %>%
         addPolylines(data = reaction2()$pol_select,
                      stroke = T,
                      weight = 3) %>%
