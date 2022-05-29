@@ -164,7 +164,8 @@ ui <- dashboardPage(
                                        plotOutput("general_trend")) # Box algemene trend
                             ), # Column 2
                             column(width = 4,
-                                   valueBoxOutput("number_incidents", width = NULL)
+                                   valueBoxOutput("number_incidents", width = NULL),
+                                   valueBoxOutput("stedelijkheid_num", width = NULL)
                             ) # Column 3
                           ), # fluid row algemene trend en aantal
                           h3("Inzicht in subthema in uw buurt"),
@@ -215,7 +216,8 @@ ui <- dashboardPage(
                             ), # Column vergelijking buurt
                             column(width = 4,
                                    box(title = "Top-5 meeste incidenten in vergelijkbare gebieden", width = NULL, status = "success", solidHeader = T,
-                                       "Hier komt de top 5 van het aantal incidenten + de geselecteerde gemeente/wijk/buurt in een tabel") # Box top 5
+                                       "Hier komt de top 5 van het aantal incidenten + de geselecteerde gemeente/wijk/buurt in een tabel",
+                                       tableOutput("count_incidents")) # Box top 5
                                    ) # Column top 5
                           ) # Fluid row 3 vergelijkbaarheid
                   ) # Tab Item verkeersveiligheid
