@@ -13,6 +13,9 @@ wijken <- readRDS("../Data/wijken.rds")
 buurten <- readRDS("../Data/buurten.rds")
 postcodes_final <- readRDS("../Data/postcodes_final.rds")
 full_data <- readRDS("../Data/full_data.rds")
+full_data_crime <- readRDS("../Data/full_data3.rds")
+full_data_crime_norm <- readRDS("../Data/full_data4.rds")
+
 
 shinyServer(function(input, output, session) {
     
@@ -622,6 +625,243 @@ shinyServer(function(input, output, session) {
                 "Aantal musea binnen 20 km")
       }
       })
+    
+    ## CRIME ##
+    
+    # Make selection dependent on previous input
+    observeEvent(input$gemeente_crime2, {
+      updateSelectInput(session, 'wijken_crime2',
+                        choices = unique(postcodes_final$wijknaam2020[postcodes_final$Gemeentenaam2020 == input$gemeente_crime2]))  # Only display that are in the selected gemeente
+    })
+    observeEvent(input$gemeente_crime3, {
+      updateSelectInput(session, 'wijken_crime3',
+                        choices = unique(postcodes_final$wijknaam2020[postcodes_final$Gemeentenaam2020 == input$gemeente_crime3]))  # Only display that are in the selected gemeente
+    })
+    observeEvent(input$wijken_crime3,{
+      updateSelectInput(session, 'buurten_crime3',
+                        choices = unique(postcodes_final$buurtnaam2020[postcodes_final$Gemeentenaam2020 == input$gemeente_crime3 & 
+                                                                         postcodes_final$wijknaam2020==input$wijken_crime3]))       # Only display buurten that are in the selected wijk
+    }) 
+    
+    
+    #select right dataset based on aantallen 
+    crime_data <- eventReactive(input$aantal_crime,{
+      if (input$aantal_crime == "Aantal misdrijven"){
+        crime_data <- full_data_crime
+      } else if (input$aantal_crime == "Aantallen per 1000 inwoners"){
+        crime_data <- full_data_crime_norm
+      } 
+    }
+    )
+    
+    ###
+    #vergelijkbaarheid
+    ###
+    
+    #make used data reactive on the selected niveau
+    datasetInputCrime <- eventReactive(input$action_crime,{
+      df <- as.data.frame(crime_data())
+      df <- df[df$Niveau == input$niveau_crime,]
+      df <- df %>% drop_na("CODE")
+      if(input$niveau_crime == 'Gemeenten'){
+        if(input$vergelijkbaar_crime1 == "Stedelijkheidsniveau"){
+          stedelijkheid_num <- df[df$GM_NAAM == input$gemeente_crime1, "Stedelijkheid (1=zeer sterk stedelijk, 5=niet stedelijk)"]
+          comparable_df <- df[df$`Stedelijkheid (1=zeer sterk stedelijk, 5=niet stedelijk)`== stedelijkheid_num, ]
+        }else if (input$vergelijkbaar_crime1 == "Inkomensniveau"){
+          inkomen_num <- df[df$GM_NAAM == input$gemeente_crime1, 'inkomengroep']
+          comparable_df <- df[df$inkomengroep == inkomen_num, ]
+        }else if (input$vergelijkbaar_crime1 == "Opleidingsniveau"){
+          opleiding_num <- df[df$GM_NAAM == input$gemeente_crime1, 'opleidingsgroep']
+          comparable_df <- df[df$opleidingsgroep == opleiding_num, ]
+        } else if(input$vergelijkbaar_crime1 == "Nederland"){
+          comparable_df <- df
+        }
+        comparable_df$selected_area_code <- comparable_df %>% filter(GM_NAAM == input$gemeente_crime1) %>% pull(CODE)
+        comparable_df$selected_area_label <- comparable_df %>% filter(GM_NAAM == input$gemeente_crime1) %>% pull(NAAM)
+        selected_polygon <- comparable_df %>% filter(GM_NAAM == input$gemeente_crime1)
+        row_num_selected <- which(comparable_df$GM_NAAM == input$gemeente_crime1)
+      }else if(input$niveau_crime == 'Wijken'){
+        if(input$vergelijkbaar_crime2 == "Stedelijkheidsniveau"){
+          stedelijkheid_num <- df[df$WK_NAAM == input$wijken_crime2 & df$GM_NAAM == input$gemeente_crime2, "Stedelijkheid (1=zeer sterk stedelijk, 5=niet stedelijk)"]
+          comparable_df <- df[df$`Stedelijkheid (1=zeer sterk stedelijk, 5=niet stedelijk)`== stedelijkheid_num, ]
+          comparable_df <- comparable_df %>% drop_na(CODE)
+          output$ink_vergelijkbaarheid <- renderText(
+            print("")
+          )
+          output$opl_vergelijkbaarheid <- renderText(
+            print("")
+          )
+        }else if (input$vergelijkbaar_crime2 == "Inkomensniveau"){
+          inkomen_num <- df[df$WK_NAAM == input$wijken_crime2 & df$GM_NAAM == input$gemeente_crime2, 'inkomengroep']
+          if(is.na(inkomen_num)){
+            comparable_df <- df[df$Niveau == input$niveau_crime,]
+            output$ink_vergelijkbaarheid <- renderText(
+              print("Let op, door een missende waarde van het inkomensniveau voor uw wijk, wordt er nu met heel Nederland vergeleken.")
+            )
+          }else{
+            comparable_df <- df[df$inkomengroep == inkomen_num, ]
+            comparable_df <- comparable_df %>% drop_na(CODE)
+            output$ink_vergelijkbaarheid <- renderText(
+              print("")
+            )
+          }
+        }else if (input$vergelijkbaar_crime2 == "Opleidingsniveau"){
+          opleiding_num <- df[df$WK_NAAM == input$wijken_crime2 & df$GM_NAAM == input$gemeente_crime2, 'opleidingsgroep']
+          if(is.na(opleiding_num)){
+            comparable_df <- df[df$Niveau == input$niveau_crime,]
+            output$opl_vergelijkbaarheid <- renderText(
+              print("Let op, door een missende waarde van het opleidingsniveau voor uw wijk, wordt er nu met heel Nederland vergeleken.")
+            )
+          }else{
+            comparable_df <- df[df$opleidingsgroep == opleiding_num, ]
+            comparable_df <- comparable_df %>% drop_na(CODE)
+            output$opl_vergelijkbaarheid <- renderText(
+              print("")
+            )
+          }
+        } else if(input$vergelijkbaar_crime2 == "Nederland"){
+          comparable_df <- df
+          output$ink_vergelijkbaarheid <- renderText(
+            print("")
+          )
+          output$opl_vergelijkbaarheid <- renderText(
+            print("")
+          )
+        }
+        comparable_df$selected_area_code <- comparable_df %>% filter(GM_NAAM == input$gemeente_crime2 & WK_NAAM == input$wijken_crime2) %>%pull(CODE)
+        comparable_df$selected_area_label <- comparable_df %>% filter(GM_NAAM == input$gemeente_crime2 & WK_NAAM == input$wijken_crime2) %>%pull(NAAM)
+        selected_polygon <- comparable_df %>% filter(GM_NAAM == input$gemeente_crime2 & WK_NAAM == input$wijken_crime2)
+        row_num_selected <- which(comparable_df$GM_NAAM == input$gemeente_crime2 & comparable_df$WK_NAAM == input$wijken_crime2)
+      }else if(input$niveau_crime == 'Buurten'){
+        if(input$vergelijkbaar_crime3 == "Stedelijkheidsniveau"){
+          stedelijkheid_num <- df[df$BU_NAAM==input$buurten_crime3 & df$GM_NAAM == input$gemeente_crime3 & df$WK_NAAM == input$wijken_crime3, "Stedelijkheid (1=zeer sterk stedelijk, 5=niet stedelijk)"]
+          comparable_df <- df[df$`Stedelijkheid (1=zeer sterk stedelijk, 5=niet stedelijk)`== stedelijkheid_num, ]
+          comparable_df <- comparable_df %>% drop_na(CODE)
+        } else if(input$vergelijkbaar_crime3 == "Nederland"){
+          comparable_df <- df
+        }
+        comparable_df$selected_area_code <- comparable_df %>% filter(GM_NAAM == input$gemeente_crime3 & WK_NAAM == input$wijken_crime3 & BU_NAAM == input$buurten_crime3) %>%pull(CODE)
+        comparable_df$selected_area_label <- comparable_df %>% filter(GM_NAAM == input$gemeente_crime3 & WK_NAAM == input$wijken_crime3 & BU_NAAM == input$buurten_crime3) %>%pull(NAAM)
+        selected_polygon <- comparable_df %>% filter(GM_NAAM == input$gemeente_crime3 & WK_NAAM == input$wijken_crime3 & BU_NAAM == input$buurten_crime3)
+        row_num_selected <- which(comparable_df$GM_NAAM == input$gemeente_crime3 & comparable_df$WK_NAAM == input$wijken_crime3 & comparable_df$BU_NAAM == input$buurten_crime3)
+      } 
+      comparable_df$centroidxx <- comparable_df[row_num_selected, 'centroidx']
+      comparable_df$centroidyy <- comparable_df[row_num_selected, 'centroidy']
+      dataset <- st_as_sf(comparable_df)
+      
+      list_return <- list("dataset" = dataset, "selected_polygon" = selected_polygon)
+      return(list_return)
+    })
+    
+    
+    ########
+    #Plot
+    ########
+    
+    output$crime_plot <- renderPlot({
+      make_crime_plot(input$soort_crime)
+    })
+    
+    make_crime_plot <- function(type_of_crime){
+      
+      #plot output for selected area 
+      df <- as.data.frame(datasetInputCrime()$selected_polygon)
+      selected_area_label <- df[1, "selected_area_label"]
+      df_selected <- select(df, ends_with(type_of_crime))
+      df_selected <- rownames_to_column(df_selected)
+      #df_selected <- na.omit(df_selected)
+      df_selected <- df_selected[,-1]
+      colnames(df_selected) <- gsub("([A-Za-z]+).*", "", colnames(df_selected))
+      df_selected$group <- selected_area_label
+      
+      #plot output mean for the selected vergelijkbare gebieden
+      df_comp <- as.data.frame(datasetInputCrime()$dataset)
+      df_comp <- select(df_comp, ends_with(type_of_crime))
+      df_means <- as.data.frame(round(colMeans(df_comp, na.rm = TRUE)))
+      df_means <- rownames_to_column(df_means)
+      df_means <- melt(df_means)
+      df_means <- dcast(df_means, variable ~ rowname, var.value=value)
+      df_means <- df_means[,-1]
+      colnames(df_means) <- gsub("([A-Za-z]+).*", "", colnames(df_means))
+      df_means$group <- "Gemiddelde van de vergeleken gebieden"
+      
+      #combine plot output 
+      df_total <- rbind(df_selected, df_means)
+      df_total$group <- as.character(df_total$group)
+      df_total$group <- factor(df_total$group, levels=unique(df_total$group))
+      df_total <- melt(df_total)
+      
+      #define plot details 
+      ggplot(data = df_total, aes(x= variable, y=value, color = group, group = group)) + ggtitle(type_of_crime) + geom_point(size = 3)+ geom_line(size = 0.75)+
+        labs(x = "Jaartal", y = "Aantal") + theme_minimal() +  
+        theme(text = element_text(size = 14),legend.title = element_blank()) 
+    }
+    
+    
+    #Function that makes map of the selected variable 
+    make_crime_map <- function(year, variable){
+      
+      #get input for the map
+      map_data <- datasetInputCrime()$dataset
+      selected_map_data <- select(map_data, ends_with(variable))
+      selected_map_data <- select(selected_map_data, starts_with(year))
+      colnames(selected_map_data) <- "selected_variable"
+      map_data$variable <- selected_map_data[["selected_variable"]] 
+      
+      #define colors for polygons and legend 
+      pal <- colorBin("YlOrRd", domain = map_data$variable)
+      qpal <- colorQuantile("YlOrRd", map_data$variable, n = 6)
+      #for the colors in the map, colorQuantile is used, unless an error is given, then we use colorBin
+      coloring <- tryCatch({
+        qpal(map_data$variable)
+      } , error = function(e) {
+        pal(map_data$variable)
+      } )
+      legend_title <- as.character(variable)
+      labels <- sprintf("%s: %g", map_data$NAAM, map_data$variable) %>% 
+        lapply(htmltools::HTML)
+      label_content <- sprintf("%s: %g <br/> %s: %g", 
+                               map_data$selected_area_label, map_data$variable[map_data$CODE == map_data$selected_area_code], "Gemiddelde vergelijkbare gebieden", round(mean(map_data$variable, na.rm=TRUE), digits = 1))%>% lapply(htmltools::HTML)
+      
+      #selected_area_code <- df[1, "selected_area_code"]
+      
+      #map
+      output_map <- tryCatch({
+        leaflet(map_data)%>%
+          addPolygons(fillColor = ~coloring, color = "black", weight = 0.5, fillOpacity = 0.7,
+                      highlightOptions = highlightOptions(color='white',weight=0.5,fillOpacity = 0.7, bringToFront = TRUE), label = labels)%>%
+          addProviderTiles(providers$CartoDB.Positron)%>%
+          addMarkers(
+            lng = map_data$centroidxx, lat = map_data$centroidyy,
+            label = label_content,
+            labelOptions = labelOptions(noHide = T))%>%
+          #addCircleMarkers(lng = map_data$centroidxx, lat = map_data$centroidyy, color = "black", weight = 3, opacity = 0.75, fillOpacity = 0)%>%
+          leaflet::addLegend(pal = qpal, values = ~map_data$variable, opacity = 0.7, title = legend_title, position = "bottomright", labFormat = function(type, cuts, p) {      #labformat function makes sure the actual values instead of the quantiles are displayed in the legend
+            n = length(cuts)
+            paste0(round(cuts[-n],0), " &ndash; ", round(cuts[-1],0))
+          }#, labFormat = labelFormat(digits = 0)
+          )
+        
+      }, error = function(e) {
+        leaflet(map_data) %>%
+          addPolygons(fillColor = ~ coloring, color = "black", weight = 0.5, fillOpacity = 0.7,
+                      highlightOptions = highlightOptions(color='white',weight=0.5,fillOpacity = 0.7, bringToFront = TRUE), label = labels) %>%
+          addProviderTiles(providers$CartoDB.Positron) %>% 
+          addMarkers(
+            lng = map_data$centroidxx, lat = map_data$centroidyy,
+            label = label_content,
+            labelOptions = labelOptions(noHide = T))%>% 
+          
+          #addCircleMarkers(lng = map_data$centroidx, lat = map_data$centroidy, color = "black", weight = 3, opacity = 0.75, fillOpacity = 0)%>%
+          leaflet::addLegend(pal = pal, values = ~map_data$variable, opacity = 0.7, title = legend_title, position = "bottomright")
+      })
+      
+      return(output_map)
+      
+    }
+    output$crime_map <- renderLeaflet({
+      make_crime_map(input$jaar_crime, input$soort_crime)
+    })
     
 })
 

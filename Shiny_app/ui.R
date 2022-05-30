@@ -14,6 +14,9 @@ wijken <- readRDS("../Data/wijken.rds")
 buurten <- readRDS("../Data/buurten.rds")
 postcodes_final <- readRDS("../Data/postcodes_final.rds")
 full_data <- readRDS("../Data/full_data.rds")
+full_data_crime <- readRDS("../Data/full_data3.rds")
+full_data_crime_norm <- readRDS("../Data/full_data4.rds")
+
 
 ui <- dashboardPage(
   dashboardHeader(title = "Buurtvergelijker"),
@@ -21,7 +24,7 @@ ui <- dashboardPage(
     sidebarMenu(
       menuItem("Dashboard", tabName = "Dashboard", icon = icon("dashboard")),
       menuItem("Gezondheidszorg", tabName = "Gezondheidszorg", icon = icon("th")),
-      menuItem("Onderwijs", tabName = "Onderwijs", icon = icon("th")),
+      menuItem("Criminaliteit", tabName = "Criminaliteit", icon = icon("dashboard")),
       menuItem("Huizenmarkt", tabName = "Huizenmarkt", icon = icon("th")))
   ), # Dashboard sidebar
   dashboardBody(tags$head(tags$style(HTML('.box{box-shadow: none;border-style: none;}.content-wrapper { overflow: auto; }'))),
@@ -110,9 +113,110 @@ ui <- dashboardPage(
                           h2("Eventueel voor gezondheidszorg")
                   ), # tab item gezondheidszorg
                   
-                  tabItem(tabName = "Onderwijs",
-                          h2("Eventueel voor onderwijs")
-                  ), # Tab item onderwijs
+                  tabItem(tabName = "Criminaliteit",
+                          h2("Criminaliteit: Dashboard misdrijven op gemeente-, wijk-, en buurtniveau"),
+                          fluidRow(
+                            column(width = 3, 
+                                   box(title = "Selecteer niveau", status = "primary", solidHeader = T, 
+                                       selectInput("niveau_crime", "Niveau:", choices = c("Gemeenten", "Wijken", "Buurten")),
+                                       conditionalPanel(
+                                         condition = "input.niveau_crime == 'Gemeenten'",
+                                         selectInput("gemeente_crime1", "Gemeente:", choices = unique(gemeenten$GM_NAAM)),
+                                         selectInput("vergelijkbaar_crime1", "Vergelijken met:", c("Alle gebieden in Nederland" = "Nederland", 
+                                                                                                   "Gebieden met hetzelfde stedelijkheidsniveau" = "Stedelijkheidsniveau",
+                                                                                                   "Gebieden met hetzelfde inkomensniveau" = "Inkomensniveau",
+                                                                                                   "Gebieden met hetzelfde opleidingsniveau" = "Opleidingsniveau"))),
+                                       conditionalPanel(
+                                         condition = "input.niveau_crime == 'Wijken'", 
+                                         selectInput("gemeente_crime2", "Gemeente:", choices = unique(gemeenten$GM_NAAM)),
+                                         selectInput("wijken_crime2", "Wijk:", choices = NULL), 
+                                         selectInput("vergelijkbaar_crime2", "Vergelijken met:", c("Alle gebieden in Nederland" = "Nederland", 
+                                                                                                   "Gebieden met hetzelfde stedelijkheidsniveau" = "Stedelijkheidsniveau",
+                                                                                                   "Gebieden met hetzelfde inkomensniveau" = "Inkomensniveau",
+                                                                                                   "Gebieden met hetzelfde opleidingsniveau" = "Opleidingsniveau"))),
+                                       conditionalPanel(
+                                         condition = "input.niveau_crime == 'Buurten'", 
+                                         selectInput("gemeente_crime3", "Gemeente:", choices = unique(gemeenten$GM_NAAM)), 
+                                         selectInput("wijken_crime3", "Wijk:", choices = NULL),
+                                         selectInput("buurten_crime3", "Buurt:", choices = NULL), 
+                                         selectInput("vergelijkbaar3", "Vergelijken met:", c("Alle gebieden in Nederland" = "Nederland", 
+                                                                                             "Gebieden met hetzelfde stedelijkheidsniveau" = "Stedelijkheidsniveau"))),
+                                       
+                                       selectInput("aantal_crime", "Aantallen:", choices = c("Aantal misdrijven", "Aantallen per 1000 inwoners")), 
+                                       actionButton("action_crime", "Zoeken"))), 
+                            column(width = 9, 
+                                   box(title = "Grafiek met misdrijven over tijd", status = "primary", solidHeader = T, 
+                                       plotOutput("crime_plot")))),
+                          fluidRow(
+                            column(width = 3, 
+                                   box(title = "Selecteer niveau", status = "primary", solidHeader = T, 
+                                       selectInput("soort_crime", "Type Misdrijf:", choices = c("Totaal misdrijven", 
+                                                                                                "Diefstal/inbraak woning", 
+                                                                                                "Diefstal/inbraak box/garage/schuur", 
+                                                                                                "Diefstal uit/vanaf motorvoertuigen",
+                                                                                                "Diefstal van motorvoertuigen",
+                                                                                                "Diefstal van brom-, snor-, fietsen",
+                                                                                                "Zakkenrollerij", 
+                                                                                                "Diefstal af/uit/van overige voertuigen", 
+                                                                                                "Ongevallen (weg)", 
+                                                                                                "Zedenmisdrijf", 
+                                                                                                "Moord, doodslag", 
+                                                                                                "Openlijk geweld (persoon)", 
+                                                                                                "Bedreiging", 
+                                                                                                "Mishandeling", 
+                                                                                                "Straatroof", 
+                                                                                                "Overval", 
+                                                                                                "Diefstallen (water)", 
+                                                                                                "Brand/ontploffing", 
+                                                                                                "Overige vermogensdelicten",
+                                                                                                "Mensenhandel",
+                                                                                                "Drugs/drankoverlast", 
+                                                                                                "Vernieling cq. zaakbeschadiging", 
+                                                                                                "Burengerucht (relatieproblemen)", 
+                                                                                                "Huisvredebreuk", 
+                                                                                                "Diefstal/inbraak bedrijven", 
+                                                                                                "Winkeldiefstal", 
+                                                                                                "Inrichting Wet Milieubeheer", 
+                                                                                                "Bodem",
+                                                                                                "Water", 
+                                                                                                "Afval", 
+                                                                                                "Bouwstoffen", 
+                                                                                                "Mest", 
+                                                                                                "Transport gevaarlijke stoffen", 
+                                                                                                "Vuurwerk", 
+                                                                                                "Bestrijdingsmiddelen", 
+                                                                                                "Natuur en landschap", 
+                                                                                                "Ruimtelijke ordening", 
+                                                                                                "Dieren", 
+                                                                                                "Voedselveiligheid", 
+                                                                                                "Bijzondere wetten", 
+                                                                                                "Leefbaarheid (overig)", 
+                                                                                                "Drugshandel", 
+                                                                                                "Mensensmokkel", 
+                                                                                                "Wapenhandel", 
+                                                                                                "Kinderporno", 
+                                                                                                "Kinderprostitutie", 
+                                                                                                "Onder invloed (lucht)", 
+                                                                                                "Lucht (overig)" , 
+                                                                                                "Onder invloed (water)", 
+                                                                                                "Onder invloed (weg)", 
+                                                                                                "Weg (overig)", 
+                                                                                                "Aantasting openbare orde", 
+                                                                                                "Discriminatie", 
+                                                                                                "Vreemdelingenzorg", 
+                                                                                                "Maatschappelijke intergriteit (overig)", 
+                                                                                                "Cybercrime", 
+                                                                                                "Horizontale fraude", 
+                                                                                                "Verticale fraude", 
+                                                                                                "Fraude (overig)")), 
+                                       selectInput("jaar_crime", "Jaar:", choices = c("2012", "2013", "2014", "2015", "2016", "2017", "2018", "2019", "2020", "2021")))), 
+                            column(width = 9, 
+                                   box(title = "Kaart met misdrijven", status = "primary", solidHeader = T,
+                                       leafletOutput("crime_map")
+                                   )
+                            )
+                          )
+                  ), # Tab item criminaliteit
                   
                   tabItem(tabName = "Huizenmarkt",
                           h2("Eventueel voor huizenmarkt")
