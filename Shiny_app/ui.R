@@ -7,7 +7,7 @@ library(tidyverse)
 library(shinythemes)
 library(shinydashboard)
 library(htmltools)
-library(shinyWidgets)
+
 
 gemeenten <- readRDS("../Data/gemeenten.rds")
 wijken <- readRDS("../Data/wijken.rds")

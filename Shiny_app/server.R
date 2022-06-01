@@ -787,22 +787,40 @@ shinyServer(function(input, output, session) {
       
       #subset df so it only contains age variables and transform the data with z-score (scale function)
       result <- subset(result, select= `Personen 0 tot 15 jaar (%)`: `Personen 65 jaar en ouder (%)`)
-      normalized <- as.data.frame(scale(result))
+      #normalized <- as.data.frame(scale(result))
       
       #Making a df for the selected area 
       selected_area_code <- df[1, "selected_area_code"]
-      selected_area <- normalized[rownames(normalized) == selected_area_code,]
+      selected_area <- result[rownames(result) == selected_area_code,]
       
       #Calculating distance from the selected area to all areas
-      dist_matrix <- apply(selected_area,1,function(selected_area)apply(normalized,1,function(normalized,selected_area)dist(rbind(normalized,selected_area),method = 'manhattan'),selected_area))
+      dist_matrix <- apply(selected_area,1,function(selected_area)apply(result,1,function(result,selected_area)dist(rbind(result,selected_area),method = 'manhattan'),selected_area))
       dist_df <- as.data.frame(dist_matrix)
       colnames(dist_df) <- "afstand"
       dist_df$CODE <- row.names(dist_df)
       
       #Ordering the distances and returning top 20%
-      sorted <-  dist_df[order(dist_df$`afstand`),]
-      top <- head(sorted, round(nrow(sorted)*0.2))
+      #sorted <-  dist_df[order(dist_df$`afstand`),]
+      #top <- head(sorted, round(nrow(sorted)*0.2))
+      if(input$niveau_gez=="Gemeenten"){
+        value <- 6
+      }else if(input$niveau_gez=="Wijken"){
+        value <- 10
+      }else if(input$niveau_gez=="Buurten"){
+        value <- 10
+      }
+      top <-dist_df[dist_df$afstand <= value, ]
       
+      #If there are less than 5 areas with a similar age distribution, take 5 closest areas
+      if(nrow(top)<=6){
+        sorted <-  dist_df[order(dist_df$`afstand`),]
+        top <- head(sorted, 6)
+      }
+      #If the number of areas with a similar age distribution is bigger than 20% of the areas on the same level, take closest 20%
+      else if(nrow(top)>round(nrow(dist_df)*0.2)){
+        sorted <-  dist_df[order(dist_df$`afstand`),]
+        top <- head(sorted, round(nrow(sorted)*0.2))
+      }
       #Merging with original df to get the names of the areas
       final <- merge(top, df, by="CODE")
       
@@ -1127,8 +1145,8 @@ shinyServer(function(input, output, session) {
       }
       
       selected_area_line <- df %>% filter(CODE == selected_area_code) %>%pull(column)
-      #return(selected_area_line)
-      ggplot(df, aes(column)) + geom_histogram(fill='steelblue3', color='#e9ecef', bins=20) + geom_vline(xintercept = selected_area_line)  +
+      
+      ggplot(df, aes(column)) + geom_histogram(fill= "steelblue3", color='#e9ecef', bins=20) + geom_vline(xintercept = selected_area_line)  +
         labs(x=column, y = "Aantal") +
         theme(text = element_text(size=14),axis.text = element_text(size = 12))
     }
