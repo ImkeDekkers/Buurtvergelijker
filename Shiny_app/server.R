@@ -803,7 +803,7 @@ shinyServer(function(input, output, session) {
       #sorted <-  dist_df[order(dist_df$`afstand`),]
       #top <- head(sorted, round(nrow(sorted)*0.2))
       if(input$niveau_gez=="Gemeenten"){
-        value <- 6
+        value <- 10
       }else if(input$niveau_gez=="Wijken"){
         value <- 10
       }else if(input$niveau_gez=="Buurten"){
@@ -1332,11 +1332,11 @@ shinyServer(function(input, output, session) {
     
     #Selected area name for the box titles (changes only when 'zoeken' button is clicked)
     selected_area_title_gez <- eventReactive(input$action_gez,{
-      if(input$niveau=="Gemeenten"){
+      if(input$niveau_gez=="Gemeenten"){
         title <- input$gemeente1_gez
-      }else if(input$niveau=="Wijken"){
+      }else if(input$niveau_gez=="Wijken"){
         title <- input$wijken2_gez
-      }else if(input$niveau=="Buurten"){
+      }else if(input$niveau_gez=="Buurten"){
         title <- input$buurten3_gez
       }
       return(title)
