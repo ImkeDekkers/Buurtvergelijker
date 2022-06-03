@@ -245,6 +245,12 @@ shinyServer(function(input, output, session) {
       rownames = TRUE
     )
     
+    #Selected theme name for the box titles (changes only when 'zoeken' button is clicked)
+    selected_theme_title <- eventReactive(input$action_theme,{
+      theme <- input$thema
+      return(theme)
+    })
+    
     #Function that returns the 5 most similar areas to the input area based on voorzieningen variables in chosen theme
     top5_distances_theme <- function(){
       
@@ -254,20 +260,21 @@ shinyServer(function(input, output, session) {
       result <-  subset(df, select = -c(CODE))
       row.names(result) <- df$CODE
       
+      thema <- selected_theme_title()
       #subset df based on theme input so it contains the right voorzieningen variables and transform the data with z-score (scale function)
-      if(input$thema=="Gezondheid en welzijn"){
+      if(thema=="Gezondheid en welzijn"){
         result <- subset(result, select= `Afstand tot huisartsenpraktijk (km)`: `Aantal ziekenhuizen excl. Buitenpolikliniek binnen 20 km`)
-      }else if(input$thema=="Detailhandel"){
+      }else if(thema=="Detailhandel"){
         result <- subset(result, select= `Afstand tot grote supermarkt (km)`: `Aantal warenhuizen binnen 20 km`)
-      }else if(input$thema=="Horeca"){
+      }else if(thema=="Horeca"){
         result <- subset(result, select= `Afstand tot cafe (km)`: `Aantal hotel binnen 20 km`)
-      }else if(input$thema=="Kinderopvang"){
+      }else if(thema=="Kinderopvang"){
         result <- subset(result, select= `Afstand tot kinderdagverblijf  (km)`: `Aantal buitenschoolse opvang  binnen 5 km`)
-      }else if(input$thema=="Onderwijs"){
+      }else if(thema=="Onderwijs"){
         result <- subset(result, select= `Afstand tot basisscholen (km)`: `Aantal scholen HAVO/VWO binnen 10 km`)
-      }else if(input$thema=="Verkeer en vervoer"){
+      }else if(thema=="Verkeer en vervoer"){
         result <- subset(result, select= `Afstand tot oprit hoofdverkeersweg (km)`: `Afstand tot belangrijk overstapstation (km)`)
-      }else if (input$thema=="Vrije tijd en cultuur"){
+      }else if (thema=="Vrije tijd en cultuur"){
         result <- subset(result, select= `Afstand tot zwembad (km)`: `Aantal musea binnen 20 km`)
       }
       normalized <- as.data.frame(scale(result))
@@ -462,146 +469,153 @@ shinyServer(function(input, output, session) {
         scale_x_discrete(labels = function(x) 
           stringr::str_wrap(x, width = 15))
     }
-
+    
+    #Selected sutheme name for the box titles (changes only when 'zoeken' button is clicked)
+    selected_subtheme_title <- eventReactive(input$action_theme,{
+      subthema <- input$subthema
+      return(subthema)
+    })
     
     #Maps for all variables with distance to closest spot
     output$map_variable <- renderLeaflet({
-      if (input$subthema == "Huisartsenpraktijk"){
+      subthema <-  selected_subtheme_title()
+      if (subthema == "Huisartsenpraktijk"){
         make_map("Afstand tot huisartsenpraktijk (km)")
-      }else if (input$subthema == "Ziekenhuis"){
+      }else if (subthema == "Ziekenhuis"){
         make_map("Afstand tot ziekenhuis incl. buitenpolikliniek (km)")
-      }else if(input$subthema=="Apotheek"){
+      }else if(subthema=="Apotheek"){
         make_map("Afstand tot apotheek (km)")
-      }else if (input$subthema == "Supermarkt"){
+      }else if (subthema == "Supermarkt"){
         make_map("Afstand tot grote supermarkt (km)")
-      }else if (input$subthema == "Overige dagelijkse levensmiddelen"){
+      }else if (subthema == "Overige dagelijkse levensmiddelen"){
         make_map("Afstand tot overige dagelijkse levensmiddelen (km)")
-      }else if (input$subthema == "Warenhuis"){
+      }else if (subthema == "Warenhuis"){
         make_map("Afstand tot warenhuis (km)")
-      }else if (input$subthema == "Café"){
+      }else if (subthema == "Café"){
         make_map("Afstand tot cafe (km)")
-      }else if (input$subthema == "Cafetaria"){
+      }else if (subthema == "Cafetaria"){
         make_map("Afstand tot cafetaria (km)")
-      }else if (input$subthema == "Restaurant"){
+      }else if (subthema == "Restaurant"){
         make_map("Afstand tot restaurant (km)")
-      }else if (input$subthema == "Hotel"){
+      }else if (subthema == "Hotel"){
         make_map("Afstand tot hotel (km)")
-      }else if (input$subthema == "Kinderdagverblijf"){
+      }else if (subthema == "Kinderdagverblijf"){
         make_map("Afstand tot kinderdagverblijf  (km)")
-      }else if (input$subthema == "Buitenschoolse opvang"){
+      }else if (subthema == "Buitenschoolse opvang"){
         make_map("Afstand tot buitenschoolse opvang  (km)")
-      }else if (input$subthema == "Basisschool"){
+      }else if (subthema == "Basisschool"){
         make_map("Afstand tot basisscholen (km)")
-      }else if (input$subthema == "Voortgezet onderwijs"){
+      }else if (subthema == "Voortgezet onderwijs"){
         make_map("Afstand tot voortgezet onderwijs (km)")
-      }else if (input$subthema == "VMBO school"){
+      }else if (subthema == "VMBO school"){
         make_map("Afstand tot scholen VMBO (km)")
-      }else if (input$subthema == "HAVO/VWO school"){
+      }else if (subthema == "HAVO/VWO school"){
         make_map("Afstand tot scholen HAVO/VWO (km)")
-      }else if (input$subthema == "Oprit hoofdverkeersweg"){
+      }else if (subthema == "Oprit hoofdverkeersweg"){
         make_map("Afstand tot oprit hoofdverkeersweg (km)")
-      }else if (input$subthema == "Treinstation"){
+      }else if (subthema == "Treinstation"){
         make_map("Afstand tot treinstation (km)")
-      }else if (input$subthema == "Belangrijk overstapstation"){
+      }else if (subthema == "Belangrijk overstapstation"){
         make_map("Afstand tot belangrijk overstapstation (km)")
-      }else if (input$subthema == "Bioscoop"){
+      }else if (subthema == "Bioscoop"){
         make_map("Afstand tot bioscoop (km)")
-      }else if (input$subthema == "Attractie"){
+      }else if (subthema == "Attractie"){
         make_map("Afstand tot attractie (km)")
-      }else if (input$subthema == "Podiumkunsten"){
+      }else if (subthema == "Podiumkunsten"){
         make_map("Afstand tot podiumkunsten (km)")
-      }else if (input$subthema == "Museum"){
+      }else if (subthema == "Museum"){
         make_map("Afstand tot museum (km)")
-      }else if (input$subthema == "Zwembad"){
+      }else if (subthema == "Zwembad"){
         make_map("Afstand tot zwembad (km)")
-      }else if (input$subthema == "Kunstijsbaan"){
+      }else if (subthema == "Kunstijsbaan"){
         make_map("Afstand tot kunstijsbaan (km)")
-      }else if (input$subthema == "Bibliotheek"){
+      }else if (subthema == "Bibliotheek"){
         make_map("Afstand tot bibliotheek (km)")
-      }else if (input$subthema == "Poppodium"){
+      }else if (subthema == "Poppodium"){
         make_map("Afstand tot poppodium (km)")
-      }else if (input$subthema == "Sauna"){
+      }else if (subthema == "Sauna"){
         make_map("Afstand tot sauna (km)")
-      }else if (input$subthema == "Zonnebank"){
+      }else if (subthema == "Zonnebank"){
         make_map("Afstand tot zonnebank (km)")
       }
     })
     
     #Maps for the amount of instances inside a radius
     output$plot_variable <- renderPlot({
-      if (input$subthema == "Huisartsenpraktijk"){
+      subthema <-  selected_subtheme_title()
+      if (subthema == "Huisartsenpraktijk"){
       plot4("Aantal huisartsenpraktijken binnen 1 km", 
             "Aantal huisartsenpraktijken binnen 3 km", 
             "Aantal huisartsenpraktijken binnen 5 km")
-      }else if (input$subthema == "Ziekenhuis"){
+      }else if (subthema == "Ziekenhuis"){
         plot4("Aantal ziekenhuizen incl. buitenpolikliniek binnen 5 km",                        
               "Aantal ziekenhuizen incl. buitenpolikliniek binnen 10 km",                       
               "Aantal ziekenhuizen incl. buitenpolikliniek binnen 20 km")
-      }else if (input$subthema == "Supermarkt"){
+      }else if (subthema == "Supermarkt"){
         plot4("Aantal  grote supermarkten binnen 1 km",                                         
               "Aantal  grote supermarkten binnen 3 km",                                          
               "Aantal  grote supermarkten binnen 5 km")
-      }else if (input$subthema == "Overige dagelijkse levensmiddelen"){
+      }else if (subthema == "Overige dagelijkse levensmiddelen"){
         plot4("Aantal winkels overige dagelijkse levensmiddelen binnen 1 km",                    
               "Aantal winkels overige dagelijkse levensmiddelen binnen 3 km",                    
               "Aantal winkels overige dagelijkse levensmiddelen binnen 5 km")
-      }else if (input$subthema == "Warenhuis"){
+      }else if (subthema == "Warenhuis"){
         plot4("Aantal warenhuizen binnen 5 km",                                                  
               "Aantal warenhuizen binnen 10 km",                                                
               "Aantal warenhuizen binnen 20 km")
-      }else if (input$subthema == "Café"){
+      }else if (subthema == "Café"){
         plot4("Aantal cafes binnen 1 km" ,                                                       
               "Aantal cafes binnen 3 km" ,                                                       
               "Aantal cafes binnen 5 km")
-      }else if (input$subthema == "Cafetaria"){
+      }else if (subthema == "Cafetaria"){
         plot4("Aantal cafetaria's binnen 1 km",                                                  
               "Aantal cafetaria's binnen 3 km",                                                  
               "Aantal cafetaria's binnen 5 km")
-      }else if (input$subthema == "Restaurant"){
+      }else if (subthema == "Restaurant"){
         plot4("Aantal restaurants binnen 1 km",                                                  
               "Aantal restaurants binnen 3 km",                                                  
               "Aantal restaurants binnen 5 km")
-      }else if (input$subthema == "Hotel"){
+      }else if (subthema == "Hotel"){
         plot4("Aantal hotel binnen 5 km",                                                  
               "Aantal hotel binnen 10 km",                                                  
               "Aantal hotel binnen 20 km")
-      }else if (input$subthema == "Kinderdagverblijf"){
+      }else if (subthema == "Kinderdagverblijf"){
         plot4("Aantal kinderdagverblijf  binnen 1 km",                                                  
               "Aantal kinderdagverblijf  binnen 3 km",                                                  
               "Aantal kinderdagverblijf  binnen 5 km")
-      }else if (input$subthema == "Buitenschoolse opvang"){
+      }else if (subthema == "Buitenschoolse opvang"){
         plot4("Aantal buitenschoolse opvang  binnen 1 km",                                                  
               "Aantal buitenschoolse opvang  binnen 3 km",                                                  
               "Aantal buitenschoolse opvang  binnen 5 km")
-      }else if (input$subthema == "Basisschool"){
+      }else if (subthema == "Basisschool"){
         plot4("Aantal basisscholen binnen 1 km",                                                  
               "Aantal basisscholen binnen 3 km",                                                  
               "Aantal basisscholen binnen 5 km")
-      }else if (input$subthema == "Voortgezet onderwijs"){
+      }else if (subthema == "Voortgezet onderwijs"){
         plot4("Aantal voortgezet onderwijs binnen 3 km",                                                  
               "Aantal voortgezet onderwijs binnen 5 km",                                                  
               "Aantal voortgezet onderwijs binnen 10 km")
-      }else if (input$subthema == "VMBO school"){
+      }else if (subthema == "VMBO school"){
         plot4("Aantal scholen VMBO binnen 3 km",                                                  
               "Aantal scholen VMBO binnen 5 km",                                                  
               "Aantal scholen VMBO binnen 10 km")
-      }else if (input$subthema == "HAVO/VWO school"){
+      }else if (subthema == "HAVO/VWO school"){
         plot4("Aantal scholen HAVO/VWO binnen 3 km",                                                  
               "Aantal scholen HAVO/VWO binnen 5 km",                                                  
               "Aantal scholen HAVO/VWO binnen 10 km")
-      }else if (input$subthema == "Bioscoop"){
+      }else if (subthema == "Bioscoop"){
         plot4("Aantal bioscoop binnen 5 km",                                                  
               "Aantal bioscoop binnen 10 km",                                                  
               "Aantal bioscoop binnen 20 km")
-      }else if (input$subthema == "Attractie"){
+      }else if (subthema == "Attractie"){
         plot4("Aantal attracties binnen 10 km",                                                  
               "Aantal attracties binnen 20 km",                                                  
               "Aantal attracties binnen 50 km")
-      }else if (input$subthema == "Podiumkunsten"){
+      }else if (subthema == "Podiumkunsten"){
         plot4("Aantal podiumkunsten binnen 5 km",                                                  
               "Aantal podiumkunsten binnen 10 km",                                                  
               "Aantal podiumkunsten binnen 20 km")
-      }else if (input$subthema == "Museum"){
+      }else if (subthema == "Museum"){
           plot4("Aantal musea binnen 5 km",                                                  
                 "Aantal musea binnen 10 km",                                                  
                 "Aantal musea binnen 20 km")
@@ -651,11 +665,7 @@ shinyServer(function(input, output, session) {
         tableOutput('top5_algemeen')) 
     })
     
-    #Selected theme name for the box titles (changes only when 'zoeken' button is clicked)
-    selected_theme_title <- eventReactive(input$action_theme,{
-        title <- input$thema
-      return(title)
-    })
+
     
     #Top 5 voor thema, title changes based on the selected theme
     output$top5 = renderUI({
@@ -664,12 +674,6 @@ shinyServer(function(input, output, session) {
           "Top 5 met vergelijkbare gebieden voor het gekozen thema",
           #"Hier komt de top 5 van vergelijkbare g/w/b voor een bepaald thema",
           tableOutput('top5_theme')) 
-    })
-    
-    #Selected sutheme name for the box titles (changes only when 'zoeken' button is clicked)
-    selected_subtheme_title <- eventReactive(input$action_theme,{
-      title <- input$subthema
-      return(title)
     })
     
     #Top 5 voor thema, title changes based on the selected theme
