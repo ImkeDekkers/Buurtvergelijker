@@ -844,11 +844,7 @@ shinyServer(function(input, output, session) {
           inkomen_num <- df %>% filter(GM_NAAM == input$gemeente1_gez) %>% pull(`inkomengroep`)         
           inkomen_num<-inkomen_num[1]
           comparable_df <- df[df$inkomengroep == inkomen_num, ]
-        }else if (input$vergelijkbaar1_gez == "Opleidingsniveau"){
-          opleiding_num <- df %>% filter(GM_NAAM == input$gemeente1_gez) %>% pull(`opleidingsgroep`)        
-          opleiding_num <- opleiding_num[1]
-          comparable_df <- df[df$opleidingsgroep == opleiding_num, ]
-        } else if(input$vergelijkbaar1_gez == "Nederland"){
+        }else if(input$vergelijkbaar1_gez == "Nederland"){
           comparable_df <- df
         }else if(input$vergelijkbaar1_gez == "age_distribution"){
           comparable_df <- df
@@ -885,21 +881,6 @@ shinyServer(function(input, output, session) {
             )
           }else{
             comparable_df <- df[df$inkomengroep == inkomen_num, ]
-            comparable_df <- comparable_df %>% drop_na(CODE)
-            output$error_vergelijkbaarheid_gez <- renderText(
-              print("")
-            )
-          }
-        }else if (input$vergelijkbaar2_gez == "Opleidingsniveau"){
-          opleiding_num <-df %>% filter(WK_NAAM == input$wijken2_gez & GM_NAAM == input$gemeente2_gez) %>% pull(`opleidingsgroep`)
-          opleiding_num<-opleiding_num[1]
-          if(is.na(opleiding_num)){
-            comparable_df <- df[df$Niveau == input$niveau_gez,]
-            output$error_vergelijkbaarheid_gez <- renderText(
-              print("Let op, door een missende waarde van het opleidingsniveau voor uw wijk, wordt er nu met heel Nederland vergeleken.")
-            )
-          }else{
-            comparable_df <- df[df$opleidingsgroep == opleiding_num, ]
             comparable_df <- comparable_df %>% drop_na(CODE)
             output$error_vergelijkbaarheid_gez <- renderText(
               print("")
