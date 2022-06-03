@@ -7,7 +7,7 @@ library(tidyverse)
 library(shinythemes)
 library(shinydashboard)
 library(htmltools)
-
+library(shinyWidgets)
 gemeenten <- readRDS("../Data/gemeenten.rds")
 wijken <- readRDS("../Data/wijken.rds")
 buurten <- readRDS("../Data/buurten.rds")
@@ -642,18 +642,39 @@ shinyServer(function(input, output, session) {
           shinycssloaders::withSpinner(leafletOutput("prime_map"))) 
     })
     
+    # Box top 5 algemeen
+    output$top5_all = renderUI({
+    title <- paste0("Kaart met: ", selected_area_title())
+    box(title = "Top 5 alle voorzieningen", width = 2, background = "red", 
+        "Top 5 met vergelijkbare gebieden voor alle voorzieningen",
+        #"Hier komt de algemene top 5 zonder geselecteerd thema",
+        tableOutput('top5_algemeen')) 
+    })
+    
+    #Selected theme name for the box titles (changes only when 'zoeken' button is clicked)
+    selected_theme_title <- eventReactive(input$action_theme,{
+        title <- input$thema
+      return(title)
+    })
+    
     #Top 5 voor thema, title changes based on the selected theme
     output$top5 = renderUI({
-      title <- paste0("Top 5 ",input$thema)
+      title <- paste0("Top 5 ",selected_theme_title())
       box(title = title, width = NULL, background = "green",
           "Top 5 met vergelijkbare gebieden voor het gekozen thema",
           #"Hier komt de top 5 van vergelijkbare g/w/b voor een bepaald thema",
           tableOutput('top5_theme')) 
     })
     
+    #Selected sutheme name for the box titles (changes only when 'zoeken' button is clicked)
+    selected_subtheme_title <- eventReactive(input$action_theme,{
+      title <- input$subthema
+      return(title)
+    })
+    
     #Top 5 voor thema, title changes based on the selected theme
     output$kaartNL = renderUI({
-      title <- paste0("Kaart van Nederland: ",input$subthema)
+      title <- paste0("Kaart van Nederland: ", selected_subtheme_title())
       box(title = title, width = 6, status = "warning", solidHeader = T,
           "Kaart van Nederland met het gekozen subthema.",
           #"Hier komt de kaart van Nederland met geselecteerde vergelijkbare g/w/b op bepaalde variabele",
@@ -668,7 +689,7 @@ shinyServer(function(input, output, session) {
                            "Café", "Cafetaria", "Restaurant", "Hotel", "Kinderdagverblijf", "Buitenschoolse opvang", "Basisschool",
                            "Voortgezet onderwijs", "VMBO school", "HAVO/VWO school", "Bioscoop", "Attractie", "Podiumkunsten", "Museum")
       
-      title <- paste0("Staafdiagram: ",input$subthema)
+      title <- paste0("Staafdiagram: ",selected_subtheme_title())
       
       #if the selected subthemes is in these subthemes with count, show the "staafdiagram" box
       if(input$subthema %in% subthemes_count){
