@@ -1,21 +1,3 @@
-library(shiny)
-library(ggplot2)
-library(sf)
-library(leaflet)
-library(stringr)
-library(tidyverse)
-library(shinythemes)
-library(shinydashboard)
-library(htmltools)
-
-
-gemeenten <- readRDS("../Data/gemeenten.rds")
-wijken <- readRDS("../Data/wijken.rds")
-buurten <- readRDS("../Data/buurten.rds")
-postcodes_final <- readRDS("../Data/postcodes_final.rds")
-full_data <- readRDS("../Data/full_data.rds")
-gezondheid_all <-readRDS("../Data/gezondheid_all.rds")
-
 ui <- dashboardPage(
   dashboardHeader(title = "Buurtvergelijker"),
   dashboardSidebar(
@@ -115,6 +97,20 @@ ui <- dashboardPage(
                           h2("Dashboard gezondheid op  gemeente-, wijk-, of buurtniveau"),
                           fluidRow(
                             column(width = 3,
+                                   box(title = "Uitleg app", width = NULL, status = "primary", solidHeader = T, collapsible = T, collapsed = T,
+                                       "In deze app kunt u informatie vinden over de gezondheid in een gebied.", br(),
+                                       br(),
+                                       "Als eerste moet de box “Niveau en gebied selecteren” worden ingevuld. Hier kan een niveau geselecteerd worden,
+                                        een gebied, en met welke andere gebieden u wilt vergelijken. 
+                                        Als u tevreden bent met uw keuze, druk dan op “Zoeken”.", br(),
+                                       br(),
+                                       "Hierna verschijnt een box met informatie over het gekozen gebied. Daarnaast is de leeftijdsopbouw van het 
+                                       gebied te zien. Ook ziet u een kaart met uw gekozen gebied (blauwe pointer) en de andere gebieden 
+                                       waarmee wordt vergeleken.", br(),
+                                       br(),
+                                       "Vervolgens kunt u bij “Kies een thema” een thema en subthema kiezen. 
+                                        Dan ziet u verschillende visualisaties voor het gekozen subthema. Voor een deel van de visualisaties kunt
+                                       u nog kiezen voor welke leeftijdsgroep u de gezondheid wilt zien. "), # Uitleg app
                                    box(title="Niveau en gebied selecteren", width = NULL, status = 'primary', solidHeader = T,
                                        "Selecteer het gewenste niveau, gebied en vergelijkbaarheidniveau en druk op 'zoeken' om door te gaan.", br(),
                                        br(),
@@ -171,7 +167,7 @@ ui <- dashboardPage(
                                   uiOutput("plots")
                             
                           ), #fluidrow gezondheid plots
-                          
+                      "Bron data: Gezondheid per wijk en buurt; 2012/2016/2020 (indeling 2020) RIVM"    
                   ), # tab item gezondheidszorg
                   
                   tabItem(tabName = "Onderwijs",

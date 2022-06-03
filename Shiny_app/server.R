@@ -1117,6 +1117,7 @@ shinyServer(function(input, output, session) {
       ggplot(df_together, aes(x=Perioden, y=.data[[column]], group=Groep)) +
         geom_line(aes(color=Groep),size=1)+
         geom_point(aes(color=Groep),size=3) +
+        labs(x = "Jaar") +
         theme(text = element_text(size=14),legend.title = element_blank(),legend.position="top",
               legend.text=element_text(size=12),axis.text = element_text(size = 12)) + 
         scale_y_continuous(expand = expansion(add = 5)) #To make sure the y-axis has at least 10 percent between the min and max
@@ -1379,12 +1380,15 @@ shinyServer(function(input, output, session) {
         column(width =9, 
                fluidRow(
                  box(title = "Kaart", width = 6, status = "warning", solidHeader = T,
+                     "In onderstaande kaart zijn de waardes voor het gekozen subthema te zien voor het gekozen gebied (blauwe pointer)
+                     en de andere gebeieden waarmee wordt vergeleken.", br(),
+                     br(),
                      selectInput("age_map", "Leeftijd:", c("18-65"="18-65", "65+"="65+","18+"="18+")),
                      shinycssloaders::withSpinner(leafletOutput('map_subtheme'))
                  ),
                  box(title="Histogram", width=6, status="warning", solidHeader = T,
-                     "In onderstaande histogram is de frequentieverdeling voor het geselecteerde subthema  te zien.
-                           De zwarte verticale lijn is de waarde van het geselecteerde gebied. Hiermee kunt u zien hoe uw gebied het doet ten opzichte van de andere gebieden.", br(),
+                     "In onderstaande histogram is de frequentieverdeling voor het gekozen subthema  te zien.
+                           De zwarte verticale lijn is de waarde van het gekozen gebied. Hiermee kunt u zien hoe uw gebied het doet ten opzichte van de andere gebieden.", br(),
                      br(),
                      selectInput("norm_age_hist", "Leeftijd:", c("18-65"="18-65", "65+"="65+","18+"="18+")),
                      shinycssloaders::withSpinner(plotOutput("gez_hist"))),
@@ -1392,14 +1396,14 @@ shinyServer(function(input, output, session) {
                ),
                fluidRow(
                  box(title = "Lijndiagram", width = 6, status = "warning", solidHeader = T,
-                     "In onderstaande lijndiagram is de ontwikkeling van het geselecteerde subthema in de tijd te zien. 
-                           De roze lijn is voor het geselecteerde gebied en de blauwe lijn is het gemiddelde van de gebieden waarmee wordt vergeleken (zie kaart hierboven).",br(),
+                     "In onderstaande lijndiagram is de ontwikkeling van het gekozen subthema in de tijd te zien. 
+                           De roze lijn is voor het gekozen gebied en de blauwe lijn is het gemiddelde van de gebieden waarmee wordt vergeleken (zie kaart hierboven).",br(),
                      br(),
                      selectInput("norm_age_line", "Leeftijd:", c("18-65"="18-65", "65+"="65+","18+"="18+")),
                      shinycssloaders::withSpinner(plotOutput("gez_line_plot"))),
                  box(title = "Staafdiagram per leeftijdsklasse", width = 6, status = "warning", solidHeader = T,
-                     "In onderstaande staafdiagram is het percentage voor het geselecteerde subthema te zien voor de verschillende leeftijdsklasses.
-                           In het roze is het geselecteerde gebied te zien en in het blauw het gemiddelde van de gebieden waarmee wordt vergeleken (zie kaart hierboven).", br(),
+                     "In onderstaande staafdiagram is het percentage voor het gekozen subthema te zien voor de verschillende leeftijdsklasses.
+                           In het roze is het gekozen gebied te zien en in het blauw het gemiddelde van de gebieden waarmee wordt vergeleken (zie kaart hierboven).", br(),
                      br(),
                      shinycssloaders::withSpinner(plotOutput("gez_plot"))),
                )
@@ -1409,12 +1413,15 @@ shinyServer(function(input, output, session) {
                fluidRow(
                  box(title = "Staafdiagram per categorie", width = 6, status = "warning", solidHeader = T,
                      "In onderstaande staafdiagram is het percentage voor de verschillende categorieën binnen het subthema te zien.
-                           In het roze is het geselecteerde gebied te zien en in het blauw het gemiddelde van de gebieden waarmee wordt vergeleken (zie kaart hierboven).", br(),
+                      In het roze is het gekozen gebied te zien en in het blauw het gemiddelde van de gebieden waarmee wordt vergeleken (zie kaart hierboven).", br(),
                      br(),
                      selectInput("spec_age_cat", "Leeftijd:", c("18-65"="18-65", "65+"="65+","18+"="18+")),
                      shinycssloaders::withSpinner(plotOutput("staaf_cat"))
                  ),
                  box(title = "Kaart", width = 6, status = "warning", solidHeader = T,
+                     "In onderstaande kaart zijn de waardes voor het gekozen subthema te zien voor het gekozen gebied (blauwe pointer)
+                     en de andere gebeieden waarmee wordt vergeleken.", br(),
+                     br(),
                      selectInput("age_map", "Leeftijd:", c("18-65"="18-65", "65+"="65+","18+"="18+")),
                      selectInput("categorie_map", "Categorie:", choices = NULL),
                      shinycssloaders::withSpinner(leafletOutput('map_subtheme'))
@@ -1424,24 +1431,24 @@ shinyServer(function(input, output, session) {
               
          fluidRow(
                  box(title="Histogram", width=6, status="warning", solidHeader = T,
-                     "In onderstaande histogram is de frequentieverdeling voor de geselecteerde categorie  te zien. 
-                           De zwarte verticale lijn is de waarde van het geselecteerde gebied. Hiermee kunt u zien hoe uw gebied het doet ten opzichte van de andere gebieden.", br(),
+                     "In onderstaande histogram is de frequentieverdeling voor de gekozen categorie  te zien. 
+                           De zwarte verticale lijn is de waarde van het gekozen gebied. Hiermee kunt u zien hoe uw gebied het doet ten opzichte van de andere gebieden.", br(),
                      br(),
                      selectInput("spec_age_hist", "Leeftijd:", c("18-65"="18-65", "65+"="65+","18+"="18+")),
                      selectInput("categorie_hist", "Categorie:", choices = NULL),
                      shinycssloaders::withSpinner(plotOutput("gez_hist"))
                  ),
                  box(title = "Lijndiagram", width = 6, status = "warning", solidHeader = T,
-                     "In onderstaande lijndiagram is de ontwikkeling van de geselecteerde categorie in de tijd te zien. 
-                           De roze lijn is voor het geselecteerde gebied en de blauwe lijn is het gemiddelde van de gebieden waarmee wordt vergeleken (zie kaart hierboven).",br(),
+                     "In onderstaande lijndiagram is de ontwikkeling van de gekozen categorie in de tijd te zien. 
+                           De roze lijn is voor het gekozen gebied en de blauwe lijn is het gemiddelde van de gebieden waarmee wordt vergeleken (zie kaart hierboven).",br(),
                      br(),
                      selectInput("spec_age_line", "Leeftijd:", c("18-65"="18-65", "65+"="65+","18+"="18+")),
                      selectInput("categorie_line", "Categorie:", choices = NULL),
                      shinycssloaders::withSpinner(plotOutput("gez_line_plot"))
                  ),
                  box(title = "Staafdiagram per leeftijdsklasse", width = 6, status = "warning", solidHeader = T,
-                     "In onderstaande staafdiagram is het percentage voor de geselecteerde categorie te zien voor de verschillende leeftijdsklasses.
-                           In het roze is het geselecteerde gebied te zien en in het blauw het gemiddelde van de gebieden waarmee wordt vergeleken (zie kaart hierboven).", br(),
+                     "In onderstaande staafdiagram is het percentage voor de gekozen categorie te zien voor de verschillende leeftijdsklasses.
+                           In het roze is het gekozen gebied te zien en in het blauw het gemiddelde van de gebieden waarmee wordt vergeleken (zie kaart hierboven).", br(),
                      br(),
                      selectInput("categorie_staaf", "Categorie:", choices = NULL),
                      shinycssloaders::withSpinner(plotOutput("gez_plot"))
