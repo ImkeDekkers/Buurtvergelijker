@@ -15,7 +15,6 @@ wijken <- readRDS("../Data/wijken.rds")
 buurten <- readRDS("../Data/buurten.rds")
 postcodes_final <- readRDS("../Data/postcodes_final.rds")
 full_data <- readRDS("../Data/full_data.rds")
-#ongevallen <- readRDS("../Data/ongevallen_W84.rds")
 all_polygons <- full_data %>% 
   select(BU_CODE, BU_NAAM, WK_CODE, WK_NAAM, GM_CODE, GM_NAAM, POSTCODE, geometry, 
          centroid, Niveau, CODE, NAAM, centroidx, centroidy, `Stedelijkheid (1=zeer sterk stedelijk, 5=niet stedelijk)`)
