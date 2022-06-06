@@ -170,27 +170,27 @@ ui <- dashboardPage(
                           ), # fluid row algemene trend en aantal
                           h3("Inzicht in subthema in uw buurt"),
                           fluidRow(
-                            column(width = 4,
+                            column(width = 6,
                                    box(title = "Kaart met incidenten", width = NULL, status = "warning", solidHeader = T,
                                        HTML("Hier wordt de kaart weergegeven met punten van incidenten. De kleuren komen overeen met de categorieën van de geselecteerde variabele.<br>
                                             U kunt de kaart vergroten en verkleinen door te scrollen. Door met uw muis over de punten te bewegen kunt u de categorie zien."),
                                        shinycssloaders::withSpinner(leafletOutput("map_color_incidents"))) # Box incidenten en kleur
                             ), # Column kaart
-                            column(width = 4,
+                            column(width = 6,
                                    tabBox(width = NULL, id="tabset1",
                                           tabPanel("Staafdiagram", "Dit staafdiagram geeft het aantal ongelukken in een bepaalde categorie weer.", 
                                                    plotOutput("bar_chart")),
                                           tabPanel("Taartdiagram", "Dit taartdiagram geeft de verhouding van het aantal ongelukken in een bepaalde categorie weer", 
                                                    plotOutput("pie_chart"))
                                        ) # Tabbox diagram
-                                   ), # Column diagram variabele
-                            column(width = 4,
-                                   box(title = "Trend van subthema in geselecteerd gebied", status = "warning", width = NULL, solidHeader = T,
-                                       HTML("De lijn in de grafiek geeft aan hoeveel ongelukken hebben plaatsgevonden in het geselecteerde gebied in verschillende jaren. <br>
-                                            De kleuren komen overeen met de categorieën in het geselecteerde subthema."),
-                                       shinycssloaders::withSpinner(plotOutput("trend_theme"))
-                                       ) # Box trend thema
-                            ) # Column trend geselecteerde variabele
+                                   ) # Column diagram variabele
+                            # column(width = 4,
+                            #        box(title = "Trend van subthema in geselecteerd gebied", status = "warning", width = NULL, solidHeader = T,
+                            #            HTML("De lijn in de grafiek geeft aan hoeveel ongelukken hebben plaatsgevonden in het geselecteerde gebied in verschillende jaren. <br>
+                            #                 De kleuren komen overeen met de categorieën in het geselecteerde subthema."),
+                            #            shinycssloaders::withSpinner(plotOutput("trend_theme"))
+                            #            ) # Box trend thema
+                            #) # Column trend geselecteerde variabele
                           ), # Fluid row grafieken thema
                           h3("Vergelijk het geselecteerde gebied met andere, vergelijkbare gebieden"),
                           fluidRow(

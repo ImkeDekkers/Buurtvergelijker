@@ -49,3 +49,4 @@ po/*~
 rsconnect/
 Data/ongevallen_W84.rds
 Data/intersection.rds
+Data/all_polygons.rds

@@ -34,7 +34,31 @@ ongevallen_reduced <- ongevallen_reduced %>%
                              "S" = "Sneeuw of Hagel",
                              "H" = "Harde windstoten",
                              "O" = "Onbekend")) %>% 
-  mutate_if(is.character, list(~na_if(.,""))) 
+  mutate_if(is.character, list(~na_if(.,""))) %>% 
+  mutate(OTE_OMS = recode(OTE_OMS, "e-bike" = "Gemotoriseerde fiets of scootmobiel",
+                          "Fiets" = "Fiets",
+                          "Motor" = "Motor",
+                          "Bromfiets" = "Gemotoriseerde fiets of scootmobiel",
+                          "Landbouwvoertuig" = "Landbouwvoertuig",
+                          "Brommobiel" = "Gemotoriseerde fiets of scootmobiel",
+                          "Boom" = "Voorwerp of object",
+                          "Dier" = "Voorwerp of object",
+                          "Bestelauto" = "Personen- of bestelauto",
+                          "Scootmobiel" = "Gemotoriseerde fiets of scootmobiel",
+                          "Vrachtauto" = "Vrachtauto of bus",
+                          "Snorfiets" = "Gemotoriseerde fiets of scootmobiel",
+                          "Voetganger" = "Voetganger",
+                          "Onbekend voertuig i.g.v. doorrijder" = "Onbekend",
+                          "Los voorwerp" = "Voorwerp of object",
+                          "Personenauto" = "Personen- of bestelauto",
+                          "Trekker" = "Landbouwvoertuig",
+                          "Bus" = "Vrachtauto of bus",
+                          "Overig vast object" = "Voorwerp of object",
+                          "Trein/tram" = "Trein/tram",
+                          "Trekker met oplegger" = "Landbouwvoertuig",
+                          "Overig wegmeubilair" = "Voorwerp of object",
+                          "Lichtmast" = "Voorwerp of object")) %>% 
+  replace_na(list(OTE_OMS = "Onbekend", WSE_OMS = "Onbekend"))
 
 # Remove duplicates to have the same number of rows as original data
 ongevallen_reduced_no_dup <- ongevallen_reduced %>% 
