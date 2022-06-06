@@ -8,11 +8,13 @@ library(shinythemes)
 library(shinydashboard)
 library(htmltools)
 library(shinyWidgets)
+
 gemeenten <- readRDS("../Data/gemeenten.rds")
 wijken <- readRDS("../Data/wijken.rds")
 buurten <- readRDS("../Data/buurten.rds")
 postcodes_final <- readRDS("../Data/postcodes_final.rds")
 full_data <- readRDS("../Data/full_data.rds")
+
 
 shinyServer(function(input, output, session) {
     
@@ -641,8 +643,8 @@ shinyServer(function(input, output, session) {
             "In de tabel hieronder ziet u wat de stedelijkheid, de inkomensgroep en de opleidingsgroep zijn voor het gekozen gebied.",
             tableOutput("info_area"),
             "Stedelijkheid: 1 = zeer sterk stedelijk, 5 = niet stedelijk.", br(),
-            "Inkomensniveau: 1 = zeer laag percentage, 4 = hoog percentage van huishoudens met een inkomen onder het sociaal minimum.",br(),
-            "Opleidingsniveau: 1 = zeer laag percentage, 4 = zeer hoog percentage van personen met een lage opleiding.",
+            "Inkomensgroep: 1 = klein aandeel onder sociaal minimum, 4 = groot aandeel onder sociaal minimum.",br(),
+            "Opleidingsgroep: 1 = klein aandeel met lage opleiding, 4 = groot aandeel met lage opleiding",
             span(textOutput("ink_vergelijkbaarheid"), style="color:red"),
             span(textOutput("opl_vergelijkbaarheid"), style="color:red")) # Box informatie 
     })

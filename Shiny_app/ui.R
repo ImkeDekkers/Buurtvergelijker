@@ -1,3 +1,21 @@
+library(shiny)
+library(ggplot2)
+library(sf)
+library(leaflet)
+library(stringr)
+library(tidyverse)
+library(shinythemes)
+library(shinydashboard)
+library(htmltools)
+library(shinyWidgets)
+
+gemeenten <- readRDS("../Data/gemeenten.rds")
+wijken <- readRDS("../Data/wijken.rds")
+buurten <- readRDS("../Data/buurten.rds")
+postcodes_final <- readRDS("../Data/postcodes_final.rds")
+full_data <- readRDS("../Data/full_data.rds")
+
+
 ui <- dashboardPage(
   dashboardHeader(title = "Buurtvergelijker"),
   dashboardSidebar(
