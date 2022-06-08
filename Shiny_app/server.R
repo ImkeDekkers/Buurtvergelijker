@@ -88,10 +88,7 @@ shinyServer(function(input, output, session) {
         }else if (input$vergelijkbaar1 == "Inkomensniveau"){
           inkomen_num <- df[df$GM_NAAM == input$gemeente1, 'inkomengroep']
           comparable_df <- df[df$inkomengroep == inkomen_num, ]
-        }else if (input$vergelijkbaar1 == "Opleidingsniveau"){
-          opleiding_num <- df[df$GM_NAAM == input$gemeente1, 'opleidingsgroep']
-          comparable_df <- df[df$opleidingsgroep == opleiding_num, ]
-        } else if(input$vergelijkbaar1 == "Nederland"){
+        }else if(input$vergelijkbaar1 == "Nederland"){
           comparable_df <- df
         }
         comparable_df$selected_area_code <- comparable_df %>% filter(GM_NAAM == input$gemeente1) %>% pull(CODE)
@@ -123,21 +120,7 @@ shinyServer(function(input, output, session) {
               print("")
             )
           }
-        }else if (input$vergelijkbaar2 == "Opleidingsniveau"){
-          opleiding_num <- df[df$WK_NAAM == input$wijken2 & df$GM_NAAM == input$gemeente2, 'opleidingsgroep']
-          if(is.na(opleiding_num)){
-            comparable_df <- df[df$Niveau == input$niveau,]
-            output$opl_vergelijkbaarheid <- renderText(
-              print("Let op, door een missende waarde van het opleidingsniveau voor uw wijk, wordt er nu met heel Nederland vergeleken.")
-            )
-          }else{
-            comparable_df <- df[df$opleidingsgroep == opleiding_num, ]
-            comparable_df <- comparable_df %>% drop_na(CODE)
-            output$opl_vergelijkbaarheid <- renderText(
-              print("")
-            )
-          }
-        } else if(input$vergelijkbaar2 == "Nederland"){
+        }else if(input$vergelijkbaar2 == "Nederland"){
           comparable_df <- df
           output$ink_vergelijkbaarheid <- renderText(
             print("")
@@ -174,7 +157,7 @@ shinyServer(function(input, output, session) {
     # Get information about selected area in table
     output$info_area <- renderTable({
       df <- as.data.frame(datasetInput()$selected_polygon) %>% 
-        select(c("Stedelijkheid (1=zeer sterk stedelijk, 5=niet stedelijk)", "inkomengroep", "opleidingsgroep"))
+        select(c("Stedelijkheid (1=zeer sterk stedelijk, 5=niet stedelijk)", "inkomengroep"))
       df <- rename(df, "Stedelijkheid"= `Stedelijkheid (1=zeer sterk stedelijk, 5=niet stedelijk)`)
       df
       }) 
@@ -643,8 +626,7 @@ shinyServer(function(input, output, session) {
             "In de tabel hieronder ziet u wat de stedelijkheid, de inkomensgroep en de opleidingsgroep zijn voor het gekozen gebied.",
             tableOutput("info_area"),
             "Stedelijkheid: 1 = zeer sterk stedelijk, 5 = niet stedelijk.", br(),
-            "Inkomensgroep: 1 = klein aandeel onder sociaal minimum, 4 = groot aandeel onder sociaal minimum.",br(),
-            "Opleidingsgroep: 1 = klein aandeel met lage opleiding, 4 = groot aandeel met lage opleiding",
+            "Inkomensgroep: 1 = klein aandeel onder sociaal minimum, 4 = groot aandeel onder sociaal minimum.",
             span(textOutput("ink_vergelijkbaarheid"), style="color:red"),
             span(textOutput("opl_vergelijkbaarheid"), style="color:red")) # Box informatie 
     })

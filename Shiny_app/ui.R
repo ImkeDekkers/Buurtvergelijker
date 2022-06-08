@@ -65,8 +65,7 @@ ui <- dashboardPage(
                                    selectInput("gemeente1", "Gemeente:", choices = unique(gemeenten$GM_NAAM)), # Select input gemeente1
                                    selectInput("vergelijkbaar1", "Vergelijken met:", c("Alle gebieden in Nederland" = "Nederland", 
                                                                                        "Gebieden met dezelfde stedelijkheid" = "Stedelijkheidsniveau",
-                                                                                       "Gebieden met ongeveer hetzelfde inkomen" = "Inkomensniveau",
-                                                                                       "Gebieden met ongeveer dezelfde opleiding" = "Opleidingsniveau")) # Select input vergelijkbaar1
+                                                                                       "Gebieden met ongeveer hetzelfde inkomen" = "Inkomensniveau")) # Select input vergelijkbaar1
                                  ), # Conditional panel 1 gemeenten
                                  conditionalPanel(
                                    condition = "input.niveau == 'Wijken'",
@@ -74,8 +73,7 @@ ui <- dashboardPage(
                                    selectInput("wijken2", "Wijk:", choices = NULL), # Select input wijken2,
                                    selectInput("vergelijkbaar2", "Vergelijken met:", c("Alle gebieden in Nederland" = "Nederland", 
                                                                                        "Gebieden met dezelfde stedelijkheid" = "Stedelijkheidsniveau",
-                                                                                       "Gebieden met ongeveer hetzelfde inkomen" = "Inkomensniveau",
-                                                                                       "Gebieden met ongeveer dezelfde opleiding" = "Opleidingsniveau")) # Select input vergelijkbaar 2
+                                                                                       "Gebieden met ongeveer hetzelfde inkomen" = "Inkomensniveau")) # Select input vergelijkbaar 2
                                  ), # Conditional panel 2 wijken
                                  conditionalPanel(
                                    condition = "input.niveau == 'Buurten'",
