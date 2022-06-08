@@ -977,7 +977,7 @@ shinyServer(function(input, output, session) {
       selected_area_code <- df[1, "selected_area_code"]
       df <- df[df$CODE==selected_area_code,]
       df <- df %>%
-        select(c("Stedelijkheid (1=zeer sterk stedelijk, 5=niet stedelijk)", "inkomengroep", "opleidingsgroep"))
+        select(c("Stedelijkheid (1=zeer sterk stedelijk, 5=niet stedelijk)", "inkomengroep"))
       df <- rename(df, "Stedelijkheid"= `Stedelijkheid (1=zeer sterk stedelijk, 5=niet stedelijk)`)
       df[1,]
     })
@@ -1328,11 +1328,10 @@ shinyServer(function(input, output, session) {
     output$info_box_gez = renderUI({
       title <- paste0("Informatie over ", selected_area_title_gez())
       box(title = title, width = 3, status = "warning", solidHeader = T,
-          "In de tabel hieronder ziet u wat de stedelijkheid, de inkomensgroep en de opleidingsgroep zijn voor het gekozen gebied.",
+          "In de tabel hieronder ziet u wat de stedelijkheid en de inkomensgroep zijn voor het gekozen gebied.",
           tableOutput("info_area_gez"),
           "Stedelijkheid: 1 = zeer sterk stedelijk, 5 = niet stedelijk.", br(),
-          "Inkomensniveau: 1 = zeer laag percentage, 4 = hoog percentage van huishoudens met een inkomen onder het sociaal minimum.",br(),
-          "Opleidingsniveau: 1 = zeer laag percentage, 4 = zeer hoog percentage van personen met een lage opleiding.",
+          "Inkomensniveau: 1 = zeer laag percentage, 4 = hoog percentage van huishoudens met een inkomen onder het sociaal minimum.",
          ) # Box informatie
     })
     
