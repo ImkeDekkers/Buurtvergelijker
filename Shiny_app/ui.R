@@ -22,8 +22,8 @@ ui <- dashboardPage(
     sidebarMenu(
       menuItem("Voorzieningen", tabName = "Voorzieningen", icon = icon("dashboard")),
       menuItem("Gezondheid", tabName = "Gezondheid", icon = icon("th")),
-      menuItem("Onderwijs", tabName = "Onderwijs", icon = icon("th")),
-      menuItem("Huizenmarkt", tabName = "Huizenmarkt", icon = icon("th")))
+      menuItem("Verkeersongevallen", tabName = "Verkeersongevallen", icon = icon("th")),
+      menuItem("Criminaliteit", tabName = "Criminaliteit", icon = icon("th")))
   ), # Dashboard sidebar
   dashboardBody(tags$head(tags$style(HTML('.box{box-shadow: none;border-style: none;}.content-wrapper { overflow: auto; }'))),
                 tabItems(
@@ -110,11 +110,11 @@ ui <- dashboardPage(
                           h2("Eventueel voor gezondheidszorg")
                   ), # tab item gezondheidszorg
                   
-                  tabItem(tabName = "Onderwijs",
+                  tabItem(tabName = "Verkeersongevallen",
                           h2("Eventueel voor onderwijs")
                   ), # Tab item onderwijs
                   
-                  tabItem(tabName = "Huizenmarkt",
+                  tabItem(tabName = "Criminaliteit",
                           h2("Eventueel voor huizenmarkt")
                   ) # Tab Item huizenmarkt
                 ) # TabItems
