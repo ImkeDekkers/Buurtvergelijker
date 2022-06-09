@@ -2,7 +2,7 @@ ui <- dashboardPage(
   dashboardHeader(title = "Buurtvergelijker"),
   dashboardSidebar(
     sidebarMenu(
-      menuItem("Dashboard", tabName = "Dashboard", icon = icon("dashboard")),
+      menuItem("Voorzieningen", tabName = "Voorzieningen", icon = icon("dashboard")),
       menuItem("Gezondheid", tabName = "Gezondheid", icon = icon("th")),
       menuItem("Onderwijs", tabName = "Onderwijs", icon = icon("th")),
       menuItem("Huizenmarkt", tabName = "Huizenmarkt", icon = icon("th")))
@@ -12,7 +12,7 @@ ui <- dashboardPage(
   }'))),
                 tabItems(
                   tabItem(
-                    tabName = "Dashboard",
+                    tabName = "Voorzieningen",
                     h2("Dashboard nabijheid voorzieningen op gemeente-, wijk- of buurtniveau"),
                     fluidRow(
                       column(width = 3,
@@ -20,7 +20,7 @@ ui <- dashboardPage(
                                  textInput("postcode", "Weet u niet uw exacte gemeente, wijk of buurt? Vul dan hier uw postcode in:"),
                                  textOutput("postcode_info")), # Box postcode zoeken
                              box(title = "Selecteer een niveau", width = NULL, status = "primary", solidHeader = T,
-                                 "Selecteer het gewenste niveau, gebied en vergelijkbaarheidniveau en druk op 'indienen' om door te gaan",
+                                 "Selecteer het gewenste niveau, gebied en vergelijkbaarheidsniveau en druk op 'indienen' om door te gaan",
                                  selectInput("niveau", "Niveau:", c("Gemeenten" = "Gemeenten",
                                                                     "Wijken" = "Wijken",
                                                                     "Buurten" = "Buurten")), # Select input niveau
@@ -112,7 +112,7 @@ ui <- dashboardPage(
                                         Dan ziet u verschillende visualisaties voor het gekozen subthema. Voor een deel van de visualisaties kunt
                                        u nog kiezen voor welke leeftijdsgroep u de gezondheid wilt zien. "), # Uitleg app
                                    box(title="Niveau en gebied selecteren", width = NULL, status = 'primary', solidHeader = T,
-                                       "Selecteer het gewenste niveau, gebied en vergelijkbaarheidniveau en druk op 'zoeken' om door te gaan.", br(),
+                                       "Selecteer het gewenste niveau, gebied en vergelijkbaarheidsniveau en druk op 'zoeken' om door te gaan.", br(),
                                        br(),
                                        selectInput("niveau_gez", "Niveau:", c("Gemeenten" = "Gemeenten",
                                                                               "Wijken" = "Wijken",
