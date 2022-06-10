@@ -14,6 +14,8 @@ buurten <- readRDS("../Data/buurten.rds")
 postcodes_final <- readRDS("../Data/postcodes_final.rds")
 full_data <- readRDS("../Data/full_data.rds")
 gezondheid_all <-readRDS("../Data/gezondheid_all.rds")
+source("../SimilarAgeDistribution.R")
+source("../HealthPlots.R")
 
 shinyServer(function(input, output, session) {
     
@@ -774,62 +776,7 @@ shinyServer(function(input, output, session) {
                 "Ernstige geluidhinder door buren (%)","Moeite met rondkomen (%)")
     Special <- c("Beperking", "Gewicht", "Alcoholgebruik", "Lopen/fietsen naar school of werk", "Eenzaamheid", 
                  "Risico op angststoornis of depressie", "Beperkt vanwege gezondheid")
-    
-    #Function that searches for the top  20% most similar areas as the selected area, based on age distribution
-    similar_age <- function(data){
-      df_original <- as.data.frame(data)
-      df <- df_original[df_original$Perioden=="2020" & df_original$Leeftijd=="18+",]
-      df <- df %>% drop_na(Perioden)
-      
-      #Making CODE the row index so all rows are identifiable 
-      result <-  subset(df, select = -c(CODE))
-      row.names(result) <- df$CODE
-      
-      #subset df so it only contains age variables and transform the data with z-score (scale function)
-      result <- subset(result, select= `Personen 0 tot 15 jaar (%)`: `Personen 65 jaar en ouder (%)`)
-      #normalized <- as.data.frame(scale(result))
-      
-      #Making a df for the selected area 
-      selected_area_code <- df[1, "selected_area_code"]
-      selected_area <- result[rownames(result) == selected_area_code,]
-      
-      #Calculating distance from the selected area to all areas
-      dist_matrix <- apply(selected_area,1,function(selected_area)apply(result,1,function(result,selected_area)dist(rbind(result,selected_area),method = 'manhattan'),selected_area))
-      dist_df <- as.data.frame(dist_matrix)
-      colnames(dist_df) <- "afstand"
-      dist_df$CODE <- row.names(dist_df)
-      
-      #Ordering the distances and returning top 20%
-      #sorted <-  dist_df[order(dist_df$`afstand`),]
-      #top <- head(sorted, round(nrow(sorted)*0.2))
-      if(input$niveau_gez=="Gemeenten"){
-        value <- 10
-      }else if(input$niveau_gez=="Wijken"){
-        value <- 10
-      }else if(input$niveau_gez=="Buurten"){
-        value <- 10
-      }
-      top <-dist_df[dist_df$afstand <= value, ]
-      
-      #If there are less than 5 areas with a similar age distribution, take 5 closest areas
-      if(nrow(top)<=6){
-        sorted <-  dist_df[order(dist_df$`afstand`),]
-        top <- head(sorted, 6)
-      }
-      #If the number of areas with a similar age distribution is bigger than 20% of the areas on the same level, take closest 20%
-      else if(nrow(top)>round(nrow(dist_df)*0.2)){
-        sorted <-  dist_df[order(dist_df$`afstand`),]
-        top <- head(sorted, round(nrow(sorted)*0.2))
-      }
-      #Merging with original df to get the names of the areas
-      final <- merge(top, df, by="CODE")
-      
-      #Keep only the areas in the original dataframe that are in the top 20% similar areas
-      similar_codes <- unique(final$CODE)
-      df_final <- df_original%>% filter(CODE %in% similar_codes)
-      
-      return(df_final)
-    }
+
     
     #make used GEZONDHEID data reactive on the selected niveau
     Gez_datasetInput <- eventReactive(input$action_gez,{
@@ -852,7 +799,7 @@ shinyServer(function(input, output, session) {
         selected_area_code <- comparable_df %>% filter(GM_NAAM == input$gemeente1_gez) %>% pull(CODE)
         comparable_df$selected_area_code <- selected_area_code[1]
         if(input$vergelijkbaar1_gez=="age_distribution"){
-          comparable_df <- similar_age(comparable_df)
+          comparable_df <- similar_age(comparable_df, input$niveau_gez)
           selected_area_code <- comparable_df %>% filter(GM_NAAM == input$gemeente1_gez) %>% pull(CODE)
           comparable_df$selected_area_code <- selected_area_code[1]
         }
@@ -897,7 +844,7 @@ shinyServer(function(input, output, session) {
         selected_area_code <- comparable_df %>% filter(GM_NAAM == input$gemeente2_gez & WK_NAAM == input$wijken2_gez) %>%pull(CODE)
         comparable_df$selected_area_code <- selected_area_code[1]
         if(input$vergelijkbaar2_gez == "age_distribution"){
-          comp_df <- similar_age(comparable_df)
+          comp_df <- similar_age(comparable_df, input$niveau_gez)
           if(any(is.na(comp_df$`Personen 0 tot 15 jaar (%)`))){
             comparable_df <- df 
             output$error_vergelijkbaarheid_gez <- renderText(
@@ -938,7 +885,7 @@ shinyServer(function(input, output, session) {
         selected_area_code <- comparable_df %>% filter(GM_NAAM == input$gemeente3_gez & WK_NAAM == input$wijken3_gez & BU_NAAM == input$buurten3_gez) %>%pull(CODE)
         comparable_df$selected_area_code <- selected_area_code[1]
         if(input$vergelijkbaar3_gez == "age_distribution"){
-          comp_df <- similar_age(comparable_df)
+          comp_df <- similar_age(comparable_d, input$niveau_gezf)
           if(any(is.na(comp_df$`Personen 0 tot 15 jaar (%)`))){
             comparable_df <- df 
             output$error_vergelijkbaarheid_gez <- renderText(
@@ -1003,313 +950,46 @@ shinyServer(function(input, output, session) {
       return(subtheme)
     })
     
-    #Function creates a barplot of the selected area and the mean of comparable areas for all age classes
-    plot_gez <- function(){
-      subtheme <- selected_subtheme_gez()
-      if (subtheme %in% Normal){
-        column <- subtheme
-      }else if (subtheme %in% Special){
-        column <- input$categorie_staaf
-      }
-      
-      df <- as.data.frame(Gez_datasetInput()$dataset)
-      df <- df[df$Perioden=="2020",]
-      df <- df %>% drop_na(Perioden)
-      
-      #Calculating the mean values of the input columns
-      df_gem <- select(df, "CODE", "Leeftijd", column)
-      df_gem <- df_gem %>% group_by(Leeftijd) %>% 
-        summarise_at(vars(column), funs(mean(., na.rm=TRUE)))
-      df_gem <- df_gem %>% drop_na(Leeftijd)
-      df_gem$groep <- "Gemiddelde"
-      
-      #Looking for the values of the input columns from the selected areas
-      selected_area_code <- df[1, "selected_area_code"]
-      selected_area_label <- df[1, "selected_area_label"]
-      df_selected <- df %>% subset(CODE == selected_area_code) %>% select("Leeftijd", column)
-      df_selected$groep <- selected_area_label
-      
-      #adding mean and selected together
-      df_final <- rbind(df_selected,df_gem)
-      df_final$groep <- as.character(df_final$groep)
-      df_final$groep <- factor(df_final$groep, levels=unique(df_final$groep))
-      df_final$Leeftijd <- as.character(df_final$Leeftijd)
-      df_final$Leeftijd <- factor(df_final$Leeftijd, levels=unique(df_final$Leeftijd))
-      
-      #Plot
-      ggplot(df_final, aes(x = Leeftijd, y = .data[[column]], fill = groep)) + geom_col(position = "dodge")+ 
-        ylab(column) + theme(text = element_text(size=14),legend.title = element_blank(),legend.position="top",
-                             legend.text=element_text(size=12),axis.text = element_text(size = 12)) + 
-        scale_x_discrete(labels = function(x)
-          stringr::str_wrap(x, width = 15))
-      
-    }
-    
+    #creates a barplot of the selected area and the mean of comparable areas for all age classes
+    #Uses function plot_gez from HealthPlots file
     output$gez_plot <- renderPlot({
-      plot_gez()
+      subtheme <- selected_subtheme_gez()
+      plot_gez(Gez_datasetInput()$dataset, input$categorie_staaf, subtheme)
     })
     
-    #Line plot for changes over the years
-    line_plot_gez <- function(){
-      df <- as.data.frame(Gez_datasetInput()$dataset)
-      subtheme <- selected_subtheme_gez()
-      
-      if (subtheme %in% Normal){
-        column <- subtheme
-        if(input$norm_age_line == "18-65 65+"){
-          df <- df[df$Leeftijd!="18+",]  
-        }else{
-          df <- df[df$Leeftijd==input$norm_age_line,]  
-        }
-      }else if (subtheme %in% Special){
-        column <- input$categorie_line
-        if(input$spec_age_line == "18-65 65+"){
-          df <- df[df$Leeftijd!="18+",]  
-        }else{
-          df <- df[df$Leeftijd==input$spec_age_line,]  
-        }
-      }
-      df <- df %>% drop_na(Leeftijd)
-      
-      #Average 
-      gem <- select(df,"CODE", "Perioden", "Leeftijd",  column)
-      gem <- gem%>%
-        group_by(Perioden, Leeftijd) %>%
-        summarise_at(vars(column), funs(mean(., na.rm=TRUE)))
-      gem <- gem %>% drop_na(Leeftijd)
-      gem$groep <- "Gemiddelde"
-      
-      #Selected area 
-      selected_area_code <- df[1, "selected_area_code"]
-      selected_area_label <- df[1, "selected_area_label"]
-      df_selected <- df %>% subset(CODE == selected_area_code) %>% select("Perioden", "Leeftijd", column)
-      df_selected$groep <- selected_area_label
-      
-      #Merging together
-      df_together <- rbind(df_selected, gem)
-      # if(input$norm_age_line == "18-65 65+"){
-      #     df_together <- df_together %>% unite(., col = "groep",  groep, Leeftijd, na.rm=TRUE, sep = ", ")
-      # }else if(input$spec_age_line == "18-65 65+"){
-      #     df_together <- df_together %>% unite(., col = "groep",  groep, Leeftijd, na.rm=TRUE, sep = ", ")
-      # }
-      df_together$Groep <- as.character(df_together$groep)
-      df_together$Groep <- factor(df_together$groep, levels=unique(df_together$Groep))
-      
-      ggplot(df_together, aes(x=Perioden, y=.data[[column]], group=Groep)) +
-        geom_line(aes(color=Groep),size=1)+
-        geom_point(aes(color=Groep),size=3) +
-        labs(x = "Jaar") +
-        theme(text = element_text(size=14),legend.title = element_blank(),legend.position="top",
-              legend.text=element_text(size=12),axis.text = element_text(size = 12)) + 
-        scale_y_continuous(expand = expansion(add = 5)) #To make sure the y-axis has at least 10 percent between the min and max
-    }
-    
-    #Line plot output
+
+    #Creates a line chart of the selected area and the mean of comparable areas
+    #Uses function line_plot_gez from HealthPlots file
     output$gez_line_plot <- renderPlot({
-      line_plot_gez()
+      subtheme <- selected_subtheme_gez()
+      line_plot_gez(Gez_datasetInput()$dataset, subtheme, input$norm_age_line, input$spec_age_line, input$categorie_line)
     })
     
-    #Histogram
-    histogram <- function(){
-      df <- as.data.frame(Gez_datasetInput()$dataset)
-      df <- df[df$Perioden=="2020",]
-      df <- df %>% drop_na(Perioden)
-      subtheme <- selected_subtheme_gez()
-      
-      if (subtheme %in% Normal){
-        column <- subtheme
-        df <- df[df$Leeftijd==input$norm_age_hist,]
-        df$column <- as.numeric(as.character(df[[subtheme]]))
-      }else if (subtheme %in% Special){
-        column <- input$categorie_hist
-        df <- df[df$Leeftijd==input$spec_age_hist,]
-        df$column <- as.numeric(as.character(df[[input$categorie_hist]]))
-      }
-      
-      selected_area_line <- df %>% filter(CODE == selected_area_code) %>%pull(column)
-      
-      ggplot(df, aes(column)) + geom_histogram(fill= "steelblue3", color='#e9ecef', bins=20) + geom_vline(xintercept = selected_area_line)  +
-        labs(x=column, y = "Aantal") +
-        theme(text = element_text(size=14),axis.text = element_text(size = 12))
-    }
-    #Histogram output
+    #Creates a histogram of the selected subtheme using the comparable areas
+    #Uses function histogram from HealthPlots file
     output$gez_hist <- renderPlot({
-      histogram()
-    })
-    
-    
-    #Staafdiagram per categorie
-    staaf_categorie <- function(){
       subtheme <- selected_subtheme_gez()
-      #Take the necessary columns, based on what the selected subtheme is
-      if(subtheme=="Beperking"){
-        columns <- c("Lichamelijke beperking (%)","Beperking in horen (%)", "Beperking in zien (%)", "Beperking in bewegen (%)")
-      }else if(subtheme=="Beperkt vanwege gezondheid"){
-        columns <- c("Beperkt vanwege gezondheid (%)","Ernstig beperkt vanwege gezondheid (%)")
-      }else if(subtheme=="Risico op angststoornis of depressie"){
-        columns <- c("Matig tot hoog risico op angststoornis of depressie (%)","Hoog risico op angststoornis of depressie (%)")
-      }else if(subtheme=="Gewicht"){
-        columns <- c("Ondergewicht (%)","Normaal gewicht (%)","Overgewicht (%)","Ernstig overgewicht (%)")
-      }else if(subtheme=="Alcoholgebruik"){
-        columns <- c("Voldoet aan alcoholrichtlijn (%)","Drinkers (%)","Zware drinkers (%)","Overmatige drinkers (%)")
-      }else if(subtheme=="Lopen/fietsen naar school of werk"){
-        columns <- c("Lopen en of fietsen naar school of werk (%)","Lopen naar school of werk (%)","Fietsen naar school of werk (%)")
-      }else if(subtheme=="Eenzaamheid"){
-        columns <- c("Eenzaam (%)","Ernstig eenzaam (%)","Emotioneel eenzaam (%)","Sociaal eenzaam (%)")
-      }
-      
-      df <- as.data.frame(Gez_datasetInput()$dataset)
-      df <- df[df$Perioden=="2020",]
-      df <- df[df$Leeftijd==input$spec_age_cat,]
-      df <- df %>% drop_na(Leeftijd)
-      
-      #df for average 
-      df_gem <- df %>% select(columns)
-      df_gem <- as.data.frame(colMeans(x=df_gem, na.rm = TRUE))
-      df_gem <- rownames_to_column(df_gem)
-      df_gem$groep <- "Gemiddelde"
-      df_gem <- rename(df_gem, c(Variabele = 1, Percentage = 2, groep = 3))
-      
-      #df for selected area
-      selected_area_code <- df[1, "selected_area_code"]
-      selected_area_label <- df[1, "selected_area_label"]
-      df_selected <- df %>% subset(CODE == selected_area_code) %>% select(columns)
-      df_selected <- rownames_to_column(as.data.frame(t(df_selected)))
-      df_selected$groep <- selected_area_label
-      df_selected <- rename(df_selected, c(Variabele = 1, Percentage = 2, groep = 3))
-      
-      #binding average and selected area together
-      df_final <- rbind(df_selected, df_gem)
-      
-      #Making sure the groeps and variables appear in a consistent order in plot
-      df_final$groep <- as.character(df_final$groep)
-      df_final$groep <- factor(df_final$groep, levels=unique(df_final$groep))
-      df_final$Variabele <- as.character(df_final$Variabele)
-      df_final$Variabele <- factor(df_final$Variabele, levels=unique(df_final$Variabele))
-      
-      ggplot(df_final, aes(x = Variabele, y = Percentage, fill = groep)) + geom_col(position = "dodge") + coord_flip() +
-        theme(text = element_text(size=14),legend.title = element_blank(), legend.position="top",
-              legend.text=element_text(size=12),axis.text = element_text(size = 12)) + 
-        scale_x_discrete(labels = function(x) 
-          stringr::str_wrap(x, width = 15))
-    }
+      histogram(Gez_datasetInput()$dataset, subtheme, input$norm_age_hist, input$categorie_hist, input$spec_age_hist)
+    })
     
+    #Creates a barplot per categorie if selected subtheme contains multiple variables
+    #Uses function staaf_categorie from HealthPlots file
     output$staaf_cat <- renderPlot({
-      staaf_categorie()
+      subtheme <- selected_subtheme_gez()
+      staaf_categorie(Gez_datasetInput()$dataset, subtheme, input$spec_age_cat)
     })
     
-    #Function for plotting the age distribution of the selected area
+    #Creates a plot for the age distribution of the selected area
+    #Uses function age_distribution from HealthPlots file
     output$age_distr <- renderPlot({
-      df <- as.data.frame(Gez_datasetInput()$dataset)
-      df <- df[df$Perioden=="2020" & df$Leeftijd=="18+",]
-      df <- df %>% drop_na(Perioden)
-      
-      selected_area_code <- df[1, "selected_area_code"]
-      
-      selected_area <- df[df$CODE==selected_area_code,]
-      selected_area <- as.data.frame(selected_area)
-      selected_area <- select(selected_area,"Personen 0 tot 15 jaar (%)",
-                              "Personen 15 tot 25 jaar (%)",
-                              "Personen 25 tot 45 jaar (%)",
-                              "Personen 45 tot 65 jaar (%)",
-                              "Personen 65 jaar en ouder (%)")
-      selected_area <- rename(selected_area, c("0 tot 15"=`Personen 0 tot 15 jaar (%)`,
-                                               "15 tot 25"= `Personen 15 tot 25 jaar (%)`,
-                                               "25 tot 45" = `Personen 25 tot 45 jaar (%)`,
-                                               "45 tot 65" = `Personen 45 tot 65 jaar (%)`,
-                                               "65+"= `Personen 65 jaar en ouder (%)`))
-      selected_area <- rownames_to_column(as.data.frame(t(selected_area)))
-      selected_area <- rename(selected_area, c(Leeftijdsgroep = 1, Percentage = 2))
-      
-      ggplot(selected_area, aes(x = Leeftijdsgroep, y = Percentage)) + geom_col(width = 0.6,position = "dodge",fill = "steelblue3") + 
-        coord_flip() + theme(text = element_text(size = 14),axis.text = element_text(size = 12))
+      age_distribution(Gez_datasetInput()$dataset)
     })
     
-    #Function that makes map of the selected variable 
-    make_map_gez <- function(variable){
-      #get input for the map
-      map_data <-Gez_datasetInput()$dataset
-      map_data <- map_data[map_data$Perioden=="2020" & map_data$Leeftijd==input$age_map,]
-      column <- selected_subtheme_gez()
-      
-      if (column %in% Normal){
-        subtheme <- column
-      }else if (column %in% Special){
-        subtheme <- input$categorie_map
-      }
-      
-      map_data$subtheme <- map_data[[subtheme]]
-      
-      #Dividing the subthemes in the higher the better and the lower the better
-      higher_better <- c("Zeer goede of goede gezondheid (%)","Voldoet aan beweegrichtlijn (%)","Wekelijkse sporters (%)",
-                         "Normaal gewicht (%)","Voldoet aan alcoholrichtlijn (%)","Vrijwilligerswerk (%)",
-                         "Lopen en of fietsen naar school of werk (%)","Lopen naar school of werk (%)","Fietsen naar school of werk (%)")
-      lower_better <- c("Ondergewicht (%)", "Overgewicht (%)","Ernstig overgewicht (%)","Rokers (%)","Drinkers (%)",
-                        "Zware drinkers (%)","Overmatige drinkers (%)","Langdurige aandoening (%)","Beperkt vanwege gezondheid (%)",
-                        "Ernstig beperkt vanwege gezondheid (%)","Langdurige ziekte en beperkt (%)","Lichamelijke beperking (%)",
-                        "Beperking in horen (%)","Beperking in zien (%)","Beperking in bewegen (%)","Matig tot hoog risico op angststoornis of depressie (%)",
-                        "Hoog risico op angststoornis of depressie (%)","(heel) veel stress (%)","Matig tot veel regie over eigen leven (%)",
-                        "Eenzaam (%)","Ernstig eenzaam (%)","Emotioneel eenzaam (%)","Sociaal eenzaam (%)",
-                        "Mantelzorger (%)","Ernstige geluidhinder door buren (%)","Moeite met rondkomen (%)")
-     
-      #define colors for polygons and legend (if subtheme in higher the better, reverse=TRUE)
-      if(subtheme %in% higher_better){
-        pal <- colorBin("YlOrRd", domain = map_data$subtheme, n = 6, reverse = TRUE)
-        qpal <- colorQuantile("YlOrRd", map_data$subtheme, n = 6, reverse = TRUE)
-      }else if(subtheme %in% lower_better){
-        pal <- colorBin("YlOrRd", domain = map_data$subtheme, n = 6)
-        qpal <- colorQuantile("YlOrRd", map_data$subtheme, n = 6)
-      }
-      
-      #for the colors in the map, colorQuantile is used, unless an error is given, then we use colorBin
-      coloring <- tryCatch({
-        qpal(map_data$subtheme)
-      } , error = function(e) {
-        pal(map_data$subtheme)
-      } )
-      legend_title <- as.character(subtheme)
-      legend_title <- paste(strwrap(legend_title,20), collapse="<br/>")%>% 
-        lapply(htmltools::HTML)
-      labels <- sprintf("%s: %g", map_data$NAAM, map_data$subtheme) %>% 
-        lapply(htmltools::HTML)
-      #label_content <- sprintf("%s: %g <br/> %s: %g", 
-                              # map_data$selected_area_label, map_data$subtheme[map_data$CODE == map_data$selected_area_code], "Gemiddelde vergelijkbare gebieden", round(mean(map_data$subtheme, na.rm=TRUE), digits = 1))%>% lapply(htmltools::HTML)
-      
-      #selected_area_code <- df[1, "selected_area_code"]
-      
-      #map
-      output_map <- tryCatch({
-        leaflet(map_data)%>%
-          addPolygons(fillColor = ~coloring, color = "black", weight = 0.5, fillOpacity = 0.7,
-                      highlightOptions = highlightOptions(color='white',weight=0.5,fillOpacity = 0.7, bringToFront = TRUE), label = labels)%>%
-          addProviderTiles(providers$CartoDB.Positron)%>%
-          addMarkers(
-            lng = map_data$centroidxx, lat = map_data$centroidyy,
-            #label = label_content,
-            labelOptions = labelOptions(noHide = T)) %>% 
-          leaflet::addLegend(pal = qpal, values = ~map_data$subtheme, opacity = 0.7, title = legend_title, position = "bottomright", labFormat = function(type, cuts, p) {      #labformat function makes sure the actual values instead of the quantiles are displayed in the legend
-            n = length(cuts)
-            paste0(round(cuts[-n],2), " &ndash; ", round(cuts[-1],2))
-          }
-          )
-        
-      }, error = function(e) {
-        leaflet(map_data) %>%
-          addPolygons(fillColor = ~ coloring, color = "black", weight = 0.5, fillOpacity = 0.7,
-                      highlightOptions = highlightOptions(color='white',weight=0.5,fillOpacity = 0.7, bringToFront = TRUE), label = labels) %>%
-          addProviderTiles(providers$CartoDB.Positron) %>% 
-          addMarkers(
-            lng = map_data$centroidxx, lat = map_data$centroidyy,
-            #label = label_content,
-            labelOptions = labelOptions(noHide = T))%>% 
-          leaflet::addLegend(pal = pal, values = ~map_data$subtheme, opacity = 0.7, title = legend_title, position = "bottomright")
-      })
-      
-      return(output_map)
-    }
-    
+    #Creates map of the selected subtheme  
+    #Uses function make_map_gez from HealthPlots file
     output$map_subtheme <- renderLeaflet({
-      make_map_gez()
+      subtheme <- selected_subtheme_gez()
+      make_map_gez(Gez_datasetInput()$dataset, input$age_map, subtheme, input$categorie_map)
     })
     
     #Selected area name for the box titles (changes only when 'zoeken' button is clicked)
