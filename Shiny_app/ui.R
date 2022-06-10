@@ -200,9 +200,10 @@ ui <- dashboardPage(
                                             Staat uw wijk niet in de top-5? Dan ziet u onderaan de tabel op welke rank het geselecteerde gebied staat."),
                                        tableOutput("count_incidents")) # Box top 5
                                    ), # Column top 5
-                            column(width = 4,
-                                   box(title = "Vergelijking met andere buurt", width = NULL, status = "success", solidHeader = T,
-                                       "Hier kan een vergelijking worden getoond van 2 geselecteerde gebieden") # Box grafieken of diagram
+                            column(width = 7,
+                                   box(title = "Vergelijking met andere gebieden", width = NULL, status = "success", solidHeader = T,
+                                       "Hier kan een vergelijking worden getoond van 2 geselecteerde gebieden",
+                                       plotOutput("histogram_incidents")) # Box grafieken of diagram
                             ) # Column vergelijking buurt
                           ) # Fluid row 3 vergelijkbaarheid
                   ) # Tab Item verkeersveiligheid
