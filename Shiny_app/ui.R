@@ -194,16 +194,16 @@ ui <- dashboardPage(
                           ), # Fluid row grafieken thema
                           h3("Vergelijk het geselecteerde gebied met andere, vergelijkbare gebieden"),
                           fluidRow(
-                            # column(width = 4,
-                            #        box(title = "Vergelijking met andere buurt", width = NULL, status = "success", solidHeader = T,
-                            #            "Hier kan een vergelijking worden getoond van 2 geselecteerde gebieden") # Box grafieken of diagram
-                            # ), # Column vergelijking buurt
                             column(width = 4,
                                    box(title = "Top-5 incidenten in vergelijkbare gebieden", width = NULL, status = "success", solidHeader = T,
                                        HTML("In deze tabel wordt de top-5 van gebieden met de meeste incidenten weergegeven. <br>
                                             Staat uw wijk niet in de top-5? Dan ziet u onderaan de tabel op welke rank het geselecteerde gebied staat."),
                                        tableOutput("count_incidents")) # Box top 5
-                                   ) # Column top 5
+                                   ), # Column top 5
+                            column(width = 4,
+                                   box(title = "Vergelijking met andere buurt", width = NULL, status = "success", solidHeader = T,
+                                       "Hier kan een vergelijking worden getoond van 2 geselecteerde gebieden") # Box grafieken of diagram
+                            ) # Column vergelijking buurt
                           ) # Fluid row 3 vergelijkbaarheid
                   ) # Tab Item verkeersveiligheid
                 ) # TabItems

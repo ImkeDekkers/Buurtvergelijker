@@ -23,8 +23,8 @@ ongevallen_joined <- ongevallen_csv %>%
 
 # Reduce dataset to what is important for further analysis
 ongevallen_reduced <- ongevallen_joined %>% 
-  select(VKL_NUMMER, JAAR_VKL, ANTL_PTJ, MAXSNELHD, WGD_CODE_1, FK_VELD5, GME_ID, 
-         GME_NAAM, PVE_NAAM, X_COORD, Y_COORD, AP3_OMS, AOL_OMS, OTE_OMS, WSE_OMS) 
+  select(VKL_NUMMER, JAAR_VKL, ANTL_PTJ, MAXSNELHD, WGD_CODE_1, FK_VELD5, 
+         X_COORD, Y_COORD, AP3_OMS, AOL_OMS, OTE_OMS, WSE_OMS) 
 
 # Manually recode values of variable that has no reference file
 ongevallen_reduced <- ongevallen_reduced %>% 
@@ -58,6 +58,12 @@ ongevallen_reduced <- ongevallen_reduced %>%
                           "Trekker met oplegger" = "Landbouwvoertuig",
                           "Overig wegmeubilair" = "Voorwerp of object",
                           "Lichtmast" = "Voorwerp of object")) %>% 
+  mutate(ANTL_PTJ = recode(ANTL_PTJ, "0" = "0",
+                           "1" = "1",
+                           "2" = "2",
+                           "3" = "3",
+                           "4" = "4",
+                           .default = "5 of meer")) %>% 
   replace_na(list(OTE_OMS = "Onbekend", WSE_OMS = "Onbekend"))
 
 # Remove duplicates to have the same number of rows as original data

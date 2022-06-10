@@ -1183,7 +1183,7 @@ shinyServer(function(input, output, session) {
         sorted$Rank <- seq.int(nrow(sorted))                            # Add row numbers to dataframe as indication of place in order
         sorted <- sorted %>% relocate(Rank)                             # Rank as first column 
         pol_selected <- sorted %>% filter(GM_NAAM == input$gemeente21)  # Selected polygon and number of incidents
-        top5_incidents <- head(sorted)
+        top5_incidents <- head(sorted, 5)
         top5_incidents <- rbind(top5_incidents, pol_selected)
         top5_incidents <- top5_incidents %>% distinct(GM_NAAM, .keep_all = TRUE)
         top5_incidents <- rename(top5_incidents, "Gemeente" = GM_NAAM,
@@ -1197,7 +1197,7 @@ shinyServer(function(input, output, session) {
         sorted <- sorted %>% relocate(Rank)
         pol_selected <- sorted %>% filter(GM_NAAM == input$gemeente22 & 
                                             WK_NAAM == input$wijken22)
-        top5_incidents <- head(sorted)
+        top5_incidents <- head(sorted, 5)
         top5_incidents <- rbind(top5_incidents, pol_selected)
         top5_incidents <- top5_incidents %>% distinct(GM_NAAM, WK_NAAM, .keep_all = TRUE)
         top5_incidents <- rename(top5_incidents, "Gemeente" = GM_NAAM,
@@ -1213,7 +1213,7 @@ shinyServer(function(input, output, session) {
         pol_selected <- sorted %>% filter(GM_NAAM == input$gemeente23 & 
                                             WK_NAAM == input$wijken23 & 
                                             BU_NAAM == input$buurten23)    
-        top5_incidents <- head(sorted,5)
+        top5_incidents <- head(sorted, 5)
         top5_incidents <- rbind(top5_incidents, pol_selected)
         top5_incidents <- top5_incidents %>% distinct(GM_NAAM, WK_NAAM, BU_NAAM, .keep_all = TRUE)
         
