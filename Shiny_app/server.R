@@ -719,13 +719,6 @@ shinyServer(function(input, output, session) {
       return(list_ongevallen_return)   
     })
     
-    # Output number of incidents in selected area
-    output$number_incidents <- renderValueBox(
-      valueBox(ifelse(is.na(reaction2()$number_incidents), "0", reaction2()$number_incidents), "ongevallen in het door u geselecteerde gebied", 
-               icon = icon("car-crash", class = "fa-solid fa-car-burst", lib = "font-awesome"), 
-               color = "red") # valuebox
-    ) # rendervaluebox
-    
     output$stedelijkheid_num <- renderValueBox(
       valueBox(reaction2()$stedelijkheid_num, HTML("Het stedelijkheidsniveau van het door u geselecteerde gebied. <br>
                1 = zeer stedelijk, 5 = niet stedelijk"),
@@ -1148,11 +1141,8 @@ shinyServer(function(input, output, session) {
     
     # Create same groups for comparability
     reaction4 <- eventReactive(input$action2, {
-      intersection <- intersection %>% filter(Niveau == input$niveau2 & 
-                                                JAAR_VKL == input$jaar)    # Precalculated intersection filtered on niveau and year of input
+      
       df <- as.data.frame(intersection) 
-      comparable_df <- df %>% 
-        filter(`Stedelijkheid..1.zeer.sterk.stedelijk..5.niet.stedelijk.` == reaction2()$stedelijkheid_num) # Dataframe without geometry of areas with same stedelijkheid
       
       if (input$niveau2 == "Gemeenten"){
         count_num_incidents <- comparable_df %>% group_by(GM_NAAM) %>% count()
@@ -1174,9 +1164,13 @@ shinyServer(function(input, output, session) {
     })
     
     # Create function for number of incidents in selected area
-    top_incidents <- function(){
+    top_incidents <- eventReactive(input$action2, {
+      comparable_df <- as.data.frame(intersection) %>% 
+        filter(Niveau == input$niveau2 & 
+                 JAAR_VKL == input$jaar &
+                 `Stedelijkheid..1.zeer.sterk.stedelijk..5.niet.stedelijk.` == reaction2()$stedelijkheid_num) 
       if (input$niveau2 == "Gemeenten"){
-        incidents_count_niveau <- reaction4()$comparable_df %>% 
+        incidents_count_niveau <- comparable_df %>% 
           group_by(GM_NAAM, .drop = FALSE) %>% 
           count()
         sorted <- incidents_count_niveau %>% arrange(desc(n))           # In descending order, so most incidents are at top
@@ -1188,11 +1182,22 @@ shinyServer(function(input, output, session) {
         top5_incidents <- top5_incidents %>% distinct(GM_NAAM, .keep_all = TRUE)
         top5_incidents <- rename(top5_incidents, "Gemeente" = GM_NAAM,
                                  "Aantal" = n)
+        
+        number_incidents <- incidents_count_niveau %>% 
+          filter(GM_NAAM == input$gemeente21)
+        
       } else if(input$niveau2 == "Wijken"){
-        incidents_count_niveau <- reaction4()$comparable_df %>% 
+        incidents_count_niveau <- comparable_df %>% 
           group_by(WK_NAAM, GM_NAAM, .drop = FALSE) %>% 
           count()
-        sorted <- incidents_count_niveau %>% arrange(desc(n)) 
+        names_all_niveau <- as.data.frame(all_polygons) %>% 
+          filter(Niveau == "Wijken" &
+                   `Stedelijkheid (1=zeer sterk stedelijk, 5=niet stedelijk)` == reaction2()$stedelijkheid_num)
+        no_incidents_niveau <- anti_join(names_all_niveau, incidents_count_niveau, by = c("WK_NAAM", "GM_NAAM")) %>% 
+          select(WK_NAAM, GM_NAAM) %>% 
+          mutate(n = 0)
+        incidents_all_inclu_niveau <- rbind(incidents_count_niveau, no_incidents_niveau)
+        sorted <- incidents_all_inclu_niveau %>% arrange(desc(n)) 
         sorted$Rank <- seq.int(nrow(sorted))                   
         sorted <- sorted %>% relocate(Rank)
         pol_selected <- sorted %>% filter(GM_NAAM == input$gemeente22 & 
@@ -1203,11 +1208,22 @@ shinyServer(function(input, output, session) {
         top5_incidents <- rename(top5_incidents, "Gemeente" = GM_NAAM,
                                 "Wijk" = WK_NAAM,
                                  "Aantal" = n)
+        number_incidents <- incidents_all_inclu_niveau %>% 
+          filter(GM_NAAM == input$gemeente22 & 
+                   WK_NAAM == input$wijken22)
       } else if(input$niveau2 == "Buurten"){
-        incidents_count_niveau <- reaction4()$comparable_df %>% 
+        incidents_count_niveau <- comparable_df %>% 
           group_by(BU_NAAM, WK_NAAM, GM_NAAM, .drop = FALSE) %>% 
           count()
-        sorted <- incidents_count_niveau %>% arrange(desc(n))  
+        
+        names_all_niveau <- as.data.frame(all_polygons) %>% 
+          filter(Niveau == "Buurten" &
+                   `Stedelijkheid (1=zeer sterk stedelijk, 5=niet stedelijk)` == reaction2()$stedelijkheid_num)
+        no_incidents_niveau <- anti_join(names_all_niveau, incidents_count_niveau, by = c("BU_NAAM", "WK_NAAM", "GM_NAAM")) %>% 
+          select(BU_NAAM, WK_NAAM, GM_NAAM) %>% 
+          mutate(n = 0)
+        incidents_all_inclu_niveau <- rbind(incidents_count_niveau, no_incidents_niveau)
+        sorted <- incidents_all_inclu_niveau %>% arrange(desc(n))
         sorted$Rank <- seq.int(nrow(sorted))                   
         sorted <- sorted %>% relocate(Rank) 
         pol_selected <- sorted %>% filter(GM_NAAM == input$gemeente23 & 
@@ -1221,18 +1237,36 @@ shinyServer(function(input, output, session) {
                                  "Wijk" = WK_NAAM,
                                  "Buurt" = BU_NAAM,
                                  "Aantal" = n)
+        number_incidents <- incidents_all_inclu_niveau %>% 
+          filter(GM_NAAM == input$gemeente23 & 
+                   WK_NAAM == input$wijken23 & 
+                   BU_NAAM == input$buurten23)
       }
-
-      return(top5_incidents)  # Dataframe with top 6 areas with the most incidents + selected polygon
       
-    } # Function
+      count_incidents_niveau <- number_incidents$n
+      
+      list_return <- list("top5_incidents" = top5_incidents,                          # Top 5 most incidents in dataframe with name and count
+                          "incidents_all_inclu_niveau" = incidents_all_inclu_niveau,  # Dataframe with all names and also count 0
+                          "count_incidents_niveau" = count_incidents_niveau
+                          )
+
+      return(list_return)  # Dataframe with top 6 areas with the most incidents + selected polygon
+      
+    })  # Event reactive
+    
     # Output number of incidents in selected area
     output$count_incidents <- renderTable(
-      top_incidents(),
+      top_incidents()$top5_incidents,
       rownames = F,
     ) # Render table
 
     
+    # Output number of incidents in selected area
+    output$number_incidents <- renderValueBox(
+      valueBox(as.character(top_incidents()$count_incidents_niveau), "ongevallen in het door u geselecteerde gebied", 
+               icon = icon("car-crash", class = "fa-solid fa-car-burst", lib = "font-awesome"), 
+               color = "red") # valuebox
+    ) # rendervaluebox
         
 })
 
