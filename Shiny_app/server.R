@@ -54,7 +54,7 @@ shinyServer(function(input, output, session) {
     observeEvent(input$thema, {
       if (input$thema == "Gezondheid en welzijn") {
         updateSelectInput(session, 'subthema', 
-                          choices = c("Huisartsenpraktijk", "Ziekenhuis","Apotheek"))
+                          choices = c("Huisartsenpraktijk", "Ziekenhuis incl. buitenpolikliniek","Ziekenhuis excl. buitenpolikliniek","Apotheek"))
       }else if (input$thema == "Detailhandel") {
         updateSelectInput(session, 'subthema', 
                           choices = c("Supermarkt", "Overige dagelijkse levensmiddelen", "Warenhuis"))
@@ -466,8 +466,10 @@ shinyServer(function(input, output, session) {
       subthema <-  selected_subtheme_title()
       if (subthema == "Huisartsenpraktijk"){
         make_map("Afstand tot huisartsenpraktijk (km)")
-      }else if (subthema == "Ziekenhuis"){
+      }else if (subthema == "Ziekenhuis incl. buitenpolikliniek"){
         make_map("Afstand tot ziekenhuis incl. buitenpolikliniek (km)")
+      }else if (subthema == "Ziekenhuis excl. buitenpolikliniek"){
+        make_map("Afstand tot ziekenhuis excl. Buitenpolikliniek (km)")
       }else if(subthema=="Apotheek"){
         make_map("Afstand tot apotheek (km)")
       }else if (subthema == "Supermarkt"){
@@ -532,10 +534,14 @@ shinyServer(function(input, output, session) {
       plot4("Aantal huisartsenpraktijken binnen 1 km", 
             "Aantal huisartsenpraktijken binnen 3 km", 
             "Aantal huisartsenpraktijken binnen 5 km")
-      }else if (subthema == "Ziekenhuis"){
+      }else if (subthema == "Ziekenhuis incl. buitenpolikliniek"){
         plot4("Aantal ziekenhuizen incl. buitenpolikliniek binnen 5 km",                        
               "Aantal ziekenhuizen incl. buitenpolikliniek binnen 10 km",                       
               "Aantal ziekenhuizen incl. buitenpolikliniek binnen 20 km")
+      }else if (subthema == "Ziekenhuis excl. buitenpolikliniek"){
+        plot4("Aantal ziekenhuizen excl. Buitenpolikliniek binnen 5 km",                        
+              "Aantal ziekenhuizen excl. Buitenpolikliniek binnen 10 km",                       
+              "Aantal ziekenhuizen excl. Buitenpolikliniek binnen 20 km")
       }else if (subthema == "Supermarkt"){
         plot4("Aantal  grote supermarkten binnen 1 km",                                         
               "Aantal  grote supermarkten binnen 3 km",                                          
@@ -673,7 +679,7 @@ shinyServer(function(input, output, session) {
     output[["box_staafdiagram"]] <- renderUI({
       
       #subthemes that have data available on the count inside a radius
-      subthemes_count <- c("Huisartsenpraktijk","Ziekenhuis", "Supermarkt", "Overige dagelijkse levensmiddelen", "Warenhuis",
+      subthemes_count <- c("Huisartsenpraktijk","Ziekenhuis incl. buitenpolikliniek","Ziekenhuis excl. buitenpolikliniek", "Supermarkt", "Overige dagelijkse levensmiddelen", "Warenhuis",
                            "Café", "Cafetaria", "Restaurant", "Hotel", "Kinderdagverblijf", "Buitenschoolse opvang", "Basisschool",
                            "Voortgezet onderwijs", "VMBO school", "HAVO/VWO school", "Bioscoop", "Attractie", "Podiumkunsten", "Museum")
       
