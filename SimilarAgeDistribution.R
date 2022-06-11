@@ -26,13 +26,14 @@ similar_age <- function(data, niveau){
   dist_df$CODE <- row.names(dist_df)
   
   #Defining cutoff distance for similar areas and take only areas within cutoff distance
-  if(niveau=="Gemeenten"){
-    value <- 10
-  }else if(niveau=="Wijken"){
-    value <- 10
-  }else if(niveau=="Buurten"){
-    value <- 10
-  }
+  # if(niveau=="Gemeenten"){
+  #   value <- 10
+  # }else if(niveau=="Wijken"){
+  #   value <- 10
+  # }else if(niveau=="Buurten"){
+  #   value <- 10
+  # }
+  value <-10
   top <-dist_df[dist_df$afstand <= value, ]
   
   #If there are less than 5 areas with a similar age distribution, take 5 closest areas

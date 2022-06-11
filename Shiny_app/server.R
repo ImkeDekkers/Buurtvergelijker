@@ -844,14 +844,14 @@ shinyServer(function(input, output, session) {
         selected_area_code <- comparable_df %>% filter(GM_NAAM == input$gemeente2_gez & WK_NAAM == input$wijken2_gez) %>%pull(CODE)
         comparable_df$selected_area_code <- selected_area_code[1]
         if(input$vergelijkbaar2_gez == "age_distribution"){
-          comp_df <- similar_age(comparable_df, input$niveau_gez)
-          if(any(is.na(comp_df$`Personen 0 tot 15 jaar (%)`))){
+          comparable_df <- similar_age(comparable_df, input$niveau_gez)
+          if(any(is.na(comparable_df$`Personen 0 tot 15 jaar (%)`))){
             comparable_df <- df 
             output$error_vergelijkbaarheid_gez <- renderText(
               print("Let op, door missende gegevens over de leeftijdsopbouw voor uw wijk, wordt er nu met heel Nederland vergeleken.")
             )
           }else{
-            comparable_df <- comp_df
+            comparable_df <- comparable_df
             output$error_vergelijkbaarheid_gez <- renderText(
               print("")
             )
@@ -885,7 +885,7 @@ shinyServer(function(input, output, session) {
         selected_area_code <- comparable_df %>% filter(GM_NAAM == input$gemeente3_gez & WK_NAAM == input$wijken3_gez & BU_NAAM == input$buurten3_gez) %>%pull(CODE)
         comparable_df$selected_area_code <- selected_area_code[1]
         if(input$vergelijkbaar3_gez == "age_distribution"){
-          comp_df <- similar_age(comparable_d, input$niveau_gezf)
+          comp_df <- similar_age(comparable_df, input$niveau_gez)
           if(any(is.na(comp_df$`Personen 0 tot 15 jaar (%)`))){
             comparable_df <- df 
             output$error_vergelijkbaarheid_gez <- renderText(

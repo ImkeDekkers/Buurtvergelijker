@@ -132,8 +132,7 @@ ui <- dashboardPage(
                                          selectInput("vergelijkbaar2_gez", "Vergelijken met:", c("Gebieden met dezelfde leeftijdsopbouw" = "age_distribution",
                                                                                                "Alle gebieden in Nederland" = "Nederland", 
                                                                                                "Gebieden met hetzelfde stedelijkheidsniveau" = "Stedelijkheidsniveau",
-                                                                                               "Gebieden met hetzelfde inkomensniveau" = "Inkomensniveau",
-                                                                                               "Gebieden met hetzelfde opleidingsniveau" = "Opleidingsniveau")), # Select input vergelijkbaar 2
+                                                                                               "Gebieden met hetzelfde inkomensniveau" = "Inkomensniveau")), # Select input vergelijkbaar 2
                                        ), # Conditional panel 2
                                        conditionalPanel(
                                          condition = "input.niveau_gez == 'Buurten'",
