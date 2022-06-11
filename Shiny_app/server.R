@@ -929,19 +929,10 @@ shinyServer(function(input, output, session) {
       df[1,]
     })
     
-    # Create map to point to the selected location and comparable polygons
+    #Creates map to point to the selected location and comparable polygons
+    #Uses function prime_map_gez from HealthPlots file
     output$prime_map2 <- renderLeaflet({
-      data<-Gez_datasetInput()$dataset
-      data <- data[!duplicated(data[ , c("CODE")]), ]
-      leaflet(data) %>% 
-        addProviderTiles(providers$CartoDB.Positron) %>% 
-        addPolygons(color = "navy", weight = 1, 
-                    highlightOptions = highlightOptions(color = "black", 
-                                                        weight = 2),
-                    label = ~htmlEscape(data$NAAM)) %>% 
-        addAwesomeMarkers(lng = data$centroidxx,
-                          lat = data$centroidyy,
-                          icon = iconblue) 
+      prime_map_gez(Gez_datasetInput()$dataset)
     })
     
     #Selected subtheme

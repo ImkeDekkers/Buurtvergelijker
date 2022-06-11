@@ -1,4 +1,4 @@
-# Function that returns the similar areas as the selected area based on the age distribution.
+# Function that returns similar areas as the selected area based on the age distribution.
 # An area is defined to be similar if the total distance to all age variables is 10 or less.
 # When there are less than 5 similar areas, the 5 most similar areas are returned.
 # When the amount of similar areas is more than 20% of all areas on the same level, the 20% that are most similar are returned.

@@ -35,6 +35,27 @@ age_distribution <- function(data){
     coord_flip() + theme(text = element_text(size = 14),axis.text = element_text(size = 12))
 }
 
+# Function that create map to point to the selected location and comparable polygons
+prime_map_gez <- function(data){
+  data <- data[!duplicated(data[ , c("CODE")]), ]
+  
+  iconblue <- makeAwesomeIcon(
+    icon = "arrow-down",
+    iconColor = "black",
+    markerColor = "blue",
+    library = "fa")
+  
+  leaflet(data) %>% 
+    addProviderTiles(providers$CartoDB.Positron) %>% 
+    addPolygons(color = "navy", weight = 1, 
+                highlightOptions = highlightOptions(color = "black", 
+                                                    weight = 2),
+                label = ~htmlEscape(data$NAAM)) %>% 
+    addAwesomeMarkers(lng = data$centroidxx,
+                      lat = data$centroidyy,
+                      icon = iconblue) 
+}
+
 # Function that creates a barplot of the selected area and the mean of comparable areas for all age classes
 plot_gez <- function(data, categorie, subtheme){
 
