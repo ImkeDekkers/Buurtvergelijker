@@ -15,27 +15,48 @@ buurten <- readRDS("../Data/buurten.rds")
 postcodes_final <- readRDS("../Data/postcodes_final.rds")
 full_data <- readRDS("../Data/full_data.rds")
 
+
 ui <- dashboardPage(
   dashboardHeader(title = "Buurtvergelijker"),
   dashboardSidebar(
     sidebarMenu(
-      menuItem("Dashboard", tabName = "Dashboard", icon = icon("dashboard")),
-      menuItem("Gezondheidszorg", tabName = "Gezondheidszorg", icon = icon("th")),
-      menuItem("Onderwijs", tabName = "Onderwijs", icon = icon("th")),
-      menuItem("Verkeersveiligheid", tabName = "Verkeersveiligheid", icon = icon("car-side", class = "fa-solid fa-car-side", lib = "font-awesome")))
+      menuItem("Voorzieningen", tabName = "Voorzieningen", icon = icon("dashboard")),
+      menuItem("Gezondheid", tabName = "Gezondheid", icon = icon("th")),
+      menuItem("Verkeersongevallen", tabName = "Verkeersongevallen", icon = icon("car-side", class = "fa-solid fa-car-side", lib = "font-awesome")),
+      menuItem("Criminaliteit", tabName = "Criminaliteit", icon = icon("th")))
   ), # Dashboard sidebar
   dashboardBody(tags$head(tags$style(HTML('.box{box-shadow: none;border-style: none;}.content-wrapper { overflow: auto; }'))),
                 tabItems(
                   tabItem(
-                    tabName = "Dashboard",
-                    h2("Dashboard nabijheid voorzieningen op gemeente-, wijk- of buurtniveau"),
+                    tabName = "Voorzieningen",
+                    h2("Voorzieningen op gemeente-, wijk- of buurtniveau"),
                     fluidRow(
                       column(width = 3,
+                             box(title = "Uitleg app", width = NULL, status = "primary", solidHeader = T, collapsible = T, collapsed = T,
+                                 "In deze app kunt u informatie vinden over de afstand tot voorzieningen in een gebied.", br(),
+                                 br(),
+                                 "Als eerste moet de box “Kies een niveau” worden ingevuld. Hier kan een niveau geselecteerd worden,
+                                 een gebied, en met welke andere gebieden u wilt vergelijken. Weet u niet in welke wijk of buurt u woont? 
+                                 Dan kunt u eerst nog uw postcode invullen bij “Postcode zoeken?”. 
+                                 Als u tevreden bent met uw keuze, druk dan op “Zoeken”.", br(),
+                                 br(),
+                                 "Hierna verschijnt een box met informatie over het gekozen gebied. Ook ziet u een kaart met uw gekozen 
+                                 gebied (blauwe pointer) en de andere gebieden waarmee wordt vergeleken. 
+                                 Als laatste ziet u nog een lijst met de 5 gebieden die het meest op uw gebied lijken. 
+                                 Dit is berekend op basis van de afstand tot voorzieningen en het aantal voorzieningen binnen een bepaalde afstand. 
+                                 Deze gebieden zijn in de kaart te zien met de rode pointers.", br(),
+                                 br(),
+                                 "Vervolgens kunt u bij “Thema” een thema en subthema kiezen. 
+                                 Dan ziet u een kaart met de afstand tot de gekozen voorziening voor het gekozen gebied (blauwe pointer) 
+                                 en voor alle gebieden waarmee wordt vergeleken. Ook is opnieuw een lijst te zien met de 5 gebieden 
+                                 die het meest op uw gebied lijken. Dit keer alleen op basis van de voorzieningen in het gekozen thema. 
+                                 Deze gebieden zijn in de kaart te zien met de groene pointers. Als laatste ziet u nog een staafdiagram
+                                 met hoeveel voorzieningen er binnen een bepaalde afstand zitten. "), # Uitleg app
                              box(title = "Postcode zoeken?", width = NULL, status = "primary", solidHeader = T, collapsible = T, collapsed = T,
-                                 textInput("postcode", "Weet u niet uw exacte gemeente, wijk of buurt? Vul dan hier uw postcode in:"),
+                                 textInput("postcode", "Weet u niet uw precieze gemeente, wijk of buurt? Vul dan hier uw postcode in:"),
                                  textOutput("postcode_info")), # Box postcode zoeken
-                             box(title = "Selecteer een niveau", width = NULL, status = "primary", solidHeader = T,
-                                 "Selecteer het gewenste niveau, gebied en vergelijkbaarheidniveau en druk op 'indienen' om door te gaan",
+                             box(title = "Kies een niveau", width = NULL, status = "primary", solidHeader = T,
+                                 "Kies het gewenste niveau, gebied en waar u mee wilt vergelijken en druk op 'zoeken' om door te gaan.",
                                  selectInput("niveau", "Niveau:", c("Gemeenten" = "Gemeenten",
                                                                     "Wijken" = "Wijken",
                                                                     "Buurten" = "Buurten")), # Select input niveau
@@ -43,18 +64,16 @@ ui <- dashboardPage(
                                    condition = "input.niveau == 'Gemeenten'",
                                    selectInput("gemeente1", "Gemeente:", choices = unique(gemeenten$GM_NAAM)), # Select input gemeente1
                                    selectInput("vergelijkbaar1", "Vergelijken met:", c("Alle gebieden in Nederland" = "Nederland", 
-                                                                                       "Gebieden met hetzelfde stedelijkheidsniveau" = "Stedelijkheidsniveau",
-                                                                                       "Gebieden met hetzelfde inkomensniveau" = "Inkomensniveau",
-                                                                                       "Gebieden met hetzelfde opleidingsniveau" = "Opleidingsniveau")) # Select input vergelijkbaar1
+                                                                                       "Gebieden met dezelfde stedelijkheid" = "Stedelijkheidsniveau",
+                                                                                       "Gebieden met ongeveer hetzelfde inkomen" = "Inkomensniveau")) # Select input vergelijkbaar1
                                  ), # Conditional panel 1 gemeenten
                                  conditionalPanel(
                                    condition = "input.niveau == 'Wijken'",
                                    selectInput("gemeente2", "Gemeente:", choices = unique(gemeenten$GM_NAAM)), # Select input gemeente2
                                    selectInput("wijken2", "Wijk:", choices = NULL), # Select input wijken2,
                                    selectInput("vergelijkbaar2", "Vergelijken met:", c("Alle gebieden in Nederland" = "Nederland", 
-                                                                                       "Gebieden met hetzelfde stedelijkheidsniveau" = "Stedelijkheidsniveau",
-                                                                                       "Gebieden met hetzelfde inkomensniveau" = "Inkomensniveau",
-                                                                                       "Gebieden met hetzelfde opleidingsniveau" = "Opleidingsniveau")) # Select input vergelijkbaar 2
+                                                                                       "Gebieden met dezelfde stedelijkheid" = "Stedelijkheidsniveau",
+                                                                                       "Gebieden met ongeveer hetzelfde inkomen" = "Inkomensniveau")) # Select input vergelijkbaar 2
                                  ), # Conditional panel 2 wijken
                                  conditionalPanel(
                                    condition = "input.niveau == 'Buurten'",
@@ -62,28 +81,14 @@ ui <- dashboardPage(
                                    selectInput("wijken3", "Wijk:", choices = NULL), # Select input wijken3
                                    selectInput("buurten3", "Buurt:", choices = NULL), # Select input buurten3
                                    selectInput("vergelijkbaar3", "Vergelijken met:", c("Alle gebieden in Nederland" = "Nederland", 
-                                                                                       "Gebieden met hetzelfde stedelijkheidsniveau" = "Stedelijkheidsniveau")) # Select input vergelijkbaar3
+                                                                                       "Gebieden met dezelfde stedelijkheid" = "Stedelijkheidsniveau")) # Select input vergelijkbaar3
                                  ), # Conditional panel 3 buurten
-                                 actionButton("action", "Indienen")
+                                 actionButton("action", "Zoeken")
                              ), # Box selecteer niveau
                       ), # Column
-                      box(title = "Informatie over geselecteerd gebied", width = 3, status = "warning", solidHeader = T,
-                          "In de onderstaande tabel kan worden afgelezen wat het stedelijkheidsniveau, de inkomensgroep en de opleidingsgroep zijn voor het geselecteerde gebied.",
-                          tableOutput("info_area"),
-                          "Stedelijkheid: 1 = zeer sterk stedelijk, 5 = niet stedelijk.", br(),
-                          "Inkomensniveau: 1 = zeer laag percentage, 4 = hoog percentage van huishoudens met een inkomen onder het sociaal minimum.",br(),
-                          "Opleidingsniveau: 1 = zeer laag percentage, 4 = zeer hoog percentage van personen met een lage opleiding.",
-                          span(textOutput("ink_vergelijkbaarheid"), style="color:red"),
-                          span(textOutput("opl_vergelijkbaarheid"), style="color:red")), # Box informatie
-                      box(title = "Geselecteerde plek op de kaart", width = 4, status = "warning", solidHeader = T,
-                          "Kaart waarop het gekozen gebied te zien is (blauwe pointer), de top 5 meest vergelijkbare gebieden (rode pointers) en de gebieden waarmee wordt vergeleken.",
-                          #"Hier komt de prime map van leaflet met pointer naar centroid van de geselecteerde g/w/b",
-                          shinycssloaders::withSpinner(leafletOutput("prime_map"))
-                          ), # Box geselecteerde plek
-                      box(title = "Top 5 algemeen", width = 2, background = "red", 
-                          "Top 5 met vergelijkbare gebieden op basis van alle voorzieningenthema's",
-                          #"Hier komt de algemene top 5 zonder geselecteerd thema",
-                          tableOutput('top5_algemeen')) # Box top 5 algemeen
+                      uiOutput("info_box"), # Box informatie
+                      uiOutput("kaart_box"), # Box geselecteerde plek
+                      uiOutput("top5_all") # Box top 5 algemeen
                     ), # Fluid row 1 postcode, thema, algemene top 5, niveau, geselecteerde plek
                     fluidRow(
                       column(width = 2,
@@ -91,30 +96,21 @@ ui <- dashboardPage(
                                  selectInput("thema", "Thema:", c("Gezondheid en welzijn", "Detailhandel", "Horeca", 
                                                                   "Kinderopvang", "Onderwijs", "Verkeer en vervoer", 
                                                                   "Vrije tijd en cultuur")), 
-                                 selectInput("subthema", "Subthema:", choices = NULL)), # Box thema
-                             box(title = "Top 5 geselecteerd thema", width = NULL, background = "green",
-                                 "Top 5 met vergelijkbare gebieden op basis van het gekozen thema",
-                                 #"Hier komt de top 5 van vergelijkbare g/w/b voor een bepaald thema",
-                                 tableOutput('top5_theme')) # Box top 5 thema
+                                 selectInput("subthema", "Subthema:", choices = NULL),
+                                 actionButton("action_theme", "Zoeken")), # Box thema
+                             uiOutput("top5"), # Box top 5 thema
                       ),
-                      box(title = "Kaart van Nederland", width = 6, status = "warning", solidHeader = T,
-                          "Kaart van Nederland met de geselecteerde vergelijkbare gebieden van het gekozen subthema.",
-                          #"Hier komt de kaart van Nederland met geselecteerde vergelijkbare g/w/b op bepaalde variabele",
-                          shinycssloaders::withSpinner(leafletOutput("map_variable"))
-                          ), # Box kaart
-                      uiOutput("box_staafdiagram")
-                    ) # Fluid row 2 histogram, kaart, thema top 5
+                      uiOutput("kaartNL"), # Box kaart
+                      uiOutput("box_staafdiagram"),
+                    ), # Fluid row 2 histogram, kaart, thema top 5
+                    "Bron data: Kerncijfers wijken en buurten 2020 CBS"
                   ), # Tab item dashboard
                   
-                  tabItem(tabName = "Gezondheidszorg",
+                  tabItem(tabName = "Gezondheid",
                           h2("Eventueel voor gezondheidszorg")
                   ), # tab item gezondheidszorg
                   
-                  tabItem(tabName = "Onderwijs",
-                          h2("Eventueel voor onderwijs")
-                  ), # Tab item onderwijs
-                  
-                  tabItem(tabName = "Verkeersveiligheid",
+                  tabItem(tabName = "Verkeersongevallen",
                           h2("Verkeersongevallen in gemeenten, wijken en buurten van Nederland"),
                           h3("Algemeen overzicht van verkeersongevallen"),
                           fluidRow(
@@ -180,6 +176,9 @@ ui <- dashboardPage(
                             ) # Column vergelijking buurt
                           ) # Fluid row 3 vergelijkbaarheid
                   ) # Tab Item verkeersveiligheid
+                  tabItem(tabName = "Criminaliteit",
+                          h2("Eventueel voor huizenmarkt")
+                  ) # Tab Item huizenmarkt
                 ) # TabItems
   ) # Dashboard body
 ) # Dashboard page
