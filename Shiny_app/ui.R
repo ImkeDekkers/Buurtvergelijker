@@ -20,7 +20,7 @@ ui <- dashboardPage(
   dashboardHeader(title = "Buurtvergelijker"),
   dashboardSidebar(
     sidebarMenu(
-      menuItem("Voorzieningen", tabName = "Voorzieningen", icon = icon("dashboard")),
+      menuItem("Voorzieningen", tabName = "Voorzieningen", icon = icon("building", class = "fa-solid fa-building", lib = "font-awesome")),
       menuItem("Gezondheid", tabName = "Gezondheid", icon = icon("th")),
       menuItem("Verkeersongevallen", tabName = "Verkeersongevallen", icon = icon("car-side", class = "fa-solid fa-car-side", lib = "font-awesome")),
       menuItem("Criminaliteit", tabName = "Criminaliteit", icon = icon("th")))
@@ -175,7 +175,7 @@ ui <- dashboardPage(
                                        plotOutput("histogram_incidents")) # Box grafieken of diagram
                             ) # Column vergelijking buurt
                           ) # Fluid row 3 vergelijkbaarheid
-                  ) # Tab Item verkeersveiligheid
+                  ), # Tab Item verkeersveiligheid
                   tabItem(tabName = "Criminaliteit",
                           h2("Eventueel voor huizenmarkt")
                   ) # Tab Item huizenmarkt
