@@ -23,6 +23,7 @@ similar_age <- function(data, niveau){
   dist_matrix <- apply(selected_area,1,function(selected_area)apply(result,1,function(result,selected_area)dist(rbind(result,selected_area),method = 'manhattan'),selected_area))
   dist_df <- as.data.frame(dist_matrix)
   colnames(dist_df) <- "afstand"
+  dist_df <- dist_df %>% drop_na(afstand)
   dist_df$CODE <- row.names(dist_df)
   
   #Defining cutoff distance for similar areas and take only areas within cutoff distance
