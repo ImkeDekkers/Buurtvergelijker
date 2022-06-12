@@ -20,8 +20,8 @@ buurten <- readRDS("../Data/buurten.rds")
 postcodes_final <- readRDS("../Data/postcodes_final.rds")
 full_data <- readRDS("../Data/full_data.rds")
 all_polygons <- full_data %>% 
-  select(BU_CODE, BU_NAAM, WK_CODE, WK_NAAM, GM_CODE, GM_NAAM, POSTCODE, geometry, 
-         centroid, Niveau, CODE, NAAM, centroidx, centroidy, `Stedelijkheid (1=zeer sterk stedelijk, 5=niet stedelijk)`)
+  select(BU_CODE, BU_NAAM, WK_CODE, WK_NAAM, GM_CODE, GM_NAAM, geometry, 
+         centroid, Niveau, centroidx, centroidy, `Stedelijkheid (1=zeer sterk stedelijk, 5=niet stedelijk)`)
 intersection <- readRDS("../Data/intersection.rds")
   
 shinyServer(function(input, output, session) {
@@ -779,7 +779,7 @@ shinyServer(function(input, output, session) {
                 axis.text = element_text(size = 16),
                 axis.title = element_text(size = 14)) +
           scale_x_discrete(labels = function(x) str_wrap(x, width = 10)) +
-          geom_text(aes(label=n), vjust= 1.5, size = 6) 
+          geom_text(aes(label=n), nudge_y = .4, size = 6) 
         
         pie_chart <- intersection_select %>%
           count(WGD_CODE_1) %>% 
@@ -815,7 +815,7 @@ shinyServer(function(input, output, session) {
                 axis.text = element_text(size = 16),
                 axis.title = element_text(size = 14)) +
           scale_x_discrete(labels = function(x) str_wrap(x, width = 10)) +
-          geom_text(aes(label=n), vjust= 1.5, size = 6)
+          geom_text(aes(label=n), nudge_y = .4, size = 6) 
         
         pie_chart <- intersection_select %>%
           count(AP3_OMS) %>% 
@@ -851,7 +851,7 @@ shinyServer(function(input, output, session) {
                 axis.text = element_text(size = 16),
                 axis.title = element_text(size = 14)) +
           scale_x_discrete(labels = function(x) str_wrap(x, width = 10)) +
-          geom_text(aes(label=n), vjust= 1.5, size = 6)
+          geom_text(aes(label=n), nudge_y = .4, size = 6) 
         
         pie_chart <- intersection_select %>%
           count(AOL_OMS) %>% 
@@ -887,7 +887,7 @@ shinyServer(function(input, output, session) {
                 axis.text = element_text(size = 16),
                 axis.title = element_text(size = 14)) +
           scale_x_discrete(labels = function(x) str_wrap(x, width = 10)) +
-          geom_text(aes(label=n), vjust= 1.5, size = 6)
+          geom_text(aes(label=n), nudge_y = .4, size = 6) 
         
         pie_chart <- intersection_select %>%
           count(OTE_OMS) %>% 
@@ -923,7 +923,7 @@ shinyServer(function(input, output, session) {
                 axis.text = element_text(size = 16),
                 axis.title = element_text(size = 14)) +
           scale_x_discrete(labels = function(x) str_wrap(x, width = 10)) +
-          geom_text(aes(label=n), vjust= 1.5, size = 6)
+          geom_text(aes(label=n), nudge_y = .4, size = 6) 
         
         pie_chart <- intersection_select %>%
           count(WSE_OMS) %>% 
@@ -959,7 +959,7 @@ shinyServer(function(input, output, session) {
                 axis.text = element_text(size = 16),
                 axis.title = element_text(size = 14)) +
           scale_x_discrete(labels = function(x) str_wrap(x, width = 10)) +
-          geom_text(aes(label=n), vjust= 1.5, size = 6)
+          geom_text(aes(label=n), nudge_y = .4, size = 6) 
         
         pie_chart <- intersection_select %>%
           count(MAXSNELHD) %>% 
@@ -979,8 +979,7 @@ shinyServer(function(input, output, session) {
                     position = position_stack(vjust = 0.5))
       } else if (input$subthema2 == "ANTL_PTJ"){
         colorCount <- length(unique(intersection_select$ANTL_PTJ))
-        color_incidents <- colorRampPalette(brewer.pal(6, "Blues"))
-        #color_incidents <- colorFactor(topo.colors(26), intersection_select$ANTL_PTJ)
+        color_incidents <- col_factor("Blues", NULL)
         subthema <- intersection_select$ANTL_PTJ 
         subthema_char <-"Aantal partijen"
         
@@ -997,7 +996,7 @@ shinyServer(function(input, output, session) {
                 axis.text = element_text(size = 16),
                 axis.title = element_text(size = 14)) +
           scale_x_discrete(labels = function(x) str_wrap(x, width = 10)) +
-          geom_text(aes(label=n), vjust= 1.5, size = 6)
+          geom_text(aes(label=n), nudge_y = .4, size = 6) 
         
         pie_chart <- intersection_select %>%
           count(ANTL_PTJ) %>% 
@@ -1223,8 +1222,8 @@ shinyServer(function(input, output, session) {
         labs(title = "Verdeling van aantal ongelukken in vergelijkbare gebieden",
             x = "Aantal ongelukken",
             y = "Aantal gebieden") +
-        theme(axis.text = element_text(size = 14),
-              axis.title = element_text(size = 14)) +
+        theme(axis.text = element_text(size = 18),
+              axis.title = element_text(size = 18)) +
         theme_classic()
     )
         
