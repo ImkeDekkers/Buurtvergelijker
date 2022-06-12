@@ -1067,11 +1067,6 @@ shinyServer(function(input, output, session) {
       reaction3()$pie_chart
     })
     
-    # Trend line selected subtheme
-    output$trend_theme <- renderPlot({
-      reaction3()$trend_theme
-    })
-    
     # Create function for number of incidents in selected area
     top_incidents <- eventReactive(input$action2, {
       comparable_df <- as.data.frame(intersection) %>% 
@@ -1179,6 +1174,30 @@ shinyServer(function(input, output, session) {
       top_incidents()$top5_incidents,
       rownames = F,
     ) # Render table
+    
+    # Only if incidents happened, plot second row for subtheme
+    output[["subtheme_row"]] <- renderUI({
+      if (top_incidents()$count_incidents_niveau > 0){
+        fluidRow(
+          column(width = 6,
+                 box(title = "Kaart met incidenten", width = NULL, status = "warning", solidHeader = T,
+                     HTML("Hier wordt de kaart weergegeven met punten van incidenten. De kleuren komen overeen met de categorieën van de geselecteerde variabele.<br>
+                                            U kunt de kaart vergroten en verkleinen door te scrollen. Door met uw muis over de punten te bewegen kunt u de categorie zien."),
+                     shinycssloaders::withSpinner(leafletOutput("map_color_incidents"))) # Box incidenten en kleur
+          ), # Column kaart
+          column(width = 6,
+                 tabBox(width = NULL, id="tabset1",
+                        tabPanel("Staafdiagram", "Dit staafdiagram geeft het aantal ongelukken in een bepaalde categorie weer.", 
+                                 plotOutput("bar_chart")),
+                        tabPanel("Taartdiagram", "Dit taartdiagram geeft de verhouding van het aantal ongelukken in een bepaalde categorie weer", 
+                                 plotOutput("pie_chart"))
+                 ) # Tabbox diagram
+          ) # Column diagram variabele
+        ) # Fluid row grafieken thema
+      } else if (top_incidents()$count_incidents_niveau <= 0){
+        h4("Omdat er geen incidenten hebben plaatsgevonden, kan geen informatie worden gegeven over het geselecteerde subthema.")
+      }
+    }) # Render UI subtheme row
 
     
     # Output number of incidents in selected area
