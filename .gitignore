@@ -48,3 +48,6 @@ po/*~
 # RStudio Connect folder
 rsconnect/
 Data/gezondheid_all.rds
+Data/all_polygons.rds
+Data/intersection.rds
+Data/ongevallen_W84.rds
