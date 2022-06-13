@@ -95,7 +95,7 @@ ui <- dashboardPage(
                       uiOutput("box_staafdiagram"),
                     ), # Fluid row 2 histogram, kaart, thema top 5
                     "Bron data: Kerncijfers wijken en buurten 2020 CBS"
-                  ), # Tab item dashboard
+                  ), # Tab item voorzieningen
                   
 
                   #####Start gezondheid   
@@ -175,6 +175,8 @@ ui <- dashboardPage(
                       "Bron data: Gezondheid per wijk en buurt; 2012/2016/2020 (indeling 2020) RIVM"    
                   ), # tab item gezondheidszorg
                   
+                  
+                  #### START VERKEERSONGEVALLEN
 
                   tabItem(tabName = "Verkeersongevallen",
                           h2("Verkeersongevallen in gemeenten, wijken en buurten van Nederland"),
@@ -240,12 +242,13 @@ ui <- dashboardPage(
                                        "Hier kan een vergelijking worden getoond van 2 geselecteerde gebieden",
                                        plotOutput("histogram_incidents")) # Box grafieken of diagram
                             ) # Column vergelijking buurt
-                          ) # Fluid row 3 vergelijkbaarheid
+                          ), # Fluid row 3 vergelijkbaarheid
+                          "Bron data: Bestand geRegistreerde Ongevallen in Nederland, Rijkswaterstaat (2011-2020)"
                   ), # Tab Item verkeersveiligheid
 
                   tabItem(tabName = "Criminaliteit",
-                          h2("Eventueel voor huizenmarkt")
-                  ) # Tab Item huizenmarkt
+                          h2("Eventueel voor Criminaliteitscijfers")
+                  ) # Tab Item criminaliteit
                 ) # TabItems
   ) # Dashboard body
 ) # Dashboard page
