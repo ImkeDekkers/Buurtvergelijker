@@ -194,6 +194,9 @@ names(full_data)[names(full_data) == "Aantal vestigingen financiÃ«le diensten,
 names(full_data)[names(full_data) == "Aantal personenautoâs rijdend op benzine"] <- "Aantal personenautos rijdend op benzine"
 names(full_data)[names(full_data) == "Aantal personenautoâs rijdend op overige brandstof"] <- "Aantal personenautos rijdend op overige brandstof"
 
+#simplify full_data to load map faster
+full_data <- rmapshaper::ms_simplify(full_data, keep = 0.05, keep_shapes = TRUE)
+
 write_rds(full_data, "../Data/full_data.rds")
 
 
