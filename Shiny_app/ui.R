@@ -1,3 +1,6 @@
+gemeenten <- readRDS("../Data/gemeenten.rds")
+
+
 ui <- dashboardPage(
   dashboardHeader(title = "Buurtvergelijker"),
   dashboardSidebar(
