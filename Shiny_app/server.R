@@ -1,20 +1,3 @@
-# Load libraries
-library(shiny)
-library(ggplot2)
-library(sf)
-library(leaflet)
-library(stringr)
-library(tidyverse)
-library(shinythemes)
-library(shinydashboard)
-library(htmltools)
-
-library(scales)
-library(RColorBrewer)
-library(ggrepel)
-options(scipen=999)
-library(shinyWidgets)
-
 # Load data
 gemeenten <- readRDS("../Data/gemeenten.rds")
 wijken <- readRDS("../Data/wijken.rds")
