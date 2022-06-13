@@ -8,7 +8,7 @@ ui <- dashboardPage(
     sidebarMenu(
 
       menuItem("Voorzieningen", tabName = "Voorzieningen", icon = icon("building", class = "fa-solid fa-building", lib = "font-awesome")),
-      menuItem("Gezondheid", tabName = "Gezondheid", icon = icon("th")),
+      menuItem("Gezondheid", tabName = "Gezondheid", icon = icon("briefcase-medical", class = "fa-solid fa-briefcase-medical", lib = "font-awesome")),
       menuItem("Verkeersongevallen", tabName = "Verkeersongevallen", icon = icon("car-side", class = "fa-solid fa-car-side", lib = "font-awesome")),
       menuItem("Criminaliteit", tabName = "Criminaliteit", icon = icon("th")))
   ), # Dashboard sidebar
