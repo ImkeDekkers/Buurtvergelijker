@@ -20,6 +20,8 @@ make_map <- function(dataset, variable, input_niveau_facilities, theme){
     pal(map_data$variable)
   } )
   legend_title <- as.character(variable)
+  legend_title <- paste(strwrap(legend_title,20), collapse="<br/>")%>%
+    lapply(htmltools::HTML)
   labels <- sprintf("%s: %g", map_data$NAAM, map_data$variable) %>% 
     lapply(htmltools::HTML)
   label_content <- sprintf("%s: %g <br/> %s: %g", 

@@ -168,7 +168,7 @@ histogram <- function(data, subtheme, norm_age_hist, categorie_hist, spec_age_hi
   selected_area_line <- df %>% filter(CODE == selected_area_code) %>%pull(column)
   
   ggplot(df, aes(column)) + geom_histogram(fill= "steelblue3", color='#e9ecef', bins=20) + geom_vline(xintercept = selected_area_line)  +
-    labs(x=column, y = "Aantal") +
+    labs(x=column, y = "Aantal gebieden") +
     theme(text = element_text(size=14),axis.text = element_text(size = 12))
 }
 
