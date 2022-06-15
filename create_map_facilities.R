@@ -72,3 +72,130 @@ make_map <- function(dataset, variable, input_niveau_facilities, theme){
   return(output_map)
   
 }
+
+
+#Maps for all variables with distance to closest spot
+map_subtheme <- function(data, subthema, niveau, thema){
+  dataset <- data
+  if (subthema == "Huisartsenpraktijk"){
+    make_map(dataset, "Afstand tot huisartsenpraktijk (km)",
+             niveau, 
+             thema)
+  }else if (subthema == "Ziekenhuis incl. buitenpolikliniek"){
+    make_map(dataset, "Afstand tot ziekenhuis incl. buitenpolikliniek (km)",
+             niveau, 
+             thema)
+  }else if (subthema == "Ziekenhuis excl. buitenpolikliniek"){
+    make_map(dataset, "Afstand tot ziekenhuis excl. Buitenpolikliniek (km)",
+             niveau, 
+             thema)
+  }else if(subthema=="Apotheek"){
+    make_map(dataset, "Afstand tot apotheek (km)",
+             niveau, 
+             thema)
+  }else if (subthema == "Supermarkt"){
+    make_map(dataset, "Afstand tot grote supermarkt (km)",
+             niveau, 
+             thema)
+  }else if (subthema == "Overige dagelijkse levensmiddelen"){
+    make_map(dataset, "Afstand tot overige dagelijkse levensmiddelen (km)",
+             niveau, 
+             thema)
+  }else if (subthema == "Warenhuis"){
+    make_map(dataset, "Afstand tot warenhuis (km)",
+             niveau, 
+             thema)
+  }else if (subthema == "Café"){
+    make_map(dataset, "Afstand tot cafe (km)",
+             niveau, 
+             thema)
+  }else if (subthema == "Cafetaria"){
+    make_map(dataset, "Afstand tot cafetaria (km)",
+             niveau, 
+             thema)
+  }else if (subthema == "Restaurant"){
+    make_map(dataset, "Afstand tot restaurant (km)",
+             niveau, 
+             thema)
+  }else if (subthema == "Hotel"){
+    make_map(dataset, "Afstand tot hotel (km)",
+             niveau, 
+             thema)
+  }else if (subthema == "Kinderdagverblijf"){
+    make_map(dataset, "Afstand tot kinderdagverblijf  (km)",
+             niveau, 
+             thema)
+  }else if (subthema == "Buitenschoolse opvang"){
+    make_map(dataset, "Afstand tot buitenschoolse opvang  (km)",
+             niveau, 
+             thema)
+  }else if (subthema == "Basisschool"){
+    make_map(dataset, "Afstand tot basisscholen (km)",
+             niveau, 
+             thema)
+  }else if (subthema == "Voortgezet onderwijs"){
+    make_map(dataset, "Afstand tot voortgezet onderwijs (km)",
+             niveau, 
+             thema)
+  }else if (subthema == "VMBO school"){
+    make_map(dataset, "Afstand tot scholen VMBO (km)",
+             niveau, 
+             thema)
+  }else if (subthema == "HAVO/VWO school"){
+    make_map(dataset, "Afstand tot scholen HAVO/VWO (km)",
+             niveau, 
+             thema)
+  }else if (subthema == "Oprit hoofdverkeersweg"){
+    make_map(dataset, "Afstand tot oprit hoofdverkeersweg (km)",
+             niveau, 
+             thema)
+  }else if (subthema == "Treinstation"){
+    make_map(dataset, "Afstand tot treinstation (km)",
+             niveau, 
+             thema)
+  }else if (subthema == "Belangrijk overstapstation"){
+    make_map(dataset, "Afstand tot belangrijk overstapstation (km)",
+             niveau, 
+             thema)
+  }else if (subthema == "Bioscoop"){
+    make_map(dataset, "Afstand tot bioscoop (km)",
+             niveau, 
+             thema)
+  }else if (subthema == "Attractie"){
+    make_map(dataset, "Afstand tot attractie (km)",
+             niveau, 
+             thema)
+  }else if (subthema == "Podiumkunsten"){
+    make_map(dataset, "Afstand tot podiumkunsten (km)",
+             niveau, 
+             thema)
+  }else if (subthema == "Museum"){
+    make_map(dataset, "Afstand tot museum (km)",
+             niveau, 
+             thema)
+  }else if (subthema == "Zwembad"){
+    make_map(dataset, "Afstand tot zwembad (km)",
+             niveau, 
+             thema)
+  }else if (subthema == "Kunstijsbaan"){
+    make_map(dataset, "Afstand tot kunstijsbaan (km)",
+             niveau, 
+             thema)
+  }else if (subthema == "Bibliotheek"){
+    make_map(dataset, "Afstand tot bibliotheek (km)",
+             niveau, 
+             thema)
+  }else if (subthema == "Poppodium"){
+    make_map(dataset, "Afstand tot poppodium (km)",
+             niveau, 
+             input$thema)
+  }else if (subthema == "Sauna"){
+    make_map(dataset, "Afstand tot sauna (km)",
+             niveau, 
+             thema)
+  }else if (subthema == "Zonnebank"){
+    make_map(dataset, "Afstand tot zonnebank (km)",
+             niveau, 
+             thema)
+  }
+}

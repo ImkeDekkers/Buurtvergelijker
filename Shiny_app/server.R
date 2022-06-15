@@ -132,11 +132,15 @@ shinyServer(function(input, output, session) {
       markerColor = "green",
       library = "fa")
     
-    #returns table with top 5 similar areas based on chosen theme
-    output$top5_theme <- renderTable(
+    #returns table with top 5 similar areas based on chosen theme (changes only when 'zoeken' button is clicked)
+    table_top5_theme <- eventReactive(input$action_theme,{
       table_top5_distances_theme(datasetInput()$dataset, 
                                  input$niveau, 
-                                 input$thema),
+                                 input$thema)
+    })
+    #returns table with top 5 similar areas based on chosen theme
+    output$top5_theme <- renderTable(
+      table_top5_theme(),
       rownames = TRUE
     )
     
@@ -164,239 +168,29 @@ shinyServer(function(input, output, session) {
       return(subthema)
     })
     
-    #Maps for all variables with distance to closest spot
-    output$map_variable <- renderLeaflet({
+ 
+    #Maps for all variables with distance to closest spot, (changes only when 'zoeken' button is clicked)
+    # Uses map_subtheme function from create_map_facilities file
+    leaflet_map <- eventReactive(input$action_theme,{
       subthema <-  selected_subtheme_title()
-      dataset <- datasetInput()$dataset
-      if (subthema == "Huisartsenpraktijk"){
-        make_map(dataset, "Afstand tot huisartsenpraktijk (km)",
-                 input$niveau, 
-                 input$thema)
-      }else if (subthema == "Ziekenhuis incl. buitenpolikliniek"){
-        make_map(dataset, "Afstand tot ziekenhuis incl. buitenpolikliniek (km)",
-                 input$niveau, 
-                 input$thema)
-      }else if (subthema == "Ziekenhuis excl. buitenpolikliniek"){
-        make_map(dataset, "Afstand tot ziekenhuis excl. Buitenpolikliniek (km)",
-                 input$niveau, 
-                 input$thema)
-      }else if(subthema=="Apotheek"){
-        make_map(dataset, "Afstand tot apotheek (km)",
-                 input$niveau, 
-                 input$thema)
-      }else if (subthema == "Supermarkt"){
-        make_map(dataset, "Afstand tot grote supermarkt (km)",
-                 input$niveau, 
-                 input$thema)
-      }else if (subthema == "Overige dagelijkse levensmiddelen"){
-        make_map(dataset, "Afstand tot overige dagelijkse levensmiddelen (km)",
-                 input$niveau, 
-                 input$thema)
-      }else if (subthema == "Warenhuis"){
-        make_map(dataset, "Afstand tot warenhuis (km)",
-                 input$niveau, 
-                 input$thema)
-      }else if (subthema == "Café"){
-        make_map(dataset, "Afstand tot cafe (km)",
-                 input$niveau, 
-                 input$thema)
-      }else if (subthema == "Cafetaria"){
-        make_map(dataset, "Afstand tot cafetaria (km)",
-                 input$niveau, 
-                 input$thema)
-      }else if (subthema == "Restaurant"){
-        make_map(dataset, "Afstand tot restaurant (km)",
-                 input$niveau, 
-                 input$thema)
-      }else if (subthema == "Hotel"){
-        make_map(dataset, "Afstand tot hotel (km)",
-                 input$niveau, 
-                 input$thema)
-      }else if (subthema == "Kinderdagverblijf"){
-        make_map(dataset, "Afstand tot kinderdagverblijf  (km)",
-                 input$niveau, 
-                 input$thema)
-      }else if (subthema == "Buitenschoolse opvang"){
-        make_map(dataset, "Afstand tot buitenschoolse opvang  (km)",
-                 input$niveau, 
-                 input$thema)
-      }else if (subthema == "Basisschool"){
-        make_map(dataset, "Afstand tot basisscholen (km)",
-                 input$niveau, 
-                 input$thema)
-      }else if (subthema == "Voortgezet onderwijs"){
-        make_map(dataset, "Afstand tot voortgezet onderwijs (km)",
-                 input$niveau, 
-                 input$thema)
-      }else if (subthema == "VMBO school"){
-        make_map(dataset, "Afstand tot scholen VMBO (km)",
-                 input$niveau, 
-                 input$thema)
-      }else if (subthema == "HAVO/VWO school"){
-        make_map(dataset, "Afstand tot scholen HAVO/VWO (km)",
-                 input$niveau, 
-                 input$thema)
-      }else if (subthema == "Oprit hoofdverkeersweg"){
-        make_map(dataset, "Afstand tot oprit hoofdverkeersweg (km)",
-                 input$niveau, 
-                 input$thema)
-      }else if (subthema == "Treinstation"){
-        make_map(dataset, "Afstand tot treinstation (km)",
-                 input$niveau, 
-                 input$thema)
-      }else if (subthema == "Belangrijk overstapstation"){
-        make_map(dataset, "Afstand tot belangrijk overstapstation (km)",
-                 input$niveau, 
-                 input$thema)
-      }else if (subthema == "Bioscoop"){
-        make_map(dataset, "Afstand tot bioscoop (km)",
-                 input$niveau, 
-                 input$thema)
-      }else if (subthema == "Attractie"){
-        make_map(dataset, "Afstand tot attractie (km)",
-                 input$niveau, 
-                 input$thema)
-      }else if (subthema == "Podiumkunsten"){
-        make_map(dataset, "Afstand tot podiumkunsten (km)",
-                 input$niveau, 
-                 input$thema)
-      }else if (subthema == "Museum"){
-        make_map(dataset, "Afstand tot museum (km)",
-                 input$niveau, 
-                 input$thema)
-      }else if (subthema == "Zwembad"){
-        make_map(dataset, "Afstand tot zwembad (km)",
-                 input$niveau, 
-                 input$thema)
-      }else if (subthema == "Kunstijsbaan"){
-        make_map(dataset, "Afstand tot kunstijsbaan (km)",
-                 input$niveau, 
-                 input$thema)
-      }else if (subthema == "Bibliotheek"){
-        make_map(dataset, "Afstand tot bibliotheek (km)",
-                 input$niveau, 
-                 input$thema)
-      }else if (subthema == "Poppodium"){
-        make_map(dataset, "Afstand tot poppodium (km)",
-                 input$niveau, 
-                 input$thema)
-      }else if (subthema == "Sauna"){
-        make_map(dataset, "Afstand tot sauna (km)",
-                 input$niveau, 
-                 input$thema)
-      }else if (subthema == "Zonnebank"){
-        make_map(dataset, "Afstand tot zonnebank (km)",
-                 input$niveau, 
-                 input$thema)
-      }
+      leafl <- map_subtheme(datasetInput()$dataset, subthema, input$niveau, input$thema)
+      return(leafl)
+    })
+    output$map_variable <- renderLeaflet({
+        leaflet_map()
     })
     
-    #Maps for the amount of instances inside a radius
-    output$plot_variable <- renderPlot({
+
+    #Plot for the amount of instances inside a radius (changes only when 'zoeken' button is clicked)
+    # Uses plot_4_theme function from plot4_facilities file
+    plot4_map <- eventReactive(input$action_theme,{
       subthema <-  selected_subtheme_title()
-      dataset = datasetInput()$dataset
-      if (subthema == "Huisartsenpraktijk"){
-      plot4(dataset,
-            "Aantal huisartsenpraktijken binnen 1 km", 
-            "Aantal huisartsenpraktijken binnen 3 km", 
-            "Aantal huisartsenpraktijken binnen 5 km")
-      }else if (subthema == "Ziekenhuis incl. buitenpolikliniek"){
-        plot4(dataset,
-              "Aantal ziekenhuizen incl. buitenpolikliniek binnen 5 km",                        
-              "Aantal ziekenhuizen incl. buitenpolikliniek binnen 10 km",                       
-              "Aantal ziekenhuizen incl. buitenpolikliniek binnen 20 km")
-      }else if (subthema == "Ziekenhuis excl. buitenpolikliniek"){
-        plot4(dataset,
-              "Aantal ziekenhuizen excl. Buitenpolikliniek binnen 5 km",                        
-              "Aantal ziekenhuizen excl. Buitenpolikliniek binnen 10 km",                       
-              "Aantal ziekenhuizen excl. Buitenpolikliniek binnen 20 km")
-      }else if (subthema == "Supermarkt"){
-        plot4(dataset,
-              "Aantal  grote supermarkten binnen 1 km",                                         
-              "Aantal  grote supermarkten binnen 3 km",                                          
-              "Aantal  grote supermarkten binnen 5 km")
-      }else if (subthema == "Overige dagelijkse levensmiddelen"){
-        plot4(dataset,
-              "Aantal winkels overige dagelijkse levensmiddelen binnen 1 km",                    
-              "Aantal winkels overige dagelijkse levensmiddelen binnen 3 km",                    
-              "Aantal winkels overige dagelijkse levensmiddelen binnen 5 km")
-      }else if (subthema == "Warenhuis"){
-        plot4(dataset,
-              "Aantal warenhuizen binnen 5 km",                                                  
-              "Aantal warenhuizen binnen 10 km",                                                
-              "Aantal warenhuizen binnen 20 km")
-      }else if (subthema == "Café"){
-        plot4(dataset,
-              "Aantal cafes binnen 1 km" ,                                                       
-              "Aantal cafes binnen 3 km" ,                                                       
-              "Aantal cafes binnen 5 km")
-      }else if (subthema == "Cafetaria"){
-        plot4(dataset,
-              "Aantal cafetaria's binnen 1 km",                                                  
-              "Aantal cafetaria's binnen 3 km",                                                  
-              "Aantal cafetaria's binnen 5 km")
-      }else if (subthema == "Restaurant"){
-        plot4(dataset,
-              "Aantal restaurants binnen 1 km",                                                  
-              "Aantal restaurants binnen 3 km",                                                  
-              "Aantal restaurants binnen 5 km")
-      }else if (subthema == "Hotel"){
-        plot4(dataset,
-              "Aantal hotel binnen 5 km",                                                  
-              "Aantal hotel binnen 10 km",                                                  
-              "Aantal hotel binnen 20 km")
-      }else if (subthema == "Kinderdagverblijf"){
-        plot4(dataset,
-              "Aantal kinderdagverblijf  binnen 1 km",                                                  
-              "Aantal kinderdagverblijf  binnen 3 km",                                                  
-              "Aantal kinderdagverblijf  binnen 5 km")
-      }else if (subthema == "Buitenschoolse opvang"){
-        plot4(dataset,
-              "Aantal buitenschoolse opvang  binnen 1 km",                                                  
-              "Aantal buitenschoolse opvang  binnen 3 km",                                                  
-              "Aantal buitenschoolse opvang  binnen 5 km")
-      }else if (subthema == "Basisschool"){
-        plot4(dataset,
-              "Aantal basisscholen binnen 1 km",                                                  
-              "Aantal basisscholen binnen 3 km",                                                  
-              "Aantal basisscholen binnen 5 km")
-      }else if (subthema == "Voortgezet onderwijs"){
-        plot4(dataset,
-              "Aantal voortgezet onderwijs binnen 3 km",                                                  
-              "Aantal voortgezet onderwijs binnen 5 km",                                                  
-              "Aantal voortgezet onderwijs binnen 10 km")
-      }else if (subthema == "VMBO school"){
-        plot4(dataset,
-              "Aantal scholen VMBO binnen 3 km",                                                  
-              "Aantal scholen VMBO binnen 5 km",                                                  
-              "Aantal scholen VMBO binnen 10 km")
-      }else if (subthema == "HAVO/VWO school"){
-        plot4(dataset,
-              "Aantal scholen HAVO/VWO binnen 3 km",                                                  
-              "Aantal scholen HAVO/VWO binnen 5 km",                                                  
-              "Aantal scholen HAVO/VWO binnen 10 km")
-      }else if (subthema == "Bioscoop"){
-        plot4(dataset,
-              "Aantal bioscoop binnen 5 km",                                                  
-              "Aantal bioscoop binnen 10 km",                                                  
-              "Aantal bioscoop binnen 20 km")
-      }else if (subthema == "Attractie"){
-        plot4(dataset,
-              "Aantal attracties binnen 10 km",                                                  
-              "Aantal attracties binnen 20 km",                                                  
-              "Aantal attracties binnen 50 km")
-      }else if (subthema == "Podiumkunsten"){
-        plot4(dataset,
-              "Aantal podiumkunsten binnen 5 km",                                                  
-              "Aantal podiumkunsten binnen 10 km",                                                  
-              "Aantal podiumkunsten binnen 20 km")
-      }else if (subthema == "Museum"){
-          plot4(dataset,
-                "Aantal musea binnen 5 km",                                                  
-                "Aantal musea binnen 10 km",                                                  
-                "Aantal musea binnen 20 km")
-      }
-      })
+      plot <- plot_4_theme(datasetInput()$dataset, subthema)
+      return(plot)
+    })
+    output$plot_variable <- renderPlot({
+      plot4_map()
+    })
      
     #Selected area name for the box titles (changes only when 'zoeken' button is clicked)
     selected_area_title <- eventReactive(input$action,{
