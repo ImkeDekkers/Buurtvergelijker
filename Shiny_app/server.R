@@ -7,6 +7,7 @@ full_data <- readRDS("../Data/full_data.rds")
 source("../plot4_facilities.R")
 source("../create_map_facilities.R")
 source("../top5_facilities.R")
+source("../postcode_lookup.R")
 
 gezondheid_all <-readRDS("../Data/gezondheid_all.rds")
 source("../SimilarAgeDistribution.R")
@@ -18,28 +19,12 @@ all_polygons <- full_data %>%
 intersection <- readRDS("../Data/intersection.rds")
 
 
-
 shinyServer(function(input, output, session) {
-    
-    #remove spaces and change lower case to upper case in postcode
-    postcode1 <-  reactive({str_replace_all(input$postcode, fixed(" "), "")})
-    postcode <- reactive({toupper(postcode1())})
-      
-    #Finding gemeente, wijk and buurt based on the input postcode
-    output$postcode_info <- renderText(
-      if(any(postcodes_final$PC6==postcode())){
-        matching_postcode <- postcodes_final %>% filter_at(vars(PC6), any_vars(. %in% postcode()))
-        if (nrow(matching_postcode)>1){
-          sprintf("Uw postcode komt voor in meerdere gebieden. Uw gemeentenaam is %s, uw wijknaam is %s en uw buurtnaam is %s of uw gemeentenaam is %s, uw wijknaam is %s en uw buurtnaam is %s", 
-                  matching_postcode$Gemeentenaam2020[1], matching_postcode$wijknaam2020[1], matching_postcode$buurtnaam2020[1], matching_postcode$Gemeentenaam2020[2], matching_postcode$wijknaam2020[2], matching_postcode$buurtnaam2020[2])
-          #with(matching_postcode, sprintf('Uw postcode komt voor in meerdere gebieden. Uw gemeentenaam is %s, uw wijknaam is %s en uw buurtnaam is %s', Gemeentenaam2020, wijknaam2020, buurtnaam2020))  
-      }else {
-        with(matching_postcode, sprintf('Uw gemeentenaam is %s, uw wijknaam is %s en uw buurtnaam is %s', Gemeentenaam2020, wijknaam2020, buurtnaam2020))
-    }} else {
-        print("Er is (nog) geen geldige postcode ingevoerd.")
-      }
-    )
-    
+  
+    # Finding gemeente, wijk and buurt name based on the input postcode
+    # Uses function postcode_lookup from file postcode_lookup
+    output$postcode_info <- renderText(postcode_lookup(postcodes_final,input$postcode))
+  
     # Make selection dependent on previous input
     observeEvent(input$gemeente2, {
       updateSelectInput(session, 'wijken2',
