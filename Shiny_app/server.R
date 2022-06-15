@@ -8,6 +8,7 @@ source("../plot4_facilities.R")
 source("../create_map_facilities.R")
 source("../top5_facilities.R")
 source("../postcode_lookup.R")
+source("../Dataset.R")
 
 gezondheid_all <-readRDS("../Data/gezondheid_all.rds")
 source("../SimilarAgeDistribution.R")
@@ -65,78 +66,27 @@ shinyServer(function(input, output, session) {
         }
           })
     
-    #make used data reactive on the selected niveau
+
+    # used datafor the other visualizations, depends on selected level, area and comparable areas
+    # Uses function dataset from the file Dataset
     datasetInput <- eventReactive(input$action,{
-      df <- as.data.frame(full_data)
-      df <- df[df$Niveau == input$niveau,]
-      if(input$niveau == 'Gemeenten'){
-        if(input$vergelijkbaar1 == "Stedelijkheidsniveau"){
-          stedelijkheid_num <- df[df$GM_NAAM == input$gemeente1, "Stedelijkheid (1=zeer sterk stedelijk, 5=niet stedelijk)"]
-          comparable_df <- df[df$`Stedelijkheid (1=zeer sterk stedelijk, 5=niet stedelijk)`== stedelijkheid_num, ]
-        }else if (input$vergelijkbaar1 == "Inkomensniveau"){
-          inkomen_num <- df[df$GM_NAAM == input$gemeente1, 'inkomengroep']
-          comparable_df <- df[df$inkomengroep == inkomen_num, ]
-        }else if(input$vergelijkbaar1 == "Nederland"){
-          comparable_df <- df
-        }
-        comparable_df$selected_area_code <- comparable_df %>% filter(GM_NAAM == input$gemeente1) %>% pull(CODE)
-        comparable_df$selected_area_label <- comparable_df %>% filter(GM_NAAM == input$gemeente1) %>% pull(NAAM)
-        selected_polygon <- comparable_df %>% filter(GM_NAAM == input$gemeente1)
-        row_num_selected <- which(comparable_df$GM_NAAM == input$gemeente1)
-      }else if(input$niveau == 'Wijken'){
-        if(input$vergelijkbaar2 == "Stedelijkheidsniveau"){
-          stedelijkheid_num <- df[df$WK_NAAM == input$wijken2 & df$GM_NAAM == input$gemeente2, "Stedelijkheid (1=zeer sterk stedelijk, 5=niet stedelijk)"]
-          comparable_df <- df[df$`Stedelijkheid (1=zeer sterk stedelijk, 5=niet stedelijk)`== stedelijkheid_num, ]
-          comparable_df <- comparable_df %>% drop_na(CODE)
-          output$ink_vergelijkbaarheid <- renderText(
-            print("")
-          )
-          output$opl_vergelijkbaarheid <- renderText(
-            print("")
-          )
-        }else if (input$vergelijkbaar2 == "Inkomensniveau"){
-          inkomen_num <- df[df$WK_NAAM == input$wijken2 & df$GM_NAAM == input$gemeente2, 'inkomengroep']
-          if(is.na(inkomen_num)){
-            comparable_df <- df[df$Niveau == input$niveau,]
-            output$ink_vergelijkbaarheid <- renderText(
-              print("Let op, door een missende waarde van het inkomensniveau voor uw wijk, wordt er nu met heel Nederland vergeleken.")
-            )
-          }else{
-            comparable_df <- df[df$inkomengroep == inkomen_num, ]
-            comparable_df <- comparable_df %>% drop_na(CODE)
-            output$ink_vergelijkbaarheid <- renderText(
-              print("")
-            )
-          }
-        }else if(input$vergelijkbaar2 == "Nederland"){
-          comparable_df <- df
-          output$ink_vergelijkbaarheid <- renderText(
-            print("")
-          )
-          output$opl_vergelijkbaarheid <- renderText(
-            print("")
-          )
-        }
-        comparable_df$selected_area_code <- comparable_df %>% filter(GM_NAAM == input$gemeente2 & WK_NAAM == input$wijken2) %>%pull(CODE)
-        comparable_df$selected_area_label <- comparable_df %>% filter(GM_NAAM == input$gemeente2 & WK_NAAM == input$wijken2) %>%pull(NAAM)
-        selected_polygon <- comparable_df %>% filter(GM_NAAM == input$gemeente2 & WK_NAAM == input$wijken2)
-        row_num_selected <- which(comparable_df$GM_NAAM == input$gemeente2 & comparable_df$WK_NAAM == input$wijken2)
-      }else if(input$niveau == 'Buurten'){
-        if(input$vergelijkbaar3 == "Stedelijkheidsniveau"){
-          stedelijkheid_num <- df[df$BU_NAAM==input$buurten3 & df$GM_NAAM == input$gemeente3 & df$WK_NAAM == input$wijken3, "Stedelijkheid (1=zeer sterk stedelijk, 5=niet stedelijk)"]
-          comparable_df <- df[df$`Stedelijkheid (1=zeer sterk stedelijk, 5=niet stedelijk)`== stedelijkheid_num, ]
-          comparable_df <- comparable_df %>% drop_na(CODE)
-        } else if(input$vergelijkbaar3 == "Nederland"){
-          comparable_df <- df
-        }
-        comparable_df$selected_area_code <- comparable_df %>% filter(GM_NAAM == input$gemeente3 & WK_NAAM == input$wijken3 & BU_NAAM == input$buurten3) %>%pull(CODE)
-        comparable_df$selected_area_label <- comparable_df %>% filter(GM_NAAM == input$gemeente3 & WK_NAAM == input$wijken3 & BU_NAAM == input$buurten3) %>%pull(NAAM)
-        selected_polygon <- comparable_df %>% filter(GM_NAAM == input$gemeente3 & WK_NAAM == input$wijken3 & BU_NAAM == input$buurten3)
-        row_num_selected <- which(comparable_df$GM_NAAM == input$gemeente3 & comparable_df$WK_NAAM == input$wijken3 & comparable_df$BU_NAAM == input$buurten3)
-      } 
-      comparable_df$centroidxx <- comparable_df[row_num_selected, 'centroidx']
-      comparable_df$centroidyy <- comparable_df[row_num_selected, 'centroidy']
-      dataset <- st_as_sf(comparable_df)
+      dataset <- dataset(full_data, input$niveau, input$vergelijkbaar1, input$gemeente1,
+              input$vergelijkbaar2, input$gemeente2, input$wijken2,
+              input$vergelijkbaar3, input$gemeente3, input$wijken3, input$buurten3)$dataset
+      selected_polygon <- dataset(full_data, input$niveau, input$vergelijkbaar1, input$gemeente1,
+                                  input$vergelijkbaar2, input$gemeente2, input$wijken2,
+                                  input$vergelijkbaar3, input$gemeente3, input$wijken3, input$buurten3)$selected_polygon
+      ink_level <- dataset(full_data, input$niveau, input$vergelijkbaar1, input$gemeente1,
+                           input$vergelijkbaar2, input$gemeente2, input$wijken2,
+                           input$vergelijkbaar3, input$gemeente3, input$wijken3, input$buurten3)$ink_level
+      if (ink_level=="onbekend"){
+      output$ink_vergelijkbaarheid <- renderText(
+        print("Let op, door een missende waarde van het inkomensniveau voor uw wijk, wordt er nu met heel Nederland vergeleken.")
+      )}
+      else if(ink_level=="bekend"){
+        output$ink_vergelijkbaarheid <- renderText(
+          print("")
+        )}
       
       list_return <- list("dataset" = dataset, "selected_polygon" = selected_polygon)
       return(list_return)
@@ -468,8 +418,7 @@ shinyServer(function(input, output, session) {
             tableOutput("info_area"),
             "Stedelijkheid: 1 = zeer sterk stedelijk, 5 = niet stedelijk.", br(),
             "Inkomensgroep: 1 = klein aandeel onder sociaal minimum, 4 = groot aandeel onder sociaal minimum.",
-            span(textOutput("ink_vergelijkbaarheid"), style="color:red"),
-            span(textOutput("opl_vergelijkbaarheid"), style="color:red")) # Box informatie 
+            span(textOutput("ink_vergelijkbaarheid"), style="color:red")) # Box informatie 
     })
     
     #Kaart box, title changes based on the selected area
