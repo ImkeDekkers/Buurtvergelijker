@@ -4,15 +4,15 @@
 #buurten <- readRDS("../Data/buurten.rds")
 postcodes_final <- readRDS("../Data/postcodes_final.rds")
 full_data <- readRDS("../Data/full_data.rds")
-source("../plot4_facilities.R")
-source("../create_map_facilities.R")
-source("../top5_facilities.R")
-source("../postcode_lookup.R")
-source("../Dataset.R")
+source("../Functions/plot4_facilities.R")
+source("../Functions/create_map_facilities.R")
+source("../Functions/top5_facilities.R")
+source("../Functions/postcode_lookup.R")
+source("../Functions/Dataset.R")
 
 gezondheid_all <-readRDS("../Data/gezondheid_all.rds")
-source("../SimilarAgeDistribution.R")
-source("../HealthPlots.R")
+source("../Functions/SimilarAgeDistribution.R")
+source("../Functions/HealthPlots.R")
 
 all_polygons <- full_data %>% 
   select(BU_CODE, BU_NAAM, WK_CODE, WK_NAAM, GM_CODE, GM_NAAM, geometry, 
