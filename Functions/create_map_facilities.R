@@ -188,7 +188,7 @@ map_subtheme <- function(data, subthema, niveau, thema){
   }else if (subthema == "Poppodium"){
     make_map(dataset, "Afstand tot poppodium (km)",
              niveau, 
-             input$thema)
+             thema)
   }else if (subthema == "Sauna"){
     make_map(dataset, "Afstand tot sauna (km)",
              niveau, 
