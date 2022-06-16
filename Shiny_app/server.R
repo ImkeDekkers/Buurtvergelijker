@@ -847,8 +847,8 @@ shinyServer(function(input, output, session) {
     output$histogram_incidents <- renderPlot(
       ggplot(data = top_incidents()$incidents_all_inclu_niveau, aes(x = n)) +
         geom_histogram(binwidth = 4, fill = "dark gray") +
-        geom_vline(xintercept = top_incidents()$count_incidents_niveau, color = "blue") +
-        geom_vline(xintercept = top_incidents()$incidents_mean, color = "green4") +
+        geom_vline(xintercept = top_incidents()$count_incidents_niveau, color = "blue", size = 1.5) +
+        geom_vline(xintercept = top_incidents()$incidents_mean, color = "green4", size = 1.5) +
         annotate(x = top_incidents()$count_incidents_niveau, y = +Inf, 
                  geom = "label", label = "Geselecteerd gebied", vjust = 2, color = "blue")+
         annotate(x = top_incidents()$incidents_mean, y = +Inf, 

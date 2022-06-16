@@ -255,7 +255,9 @@ ui <- dashboardPage(
                                    ), # Column top 5
                             column(width = 6,
                                    box(title = "Vergelijking met andere gebieden", width = NULL, status = "success", solidHeader = T,
-                                       "Hier kan een vergelijking worden getoond van 2 geselecteerde gebieden",
+                                       HTML("In deze grafiek wordt getoond bij hoeveel gebieden een bepaald aantal ongelukken plaatsvindt. <br>
+                                            De blauwe lijn is het door u geselecteerde gebied. De groene lijn is een gemiddelde van vergelijkbare gebieden. <br>
+                                            Als de blauwe lijn links van de groene lijn staat, dan doet het geselecteerde gebied het goed ten opzichte van het gemiddelde."),
                                        plotOutput("histogram_incidents")) # Box grafieken of diagram
                             ) # Column vergelijking buurt
                           ), # Fluid row 3 vergelijkbaarheid
