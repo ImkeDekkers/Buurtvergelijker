@@ -200,37 +200,37 @@ ui <- dashboardPage(
                           fluidRow(
                             column(width = 3,
                                    box(title = "Selecteer het gebied van interesse", width = NULL, status = "primary", solidHeader = T,
-                                       selectInput("niveau2", "Niveau:", c("Gemeenten" = "Gemeenten",
+                                       selectInput("niveau_incidents", "Niveau:", c("Gemeenten" = "Gemeenten",
                                                                            "Wijken" = "Wijken",
-                                                                           "Buurten" = "Buurten")), # Select input niveau2
+                                                                           "Buurten" = "Buurten")), # Select input niveau_incidents
                                        conditionalPanel(
-                                         condition = "input.niveau2 == 'Gemeenten'",
-                                         selectInput("gemeente21", "Gemeente:", choices = unique(gemeenten$GM_NAAM)) # Select input gemeente21
+                                         condition = "input.niveau_incidents == 'Gemeenten'",
+                                         selectInput("gemeente_1_incidents", "Gemeente:", choices = unique(gemeenten$GM_NAAM)) # Select input gemeente_1
                                        ), # Conditional panel 1 gemeenten
                                        conditionalPanel(
-                                         condition = "input.niveau2 == 'Wijken'",
-                                         selectInput("gemeente22", "Gemeente:", choices = unique(gemeenten$GM_NAAM)), # Select input gemeente22
-                                         selectInput("wijken22", "Wijk:", choices = NULL) # Select input wijken22
+                                         condition = "input.niveau_incidents == 'Wijken'",
+                                         selectInput("gemeente_2_incidents", "Gemeente:", choices = unique(gemeenten$GM_NAAM)), # Select input gemeente_2
+                                         selectInput("wijken_2_incidents", "Wijk:", choices = NULL) # Select input wijken_2
                                        ), # Conditional panel 2 wijken
                                        conditionalPanel(
-                                         condition = "input.niveau2 == 'Buurten'",
-                                         selectInput("gemeente23", "Gemeente:", choices = unique(gemeenten$GM_NAAM)), # Select input gemeente23
-                                         selectInput("wijken23", "Wijk:", choices = NULL), # Select input wijken23
-                                         selectInput("buurten23", "Buurt:", choices = NULL) # Select input buurten23
+                                         condition = "input.niveau_incidents == 'Buurten'",
+                                         selectInput("gemeente_3_incidents", "Gemeente:", choices = unique(gemeenten$GM_NAAM)), # Select input gemeente_3
+                                         selectInput("wijken_3_incidents", "Wijk:", choices = NULL), # Select input wijken_3
+                                         selectInput("buurten_3_incidents", "Buurt:", choices = NULL) # Select input buurten_3
                                        ), # Conditional panel 3 buurten
                                        selectInput("jaar", "Jaar:", c("2020" = "2020",
                                                                        "2019" = "2019",
                                                                        "2018" = "2018",
                                                                        "2017" = "2017"
                                                                        )), # Select input jaar
-                                       selectInput("subthema2", "Subthema:", c("Afloop" = "AP3_OMS",
+                                       selectInput("subthema_incidents", "Subthema:", c("Afloop" = "AP3_OMS",
                                                                                "Weersgesteldheid" = "WGD_CODE_1",
                                                                                "Aard" = "AOL_OMS",
                                                                                "Objecttype" = "OTE_OMS",
                                                                                "Wegsituatie" = "WSE_OMS",
                                                                                "Maximum snelheid" = "MAXSNELHD",
                                                                                "Aantal betrokken partijen" = "ANTL_PTJ")),
-                                   actionButton("action2", "Zoeken")
+                                   actionButton("action_incidents", "Zoeken")
                                    ) # Box input
                             ), # Column 1
                             column(width = 5,

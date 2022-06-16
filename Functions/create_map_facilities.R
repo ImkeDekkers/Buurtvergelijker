@@ -1,8 +1,38 @@
+# Icons for leaflet maps for different purposes
+iconblue <- makeAwesomeIcon(
+  icon = "arrow-down",
+  iconColor = "black",
+  markerColor = "blue",
+  library = "fa")
+
+iconred <- makeAwesomeIcon(
+  icon = "arrow-down",
+  iconColor = "black",
+  markerColor = "red",
+  library = "fa")
+
 icongreen <- makeAwesomeIcon(
   icon = "arrow-down",
   iconColor = "black",
   markerColor = "green",
   library = "fa")
+
+# Leaflet for prime map of selected area and general comparable areas
+prime_map_facilities <- function(dataset){
+  leaflet(dataset) %>% 
+  addProviderTiles(providers$CartoDB.Positron) %>% 
+  addPolygons(color = "navy", weight = 1, 
+              highlightOptions = highlightOptions(color = "black", 
+                                                  weight = 2),
+              label = ~htmlEscape(dataset$NAAM)) %>% 
+  addAwesomeMarkers(lng = dataset$centroidxx,
+                    lat = dataset$centroidyy,
+                    icon = iconblue) %>% 
+  addAwesomeMarkers(data = top5_distances_overall(dataset),
+                    lng = ~centroidx,
+                    lat = ~centroidy,
+                    icon = iconred,
+                    label = ~NAAM)}
 
 # Function that makes map of the selected variable 
 make_map <- function(dataset, variable, input_niveau_facilities, theme){
@@ -199,3 +229,4 @@ map_subtheme <- function(data, subthema, niveau, thema){
              thema)
   }
 }
+

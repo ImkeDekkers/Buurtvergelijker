@@ -1,7 +1,5 @@
 # Load data
-#gemeenten <- readRDS("../Data/gemeenten.rds")
-#wijken <- readRDS("../Data/wijken.rds")
-#buurten <- readRDS("../Data/buurten.rds")
+# Facilities
 postcodes_final <- readRDS("../Data/postcodes_final.rds")
 full_data <- readRDS("../Data/full_data.rds")
 source("../Functions/plot4_facilities.R")
@@ -10,16 +8,21 @@ source("../Functions/top5_facilities.R")
 source("../Functions/postcode_lookup.R")
 source("../Functions/Dataset.R")
 
+# Health 
 gezondheid_all <-readRDS("../Data/gezondheid_all.rds")
 source("../Functions/SimilarAgeDistribution.R")
 source("../Functions/HealthPlots.R")
 
+# Traffic incidents
 all_polygons <- full_data %>% 
   select(BU_CODE, BU_NAAM, WK_CODE, WK_NAAM, GM_CODE, GM_NAAM, geometry, 
          centroid, Niveau, centroidx, centroidy, `Stedelijkheid (1=zeer sterk stedelijk, 5=niet stedelijk)`)
 intersection <- readRDS("../Data/intersection.rds")
+source("../Functions/incidents_map.R")
+source("../Functions/plots_incidents.R")
+source("../Functions/generate_data_incidents.R")
 
-
+# Shiny server
 shinyServer(function(input, output, session) {
   
     # Finding gemeente, wijk and buurt name based on the input postcode
@@ -67,7 +70,7 @@ shinyServer(function(input, output, session) {
           })
     
 
-    # used datafor the other visualizations, depends on selected level, area and comparable areas
+    # Used data for the other visualizations, depends on selected level, area and comparable areas
     # Uses function dataset from the file Dataset
     datasetInput <- eventReactive(input$action,{
       dataset <- dataset(full_data, input$niveau, input$vergelijkbaar1, input$gemeente1,
@@ -88,7 +91,9 @@ shinyServer(function(input, output, session) {
           print("")
         )}
       
-      list_return <- list("dataset" = dataset, "selected_polygon" = selected_polygon)
+      list_return <- list("dataset" = dataset, 
+                          "selected_polygon" = selected_polygon)
+      
       return(list_return)
     })
     
@@ -100,99 +105,78 @@ shinyServer(function(input, output, session) {
       df
       }) 
 
-    #Gives table output with 5 most similar areas based on all voorzieningen variables
+    # Gives table output with 5 most similar areas based on all voorzieningen variables
     output$top5_algemeen <- renderTable(
       table_top5_distances_overall(datasetInput()$dataset, 
                                    input$niveau),
       rownames = TRUE
     )
     
-    #Selected theme name for the box titles (changes only when 'zoeken' button is clicked)
+    # Selected theme name for the box titles (changes only when 'zoeken' button is clicked)
     selected_theme_title <- eventReactive(input$action_theme,{
       theme <- input$thema
       return(theme)
     })
-    
-    # Make icon for maps
-    iconblue <- makeAwesomeIcon(
-      icon = "arrow-down",
-      iconColor = "black",
-      markerColor = "blue",
-      library = "fa")
-    
-    iconred <- makeAwesomeIcon(
-      icon = "arrow-down",
-      iconColor = "black",
-      markerColor = "red",
-      library = "fa")
-    
-    icongreen <- makeAwesomeIcon(
-      icon = "arrow-down",
-      iconColor = "black",
-      markerColor = "green",
-      library = "fa")
-    
-    #returns table with top 5 similar areas based on chosen theme (changes only when 'zoeken' button is clicked)
+  
+    # Returns table with top 5 similar areas based on chosen theme (changes only when 'zoeken' button is clicked)
     table_top5_theme <- eventReactive(input$action_theme,{
       table_top5_distances_theme(datasetInput()$dataset, 
                                  input$niveau, 
                                  input$thema)
     })
-    #returns table with top 5 similar areas based on chosen theme
+    
+    # Returns table with top 5 similar areas based on chosen theme
     output$top5_theme <- renderTable(
       table_top5_theme(),
       rownames = TRUE
     )
     
     # Create map to point to the selected location and comparable polygons
+    # Uses prime_map_facilities function from create_map_facilities file
     output$prime_map <- renderLeaflet({
-      leaflet(datasetInput()$dataset) %>% 
-        addProviderTiles(providers$CartoDB.Positron) %>% 
-        addPolygons(color = "navy", weight = 1, 
-                    highlightOptions = highlightOptions(color = "black", 
-                                                        weight = 2),
-                    label = ~htmlEscape(datasetInput()$dataset$NAAM)) %>% 
-        addAwesomeMarkers(lng = datasetInput()$dataset$centroidxx,
-                          lat = datasetInput()$dataset$centroidyy,
-                          icon = iconblue) %>% 
-        addAwesomeMarkers(data = top5_distances_overall(datasetInput()$dataset),
-                          lng = ~centroidx,
-                          lat = ~centroidy,
-                          icon = iconred,
-                          label = ~NAAM)
+      prime_map_facilities(datasetInput()$dataset)
     })
 
-    #Selected sutheme name for the box titles (changes only when 'zoeken' button is clicked)
+    # Selected sutheme name for the box titles (changes only when 'zoeken' button is clicked)
     selected_subtheme_title <- eventReactive(input$action_theme,{
       subthema <- input$subthema
+      
       return(subthema)
     })
     
  
-    #Maps for all variables with distance to closest spot, (changes only when 'zoeken' button is clicked)
+    # Maps for all variables with distance to closest spot, (changes only when 'zoeken' button is clicked)
     # Uses map_subtheme function from create_map_facilities file
     leaflet_map <- eventReactive(input$action_theme,{
       subthema <-  selected_subtheme_title()
-      leafl <- map_subtheme(datasetInput()$dataset, subthema, input$niveau, input$thema)
+      leafl <- map_subtheme(datasetInput()$dataset, 
+                            subthema, 
+                            input$niveau, 
+                            input$thema)
+      
       return(leafl)
     })
+    
     output$map_variable <- renderLeaflet({
         leaflet_map()
     })
     
 
-    #Plot for the amount of instances inside a radius (changes only when 'zoeken' button is clicked)
+    # Plot for the amount of instances inside a radius (changes only when 'zoeken' button is clicked)
     # Uses plot_4_theme function from plot4_facilities file
     plot4_map <- eventReactive(input$action_theme,{
       subthema <-  selected_subtheme_title()
-      plot <- plot_4_theme(datasetInput()$dataset, subthema)
+      plot <- plot_4_theme(datasetInput()$dataset, 
+                           subthema)
+      
       return(plot)
     })
+    
     output$plot_variable <- renderPlot({
       plot4_map()
     })
      
-    #Selected area name for the box titles (changes only when 'zoeken' button is clicked)
+    # Selected area name for the box titles (changes only when 'zoeken' button is clicked)
     selected_area_title <- eventReactive(input$action,{
       if(input$niveau=="Gemeenten"){
         title <- input$gemeente1
@@ -204,7 +188,7 @@ shinyServer(function(input, output, session) {
       return(title)
     })
     
-    #Info box, title changes based on the selected area
+    # Info box, title changes based on the selected area
     output$info_box = renderUI({
       title <- paste0("Informatie over: ", selected_area_title())
       box(title = title, width = 3, status = "warning", solidHeader = T,
@@ -212,7 +196,7 @@ shinyServer(function(input, output, session) {
             tableOutput("info_area"),
             "Stedelijkheid: 1 = zeer sterk stedelijk, 5 = niet stedelijk.", br(),
             "Inkomensgroep: 1 = klein aandeel onder sociaal minimum, 4 = groot aandeel onder sociaal minimum.",
-            span(textOutput("ink_vergelijkbaarheid"), style="color:red")) # Box informatie 
+            span(textOutput("ink_vergelijkbaarheid"), style="color:red"))
     })
     
     #Kaart box, title changes based on the selected area
@@ -220,7 +204,6 @@ shinyServer(function(input, output, session) {
       title <- title <- paste0("Kaart met: ", selected_area_title())
       box(title = title, width = 4, status = "warning", solidHeader = T,
           "Kaart waarop het gekozen gebied te zien is (blauwe pointer), de top 5 meest vergelijkbare gebieden (rode pointers) en de gebieden waarmee wordt vergeleken.",
-          #"Hier komt de prime map van leaflet met pointer naar centroid van de geselecteerde g/w/b",
           shinycssloaders::withSpinner(leafletOutput("prime_map"))) 
     })
     
@@ -229,7 +212,6 @@ shinyServer(function(input, output, session) {
     title <- paste0("Kaart met: ", selected_area_title())
     box(title = "Top 5 alle voorzieningen", width = 2, background = "red", 
         "Top 5 met vergelijkbare gebieden voor alle voorzieningen",
-        #"Hier komt de algemene top 5 zonder geselecteerd thema",
         tableOutput('top5_algemeen')) 
     })
 
@@ -238,7 +220,6 @@ shinyServer(function(input, output, session) {
       title <- paste0("Top 5 ",selected_theme_title())
       box(title = title, width = NULL, background = "green",
           "Top 5 met vergelijkbare gebieden voor het gekozen thema",
-          #"Hier komt de top 5 van vergelijkbare g/w/b voor een bepaald thema",
           tableOutput('top5_theme')) 
     })
     
@@ -247,7 +228,6 @@ shinyServer(function(input, output, session) {
       title <- paste0("Kaart van Nederland: ", selected_subtheme_title())
       box(title = title, width = 6, status = "warning", solidHeader = T,
           "Kaart van Nederland met het gekozen subthema.",
-          #"Hier komt de kaart van Nederland met geselecteerde vergelijkbare g/w/b op bepaalde variabele",
           shinycssloaders::withSpinner(leafletOutput("map_variable"))) 
     })
     
@@ -259,156 +239,123 @@ shinyServer(function(input, output, session) {
                            "Cafe", "Cafetaria", "Restaurant", "Hotel", "Kinderdagverblijf", "Buitenschoolse opvang", "Basisschool",
                            "Voortgezet onderwijs", "VMBO school", "HAVO/VWO school", "Bioscoop", "Attractie", "Podiumkunsten", "Museum")
       
-      title <- paste0("Staafdiagram: ",selected_subtheme_title())
+      title <- paste0("Staafdiagram: ", selected_subtheme_title())
       
       #if the selected subthemes is in these subthemes with count, show the "staafdiagram" box
       if(input$subthema %in% subthemes_count){
         box(title = title, width = 4, status = "warning", solidHeader = T,
             "Aantal van het gekozen subthema binnen een bepaalde afstand, voor het gekozen gebied (roze) en andere vergelijkbare gebieden (blauw).",
-            #"Hier komt een staafdiagram om je wijk te vergelijken met het gemiddelde van vergelijkbare wijken",
             plotOutput("plot_variable"))
       }
     })
                          
     # ONGEVALLEN/TRAFFIC INCIDENTS
     # Make selection dependent on previous input
-    observeEvent(input$gemeente22, {
-      updateSelectInput(session, 'wijken22',
-                        choices = unique(postcodes_final$wijknaam2020[postcodes_final$Gemeentenaam2020 == input$gemeente22]))  # Only display that are in the selected gemeente
+    observeEvent(input$gemeente_2_incidents, {
+      updateSelectInput(session, 'wijken_2_incidents',
+                        choices = unique(postcodes_final$wijknaam2020[postcodes_final$Gemeentenaam2020 == input$gemeente_2_incidents]))  # Only display that are in the selected gemeente
     })
-    observeEvent(input$gemeente23, {
-      updateSelectInput(session, 'wijken23',
-                        choices = unique(postcodes_final$wijknaam2020[postcodes_final$Gemeentenaam2020 == input$gemeente23]))  # Only display that are in the selected gemeente
+    observeEvent(input$gemeente_3_incidents, {
+      updateSelectInput(session, 'wijken_3_incidents',
+                        choices = unique(postcodes_final$wijknaam2020[postcodes_final$Gemeentenaam2020 == input$gemeente_3_incidents]))  # Only display that are in the selected gemeente
     })
-    observeEvent(input$wijken23,{
-      updateSelectInput(session, 'buurten23',
-                        choices = unique(postcodes_final$buurtnaam2020[postcodes_final$Gemeentenaam2020 == input$gemeente23 & 
-                                                                         postcodes_final$wijknaam2020==input$wijken23]))       # Only display buurten that are in the selected wijk
+    observeEvent(input$wijken_3_incidents,{
+      updateSelectInput(session, 'buurten_3_incidents',
+                        choices = unique(postcodes_final$buurtnaam2020[postcodes_final$Gemeentenaam2020 == input$gemeente_3_incidents & 
+                                                                         postcodes_final$wijknaam2020==input$wijken_3_incidents]))       # Only display buurten that are in the selected wijk
     })
     
-    # REACTION ON ACTION 2
+    # REACTION ON ACTION_INCIDENTS  
     # Create input dataset for further analysis
-    reaction2 <- eventReactive(input$action2, {
-      sf_use_s2(F)
-      polygons_niveau <- all_polygons %>% filter(Niveau == input$niveau2)  # Only polygons on selected niveau (gemeente, wijk, buurt)
-      intersection <- intersection %>% filter(Niveau == input$niveau2 & 
-                                                JAAR_VKL == input$jaar)    # Precalculated intersection filtered on niveau and year of input
+    # Uses list_selected_pol_info function from generate_data_incidents file
+    list_selected_pol <- eventReactive(input$action_incidents, {
+      pol_select <- list_selected_pol_info(all_polygons,
+                             intersection,
+                             input$niveau_incidents,
+                             input$jaar,
+                             input$gemeente_1_incidents, 
+                             input$gemeente_2_incidents, input$wijken_2_incidents, 
+                             input$gemeente_3_incidents, input$wijken_3_incidents, input$buurten_3_incidents)$pol_select
       
-      df_intersection <- as.data.frame(intersection) 
-      df_polygons <- as.data.frame(all_polygons)
+      intersection_select <- list_selected_pol_info(all_polygons,
+                                                    intersection,
+                                                    input$niveau_incidents,
+                                                    input$jaar,
+                                                    input$gemeente_1_incidents, 
+                                                    input$gemeente_2_incidents, input$wijken_2_incidents, 
+                                                    input$gemeente_3_incidents, input$wijken_3_incidents, input$buurten_3_incidents)$intersection_select
+      number_incidents <- list_selected_pol_info(all_polygons,
+                                                 intersection,
+                                                 input$niveau_incidents,
+                                                 input$jaar,
+                                                 input$gemeente_1_incidents, 
+                                                 input$gemeente_2_incidents, input$wijken_2_incidents, 
+                                                 input$gemeente_3_incidents, input$wijken_3_incidents, input$buurten_3_incidents)$number_incidents
       
-      if (input$niveau2 == "Gemeenten"){
-        pol_select <- polygons_niveau %>% filter(GM_NAAM == input$gemeente21)
-        incidents_count_niveau <- df_intersection %>% 
-          group_by(GM_NAAM) %>% 
-          count()
-        number_incidents <- incidents_count_niveau %>% filter(GM_NAAM == input$gemeente21)
-        intersection_select <- intersection %>% filter(GM_NAAM == input$gemeente21 &
-                                                         Niveau == "Gemeenten")
-        stedelijkheid_num <- df_polygons %>% filter(GM_NAAM == input$gemeente21 &
-                                                      Niveau == "Gemeenten") %>% select(`Stedelijkheid (1=zeer sterk stedelijk, 5=niet stedelijk)`)
-
-      } else if(input$niveau2 == "Wijken"){
-        pol_select <- polygons_niveau %>% filter(GM_NAAM == input$gemeente22 & 
-                                                   WK_NAAM == input$wijken22)
-        incidents_count_niveau <- df_intersection %>% 
-          group_by(WK_NAAM, GM_NAAM) %>% 
-          count()
-        number_incidents <- incidents_count_niveau %>% filter(GM_NAAM == input$gemeente22 & 
-                                                                WK_NAAM == input$wijken22)
-        intersection_select <- intersection %>% filter(GM_NAAM == input$gemeente22 &
-                                                         WK_NAAM == input$wijken22 &
-                                                         Niveau == "Wijken")
-        stedelijkheid_num <- df_polygons %>% filter(GM_NAAM == input$gemeente22 &
-                                                      WK_NAAM == input$wijken22 &
-                                                      Niveau == "Wijken") %>% select(`Stedelijkheid (1=zeer sterk stedelijk, 5=niet stedelijk)`)
-
-      } else if (input$niveau2 == "Buurten"){
-        pol_select <- polygons_niveau %>% filter(GM_NAAM == input$gemeente23 & 
-                                                   WK_NAAM == input$wijken23 & 
-                                                   BU_NAAM == input$buurten23)
-        incidents_count_niveau <- df_intersection %>% 
-          group_by(BU_NAAM, WK_NAAM, GM_NAAM) %>% 
-          count()
-        number_incidents <- incidents_count_niveau %>% filter(GM_NAAM == input$gemeente23 &
-                                                                WK_NAAM == input$wijken23 &
-                                                                BU_NAAM == input$buurten23)   
-        intersection_select <- intersection %>% filter(GM_NAAM == input$gemeente23 &
-                                                         WK_NAAM == input$wijken23 &
-                                                         BU_NAAM == input$buurten23 &
-                                                         Niveau == "Buurten")
-        stedelijkheid_num <- df_polygons %>% filter(GM_NAAM == input$gemeente23 &
-                                                      WK_NAAM == input$wijken23 &
-                                                      BU_NAAM == input$buurten23 &
-                                                      Niveau == "Buurten") %>% select(`Stedelijkheid (1=zeer sterk stedelijk, 5=niet stedelijk)`)
-      }
+      stedelijkheid_num <- list_selected_pol_info(all_polygons,
+                                                  intersection,
+                                                  input$niveau_incidents,
+                                                  input$jaar,
+                                                  input$gemeente_1_incidents, 
+                                                  input$gemeente_2_incidents, input$wijken_2_incidents, 
+                                                  input$gemeente_3_incidents, input$wijken_3_incidents, input$buurten_3_incidents)$stedelijkheid_num
       
-      number_incidents <- number_incidents$n
-      number_incidents <- ifelse(is.na(number_incidents), "0", number_incidents)
-      
-      stedelijkheid_num <- stedelijkheid_num$`Stedelijkheid (1=zeer sterk stedelijk, 5=niet stedelijk)`
-      
-      list_ongevallen_return <- list("pol_select" = pol_select,                    # Dataset with selected polygon/area 
+      list_ongevallen_return <- list("pol_select" = pol_select,                  # Dataset with selected polygon/area 
                                      "intersection_select" = intersection_select,  # All point data of selected area in selected year
                                      "number_incidents" = number_incidents,        # Number of incidents in selected area and year 
                                      "stedelijkheid_num" = stedelijkheid_num       # Stedelijkheid number for valuebox
                                      )               
-                                      
-      return(list_ongevallen_return)   
+      
+      return(list_ongevallen_return)
+      
     })
     
+    # Value box with degree of urbanization
     output$stedelijkheid_num <- renderValueBox(
-      valueBox(reaction2()$stedelijkheid_num, HTML("Het stedelijkheidsniveau van het door u geselecteerde gebied. <br>
+      valueBox(list_selected_pol()$stedelijkheid_num, HTML("Het stedelijkheidsniveau van het door u geselecteerde gebied. <br>
                1 = zeer stedelijk, 5 = niet stedelijk"),
                icon = icon("city", class = "fa-solid fa-city", lib = "font-awesome"),
                color = "red") # Valuebox
-    ) # Render valuebox
+    )
     
-    # General trend in selected area
-    input_trend <- eventReactive(input$action2, {
-      if (input$niveau2 == "Gemeenten"){
-        area <- intersection %>% filter(GM_NAAM == input$gemeente21 & 
+    # Data for trend line
+    input_trend <- eventReactive(input$action_incidents, {
+      if (input$niveau_incidents == "Gemeenten"){
+        area <- intersection %>% filter(GM_NAAM == input$gemeente_1_incidents & 
                                           Niveau == "Gemeenten")
-      } else if(input$niveau2 == "Wijken"){
-        area <- intersection %>% filter(GM_NAAM == input$gemeente22 & 
-                                          WK_NAAM == input$wijken22 & 
+      } else if(input$niveau_incidents == "Wijken"){
+        area <- intersection %>% filter(GM_NAAM == input$gemeente_2_incidents & 
+                                          WK_NAAM == input$wijken_2_incidents & 
                                           Niveau == "Wijken")
-      } else if (input$niveau2 == "Buurten"){
-        area <- intersection %>% filter(GM_NAAM == input$gemeente23 & 
-                                          WK_NAAM == input$wijken23 & 
-                                          BU_NAAM == input$buurten23 & 
+      } else if (input$niveau_incidents == "Buurten"){
+        area <- intersection %>% filter(GM_NAAM == input$gemeente_3_incidents & 
+                                          WK_NAAM == input$wijken_3_incidents & 
+                                          BU_NAAM == input$buurten_3_incidents & 
                                           Niveau == "Buurten")
       }
       return(area)
     })
     
     # Trend line of accidents in selected area over the years
+    # Uses trend_plot function from plots_incidents file
     output$general_trend <- renderPlot({
-      input_trend() %>% count(JAAR_VKL) %>%
-        ggplot() +
-        geom_line(aes(x = as.factor(JAAR_VKL), y = n, group = 1), color = "Red") +
-        labs(title = "Aantal ongevallen per jaar",
-             x = "Jaar",
-             y = "Aantal") +
-        theme_classic() +
-        theme(axis.text = element_text(size = 16),
-              axis.title = element_text(size = 14))
+      trend_plot(input_trend())
     })
     
     # Reaction on subthema input with the correct dataset
-    reaction3 <- eventReactive(input$action2, {
-      intersection_select <- reaction2()$intersection_select                                        # Points in selected polygon (filtered on niveau, naam and year)
-      if (input$subthema2 == "WGD_CODE_1"){
-        color_incidents <- colorFactor(brewer.pal(n = 6, "Set3"), intersection_select$WGD_CODE_1)   # Create color palette for categoric variable
+    list_charts_subthema <- eventReactive(input$action_incidents, {
+      intersection_select <- list_selected_pol()$intersection_select                                        # Points in selected polygon (filtered on niveau, naam and year)
+      if (input$subthema_incidents == "WGD_CODE_1"){
         subthema <- intersection_select$WGD_CODE_1                                                  # Set subthema that can be used for color map
         subthema_char <-"Weersgesteldheid"                                                          # Character of subthema for title
-        
+        color_incidents <- colorFactor(brewer.pal(n = 6, "Set3"), intersection_select$WGD_CODE_1)   # Create color palette for categoric variable
+
         bar_chart <- intersection_select %>%
           count(WGD_CODE_1) %>% 
           ggplot(aes(x = WGD_CODE_1, y=n, fill = as.factor(WGD_CODE_1))) +
           geom_col(show.legend = F) +
-          labs(title = "Aantal ongevallen binnen geselecteerd subthema",
-               x = subthema_char,
+          labs(title = "Aantal ongevallen per categorie van weersgesteldheid",
+               x = "Weersgesteldheid",
                y = "Aantal") + 
           scale_fill_brewer(palette = "Set3") +
           theme_classic() +
@@ -425,8 +372,8 @@ shinyServer(function(input, output, session) {
           coord_polar("y", start = 0) +
           theme_void() +
           scale_fill_brewer(palette = "Set3") +
-          labs(title = "Aantal ongevallen binnen geselecteerd subthema",
-               fill = subthema_char) +
+          labs(title = "Aantal ongevallen per categorie van weersgesteldheid",
+               fill = "Weersgesteldheid") +
           theme(legend.text = element_text(size = 16))+
           geom_text_repel(aes(x = 1.6, 
                         label = paste0(n,
@@ -434,17 +381,17 @@ shinyServer(function(input, output, session) {
                                        scales::percent(n / sum(n)),
                                        ")")),
                     position = position_stack(vjust = 0.5))
-      } else if (input$subthema2 == "AP3_OMS"){
+      } else if (input$subthema_incidents == "AP3_OMS"){
         color_incidents <- colorFactor(brewer.pal(n = 3, "Set3"), intersection_select$AP3_OMS)
         subthema <- intersection_select$AP3_OMS 
         subthema_char <-"Afloop"
-        
+
         bar_chart <- intersection_select %>% 
           count(AP3_OMS) %>% 
           ggplot(aes(x = AP3_OMS, y=n, fill = as.factor(AP3_OMS))) +
           geom_col(show.legend = F) +
-          labs(title = "Aantal ongevallen binnen geselecteerd subthema",
-               x = subthema_char,
+          labs(title = "Aantal ongevallen per categorie van afloop",
+               x = "Afloop",
                y = "Aantal") + 
           scale_fill_brewer(palette = "Set3") +
           theme_classic()+
@@ -461,8 +408,8 @@ shinyServer(function(input, output, session) {
           coord_polar("y", start = 0) +
           theme_void() +
           scale_fill_brewer(palette = "Set3") +
-          labs(title = "Aantal ongevallen binnen geselecteerd subthema",
-               fill = subthema_char) +
+          labs(title = "Aantal ongevallen per categorie van afloop",
+               fill = "Afloop") +
           theme(legend.text = element_text(size = 16))+
           geom_text_repel(aes(x = 1.6, 
                         label = paste0(n,
@@ -470,7 +417,7 @@ shinyServer(function(input, output, session) {
                                        scales::percent(n / sum(n)),
                                        ")")),
                     position = position_stack(vjust = 0.5))
-      } else if (input$subthema2 == "AOL_OMS"){
+      } else if (input$subthema_incidents == "AOL_OMS"){
         color_incidents <- colorFactor(brewer.pal(n = 10, "Set3"), intersection_select$AOL_OMS)
         subthema <- intersection_select$AOL_OMS 
         subthema_char <-"Aard"
@@ -479,8 +426,8 @@ shinyServer(function(input, output, session) {
           count(AOL_OMS) %>% 
           ggplot(aes(x = AOL_OMS, y=n, fill = as.factor(AOL_OMS))) +
           geom_col(show.legend = F) +
-          labs(title = "Aantal ongevallen binnen geselecteerd subthema",
-               x = subthema_char,
+          labs(title = "Aantal ongevallen per categorie van aard",
+               x = "Aard",
                y = "Aantal") + 
           theme_classic()+
           scale_fill_brewer(palette = "Set3") +
@@ -497,8 +444,8 @@ shinyServer(function(input, output, session) {
           coord_polar("y", start = 0) +
           theme_void() +
           scale_fill_brewer(palette = "Set3") +
-          labs(title = "Aantal ongevallen binnen geselecteerd subthema",
-               fill = subthema_char) +
+          labs(title = "Aantal ongevallen per categorie van aard",
+               fill = "Aard") +
           theme(legend.text = element_text(size = 16))+
           geom_text_repel(aes(x = 1.6, 
                         label = paste0(n,
@@ -506,7 +453,7 @@ shinyServer(function(input, output, session) {
                                        scales::percent(n / sum(n)),
                                        ")")),
                     position = position_stack(vjust = 0.5))
-      } else if (input$subthema2 == "OTE_OMS"){
+      } else if (input$subthema_incidents == "OTE_OMS"){
         color_incidents <- colorFactor(brewer.pal(n = 10, "Set3"), intersection_select$OTE_OMS)
         subthema <- intersection_select$OTE_OMS 
         subthema_char <-"Objecttype"
@@ -515,8 +462,8 @@ shinyServer(function(input, output, session) {
           count(OTE_OMS) %>% 
           ggplot(aes(x = OTE_OMS, y=n, fill = as.factor(OTE_OMS))) +
           geom_col(show.legend = F) +
-          labs(title = "Aantal ongevallen binnen geselecteerd subthema",
-               x = subthema_char,
+          labs(title = "Aantal ongevallen per categorie van objecttype",
+               x = "Objecttype",
                y = "Aantal") + 
           theme_classic()+
           scale_fill_brewer(palette = "Set3") +
@@ -533,8 +480,8 @@ shinyServer(function(input, output, session) {
           coord_polar("y", start = 0) +
           theme_void() +
           scale_fill_brewer(palette = "Set3") +
-          labs(title = "Aantal ongevallen binnen geselecteerd subthema",
-               fill = subthema_char) +
+          labs(title = "Aantal ongevallen per categorie van objecttype",
+               fill = "Objecttype") +
           theme(legend.text = element_text(size = 16))+
           geom_text_repel(aes(x = 1.6, 
                         label = paste0(n,
@@ -542,7 +489,7 @@ shinyServer(function(input, output, session) {
                                        scales::percent(n / sum(n)),
                                        ")")),
                     position = position_stack(vjust = 0.5))
-      } else if (input$subthema2 == "WSE_OMS"){
+      } else if (input$subthema_incidents == "WSE_OMS"){
         color_incidents <- colorFactor(brewer.pal(n = 9, "Set3"), intersection_select$WSE_OMS)
         subthema <- intersection_select$WSE_OMS 
         subthema_char <-"Wegsituatie"
@@ -551,8 +498,8 @@ shinyServer(function(input, output, session) {
           count(WSE_OMS) %>% 
           ggplot(aes(x = WSE_OMS, y=n, fill = as.factor(WSE_OMS))) +
           geom_col(show.legend = F) +
-          labs(title = "Aantal ongevallen binnen geselecteerd subthema",
-               x = subthema_char,
+          labs(title = "Aantal ongevallen per categorie van wegsituatie",
+               x = "Wegsituatie",
                y = "Aantal") + 
           theme_classic()+
           scale_fill_brewer(palette = "Set3") +
@@ -569,8 +516,8 @@ shinyServer(function(input, output, session) {
           coord_polar("y", start = 0) +
           theme_void() +
           scale_fill_brewer(palette = "Set3") +
-          labs(title = "Aantal ongevallen binnen geselecteerd subthema",
-               fill = subthema_char) +
+          labs(title = "Aantal ongevallen per categorie van wegsituatie",
+               fill = "Wegsituatie") +
           theme(legend.text = element_text(size = 16))+
           geom_text_repel(aes(x = 1.6,
                         label = paste0(n,
@@ -578,7 +525,7 @@ shinyServer(function(input, output, session) {
                                        scales::percent(n / sum(n)),
                                        ")")),
                     position = position_stack(vjust = 0.5))
-      } else if (input$subthema2 == "MAXSNELHD"){
+      } else if (input$subthema_incidents == "MAXSNELHD"){
         color_incidents <- colorFactor(brewer.pal(n = 11, "Blues"), intersection_select$MAXSNELHD)
         subthema <- intersection_select$MAXSNELHD 
         subthema_char <-"Maximum snelheid"
@@ -587,8 +534,8 @@ shinyServer(function(input, output, session) {
           count(MAXSNELHD) %>% 
           ggplot(aes(x = as.factor(MAXSNELHD), y=n, fill = as.factor(MAXSNELHD))) +
           geom_col(show.legend = F) +
-          labs(title = "Aantal ongevallen binnen geselecteerd subthema",
-               x = subthema_char,
+          labs(title = "Aantal ongevallen per categorie van maximum snelheid",
+               x = "Maximum snelheid",
                y = "Aantal") + 
           theme_classic()+
           scale_fill_brewer(palette = "Blues") +
@@ -605,8 +552,8 @@ shinyServer(function(input, output, session) {
           coord_polar("y", start = 0) +
           theme_void() +
           scale_fill_brewer(palette = "Blues") +
-          labs(title = "Aantal ongevallen binnen geselecteerd subthema",
-               fill = subthema_char) +
+          labs(title = "Aantal ongevallen per categorie van maximum snelheid",
+               fill = "Maximum snelheid") +
           theme(legend.text = element_text(size = 16))+
           geom_text_repel(aes(x = 1.6,
                         label = paste0(n,
@@ -614,7 +561,7 @@ shinyServer(function(input, output, session) {
                                        scales::percent(n / sum(n)),
                                        ")")),
                     position = position_stack(vjust = 0.5))
-      } else if (input$subthema2 == "ANTL_PTJ"){
+      } else if (input$subthema_incidents == "ANTL_PTJ"){
         colorCount <- length(unique(intersection_select$ANTL_PTJ))
         color_incidents <- col_factor("Blues", NULL)
         subthema <- intersection_select$ANTL_PTJ 
@@ -624,8 +571,8 @@ shinyServer(function(input, output, session) {
           count(ANTL_PTJ) %>% 
           ggplot(aes(x = as.factor(ANTL_PTJ), y=n, fill = as.factor(ANTL_PTJ))) +
           geom_col(show.legend = F) +
-          labs(title = "Aantal ongevallen binnen geselecteerd subthema",
-               x = subthema_char,
+          labs(title = "Aantal ongevallen per categorie van aantal partijen",
+               x = "Aantal partijen",
                y = "Aantal") + 
           theme_classic()+
           scale_fill_brewer(palette = "Blues") +
@@ -642,8 +589,8 @@ shinyServer(function(input, output, session) {
           coord_polar("y", start = 0) +
           theme_void() +
           scale_fill_brewer(palette = "Blues") +
-          labs(title = "Aantal ongevallen binnen geselecteerd subthema",
-               fill = subthema_char) +
+          labs(title = "Aantal ongevallen per categorie van aantal partijen",
+               fill = "Aantal partijen") +
           theme(legend.text = element_text(size = 16))+
           geom_text_repel(aes(x = 1.6,
                         label = paste0(n,
@@ -663,137 +610,66 @@ shinyServer(function(input, output, session) {
                           )                     
       
       return(list_return)
-    }) # Function reaction 3
-    
-    # New map with coloring of selected variable
-    color_map_incidents <- function(df,                     # Dataset of points in selected area and year
-                                    subthema,               # Subthema selected in input
-                                    subthema_char,          # Name for subthema in legend title
-                                    color_incidents){       # Color palette
-      map <- leaflet(df) %>% 
-        addProviderTiles(providers$CartoDB.Positron) %>%
-        addCircleMarkers(radius = 5,
-                         color = ~color_incidents(subthema),
-                         label = ~subthema) %>% 
-        addPolylines(data = reaction2()$pol_select,
-                     stroke = T,
-                     weight = 3) %>%
-        addLegend(pal = color_incidents, 
-                  values = ~subthema,
-                  title = subthema_char)
-      
-      return(map)
-    } # Color_map_incidents function
+    }) 
 
     # Map output of the incidents colored by the selected variable
+    # Uses color_map_incidents function from incidents_map file
     output$map_color_incidents <- renderLeaflet({
-      color_map_incidents(reaction3()$intersection_select,
-                          reaction3()$subthema,
-                          reaction3()$subthema_char,
-                          reaction3()$color_incidents)
+      color_map_incidents(list_charts_subthema()$intersection_select,
+                          list_charts_subthema()$subthema,
+                          list_charts_subthema()$subthema_char,
+                          list_charts_subthema()$color_incidents,
+                          list_selected_pol()$pol_select)
     })
     
     # Bar chart 
     output$bar_chart <- renderPlot({
-      reaction3()$bar_chart
+      list_charts_subthema()$bar_chart
     })
     
     # Pie chart
     output$pie_chart <- renderPlot({
-      reaction3()$pie_chart
+      list_charts_subthema()$pie_chart
     })
     
     # Create function for number of incidents in selected area
-    top_incidents <- eventReactive(input$action2, {
-      comparable_df <- as.data.frame(intersection) %>% 
-        filter(Niveau == input$niveau2 & 
-                 JAAR_VKL == input$jaar &
-                 `Stedelijkheid..1.zeer.sterk.stedelijk..5.niet.stedelijk.` == reaction2()$stedelijkheid_num) 
-      if (input$niveau2 == "Gemeenten"){
-        incidents_count_niveau <- comparable_df %>% 
-          group_by(GM_NAAM, .drop = FALSE) %>% 
-          count()
-        names_all_niveau <- as.data.frame(all_polygons) %>% 
-          filter(Niveau == "Gemeenten" &
-                   `Stedelijkheid (1=zeer sterk stedelijk, 5=niet stedelijk)` == reaction2()$stedelijkheid_num)
-        no_incidents_niveau <- anti_join(names_all_niveau, incidents_count_niveau, "GM_NAAM") %>% 
-          select(GM_NAAM) %>% 
-          mutate(n = 0)
-        incidents_all_inclu_niveau <- rbind(incidents_count_niveau, no_incidents_niveau)
-        sorted <- incidents_count_niveau %>% arrange(desc(n))           # In descending order, so most incidents are at top
-        sorted$Rank <- seq.int(nrow(sorted))                            # Add row numbers to dataframe as indication of place in order
-        sorted <- sorted %>% relocate(Rank)                             # Rank as first column 
-        pol_selected <- sorted %>% filter(GM_NAAM == input$gemeente21)  # Selected polygon and number of incidents
-        top5_incidents <- head(sorted, 5)
-        top5_incidents <- rbind(top5_incidents, pol_selected)
-        top5_incidents <- top5_incidents %>% distinct(GM_NAAM, .keep_all = TRUE)
-        top5_incidents <- rename(top5_incidents, "Gemeente" = GM_NAAM,
-                                 "Aantal" = n)
-        
-        number_incidents <- incidents_count_niveau %>% 
-          filter(GM_NAAM == input$gemeente21)
-        
-      } else if(input$niveau2 == "Wijken"){
-        incidents_count_niveau <- comparable_df %>% 
-          group_by(WK_NAAM, GM_NAAM, .drop = FALSE) %>% 
-          count()
-        names_all_niveau <- as.data.frame(all_polygons) %>% 
-          filter(Niveau == "Wijken" &
-                   `Stedelijkheid (1=zeer sterk stedelijk, 5=niet stedelijk)` == reaction2()$stedelijkheid_num)
-        no_incidents_niveau <- anti_join(names_all_niveau, incidents_count_niveau, by = c("WK_NAAM", "GM_NAAM")) %>% 
-          select(WK_NAAM, GM_NAAM) %>% 
-          mutate(n = 0)
-        incidents_all_inclu_niveau <- rbind(incidents_count_niveau, no_incidents_niveau)
-        sorted <- incidents_all_inclu_niveau %>% arrange(desc(n)) 
-        sorted$Rank <- seq.int(nrow(sorted))                   
-        sorted <- sorted %>% relocate(Rank)
-        pol_selected <- sorted %>% filter(GM_NAAM == input$gemeente22 & 
-                                            WK_NAAM == input$wijken22)
-        top5_incidents <- head(sorted, 5)
-        top5_incidents <- rbind(top5_incidents, pol_selected)
-        top5_incidents <- top5_incidents %>% distinct(GM_NAAM, WK_NAAM, .keep_all = TRUE)
-        top5_incidents <- rename(top5_incidents, "Gemeente" = GM_NAAM,
-                                "Wijk" = WK_NAAM,
-                                 "Aantal" = n)
-        number_incidents <- incidents_all_inclu_niveau %>% 
-          filter(GM_NAAM == input$gemeente22 & 
-                   WK_NAAM == input$wijken22)
-      } else if(input$niveau2 == "Buurten"){
-        incidents_count_niveau <- comparable_df %>% 
-          group_by(BU_NAAM, WK_NAAM, GM_NAAM, .drop = FALSE) %>% 
-          count()
-        
-        names_all_niveau <- as.data.frame(all_polygons) %>% 
-          filter(Niveau == "Buurten" &
-                   `Stedelijkheid (1=zeer sterk stedelijk, 5=niet stedelijk)` == reaction2()$stedelijkheid_num)
-        no_incidents_niveau <- anti_join(names_all_niveau, incidents_count_niveau, by = c("BU_NAAM", "WK_NAAM", "GM_NAAM")) %>% 
-          select(BU_NAAM, WK_NAAM, GM_NAAM) %>% 
-          mutate(n = 0)
-        incidents_all_inclu_niveau <- rbind(incidents_count_niveau, no_incidents_niveau)
-        sorted <- incidents_all_inclu_niveau %>% arrange(desc(n))
-        sorted$Rank <- seq.int(nrow(sorted))                   
-        sorted <- sorted %>% relocate(Rank) 
-        pol_selected <- sorted %>% filter(GM_NAAM == input$gemeente23 & 
-                                            WK_NAAM == input$wijken23 & 
-                                            BU_NAAM == input$buurten23)    
-        top5_incidents <- head(sorted, 5)
-        top5_incidents <- rbind(top5_incidents, pol_selected)
-        top5_incidents <- top5_incidents %>% distinct(GM_NAAM, WK_NAAM, BU_NAAM, .keep_all = TRUE)
-        
-        top5_incidents <- rename(top5_incidents, "Gemeente" = GM_NAAM,
-                                 "Wijk" = WK_NAAM,
-                                 "Buurt" = BU_NAAM,
-                                 "Aantal" = n)
-        number_incidents <- incidents_all_inclu_niveau %>% 
-          filter(GM_NAAM == input$gemeente23 & 
-                   WK_NAAM == input$wijken23 & 
-                   BU_NAAM == input$buurten23)
-        
-      }
+    top_incidents <- eventReactive(input$action_incidents, {
       
-      number_incidents$n <- round(number_incidents$n)
-      count_incidents_niveau <- as.integer(number_incidents$n)
-      incidents_mean <- round(mean(incidents_all_inclu_niveau$n))
+      top5_incidents <- top5_incidents(intersection,
+                                       all_polygons,
+                                       input$niveau_incidents, 
+                                       input$jaar, 
+                                       list_selected_pol()$stedelijkheid_num,
+                                       input$gemeente_1_incidents, 
+                                       input$gemeente_2_incidents, input$wijken_2_incidents, 
+                                       input$gemeente_3_incidents, input$wijken_3_incidents, input$buurten_3_incidents)$top5_incidents
+      
+      incidents_all_inclu_niveau <- top5_incidents(intersection,
+                                                   all_polygons,
+                                                   input$niveau_incidents, 
+                                                   input$jaar,  
+                                                   list_selected_pol()$stedelijkheid_num,
+                                                   input$gemeente_1_incidents, 
+                                                   input$gemeente_2_incidents, input$wijken_2_incidents, 
+                                                   input$gemeente_3_incidents, input$wijken_3_incidents, input$buurten_3_incidents)$incidents_all_inclu_niveau
+      
+      count_incidents_niveau <- top5_incidents(intersection,
+                                               all_polygons,
+                                               input$niveau_incidents, 
+                                               input$jaar,  
+                                               list_selected_pol()$stedelijkheid_num,
+                                               input$gemeente_1_incidents, 
+                                               input$gemeente_2_incidents, input$wijken_2_incidents, 
+                                               input$gemeente_3_incidents, input$wijken_3_incidents, input$buurten_3_incidents)$count_incidents_niveau
+      
+      incidents_mean <- top5_incidents(intersection,
+                                       all_polygons,
+                                       input$niveau_incidents, 
+                                       input$jaar, 
+                                       list_selected_pol()$stedelijkheid_num,
+                                       input$gemeente_1_incidents, 
+                                       input$gemeente_2_incidents, input$wijken_2_incidents, 
+                                       input$gemeente_3_incidents, input$wijken_3_incidents, input$buurten_3_incidents)$incidents_mean
       
       list_return <- list("top5_incidents" = top5_incidents,                          # Top 5 most incidents in dataframe with name and count
                           "incidents_all_inclu_niveau" = incidents_all_inclu_niveau,  # Dataframe with all names and also count 0
@@ -801,15 +677,15 @@ shinyServer(function(input, output, session) {
                           "incidents_mean" = incidents_mean                           # Mean number of incidents of comparable areas
                           )
 
-      return(list_return)  # Dataframe with top 6 areas with the most incidents + selected polygon
+      return(list_return)
       
-    })  # Event reactive
+    })
     
     # Output number of incidents in selected area
     output$count_incidents <- renderTable(
       top_incidents()$top5_incidents,
       rownames = F,
-    ) # Render table
+    ) 
     
     # Only if incidents happened, plot second row for subtheme
     output[["subtheme_row"]] <- renderUI({
@@ -833,7 +709,7 @@ shinyServer(function(input, output, session) {
       } else if (top_incidents()$count_incidents_niveau <= 0){
         h4("Omdat er geen incidenten hebben plaatsgevonden, kan geen informatie worden gegeven over het geselecteerde subthema.")
       }
-    }) # Render UI subtheme row
+    })
 
     
     # Output number of incidents in selected area
@@ -841,27 +717,14 @@ shinyServer(function(input, output, session) {
       valueBox(as.character(top_incidents()$count_incidents_niveau), "ongevallen in het door u geselecteerde gebied", 
                icon = icon("car-crash", class = "fa-solid fa-car-burst", lib = "font-awesome"), 
                color = "red") # valuebox
-    ) # rendervaluebox
+    ) 
     
     # Create histogram for comparability 
+    # Uses function incidents_histogram from plots_incidents file
     output$histogram_incidents <- renderPlot(
-      ggplot(data = top_incidents()$incidents_all_inclu_niveau, aes(x = n)) +
-        geom_histogram(binwidth = 4, fill = "dark gray") +
-        geom_vline(xintercept = top_incidents()$count_incidents_niveau, color = "blue", size = 1.5) +
-        geom_vline(xintercept = top_incidents()$incidents_mean, color = "green4", size = 1.5) +
-        annotate(x = top_incidents()$count_incidents_niveau, y = +Inf, 
-                 geom = "label", label = "Geselecteerd gebied", vjust = 2, color = "blue")+
-        annotate(x = top_incidents()$incidents_mean, y = +Inf, 
-                 geom = "label", label = "Gemiddelde", vjust = 4, color = "green4") +
-        annotate(x = top_incidents()$incidents_mean, y = +Inf, 
-                 label = as.character(top_incidents()$incidents_mean), vjust = 5, 
-                 geom = "label", color = "green4") +
-        labs(title = "Verdeling van aantal ongelukken in vergelijkbare gebieden",
-            x = "Aantal ongelukken",
-            y = "Aantal gebieden") +
-        theme(axis.text = element_text(size = 18),
-              axis.title = element_text(size = 18)) +
-        theme_classic()
+      incidents_histogram(top_incidents()$incidents_all_inclu_niveau,
+                          top_incidents()$count_incidents_niveau,
+                          top_incidents()$incidents_mean)
     )                 
     
     
