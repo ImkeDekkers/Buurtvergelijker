@@ -68,7 +68,7 @@ plot_4_theme <- function(data, subthema){
           "Aantal warenhuizen binnen 5 km",                                                  
           "Aantal warenhuizen binnen 10 km",                                                
           "Aantal warenhuizen binnen 20 km")
-  }else if (subthema == "Café"){
+  }else if (subthema == "Cafe"){
     plot4(dataset,
           "Aantal cafes binnen 1 km" ,                                                       
           "Aantal cafes binnen 3 km" ,                                                       

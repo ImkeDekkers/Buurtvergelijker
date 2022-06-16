@@ -49,7 +49,7 @@ shinyServer(function(input, output, session) {
                           choices = c("Supermarkt", "Overige dagelijkse levensmiddelen", "Warenhuis"))
       }else if (input$thema == "Horeca") {
         updateSelectInput(session, 'subthema', 
-                          choices = c("Café", "Cafetaria", "Restaurant", "Hotel"))
+                          choices = c("Cafe", "Cafetaria", "Restaurant", "Hotel"))
       }else if (input$thema == "Kinderopvang") {
         updateSelectInput(session, 'subthema', 
                           choices = c("Kinderdagverblijf", "Buitenschoolse opvang"))
@@ -256,7 +256,7 @@ shinyServer(function(input, output, session) {
       
       #subthemes that have data available on the count inside a radius
       subthemes_count <- c("Huisartsenpraktijk","Ziekenhuis incl. buitenpolikliniek","Ziekenhuis excl. buitenpolikliniek", "Supermarkt", "Overige dagelijkse levensmiddelen", "Warenhuis",
-                           "Café", "Cafetaria", "Restaurant", "Hotel", "Kinderdagverblijf", "Buitenschoolse opvang", "Basisschool",
+                           "Cafe", "Cafetaria", "Restaurant", "Hotel", "Kinderdagverblijf", "Buitenschoolse opvang", "Basisschool",
                            "Voortgezet onderwijs", "VMBO school", "HAVO/VWO school", "Bioscoop", "Attractie", "Podiumkunsten", "Museum")
       
       title <- paste0("Staafdiagram: ",selected_subtheme_title())

@@ -152,13 +152,9 @@ buurten_test <- buurten %>% add_column(Niveau = 'Buurten', CODE = buurten$BU_COD
 full_data <- bind_rows(buurten_test, wijken_test, gemeenten_test)
 #full_data <- rename(full_data, c("Afstand tot cafÃ© (km)" = "Afstand tot cafe (km)", "Aantal cafÃ©s binnen 1 km" = "Aantal cafes binnen 1 km", "Aantal cafÃ©s binnen 3 km" = "Aantal cafes binnen 3 km", "Aantal cafÃ©s binnen 5 km" = "Aantal cafes binnen 5 km", "Aantal vestigingen financiÃ«le diensten, onroerend goed" = "Aantal vestigingen financiele diensten, onroerend goed") #, "Aantal personenautoâs rijdend op benzine" = "Aantal personenautos rijdend op benzine", "Aantal personenautoâs rijdend op overige brandstof" = "Aantal personenautos rijdend op overige brandstof" )
  
-names(full_data)[names(full_data) == "Afstand tot cafÃ© (km)"] <- "Afstand tot cafe (km)"
-names(full_data)[names(full_data) == "Aantal cafÃ©s binnen 1 km"] <- "Aantal cafes binnen 1 km"
-names(full_data)[names(full_data) == "Aantal cafÃ©s binnen 3 km"] <- "Aantal cafes binnen 3 km"
-names(full_data)[names(full_data) == "Aantal cafÃ©s binnen 5 km"] <- "Aantal cafes binnen 5 km"
-names(full_data)[names(full_data) == "Aantal vestigingen financiÃ«le diensten, onroerend goed"] <- "Aantal vestigingen financiele diensten, onroerend goed"
-names(full_data)[names(full_data) == "Aantal personenautoâs rijdend op benzine"] <- "Aantal personenautos rijdend op benzine"
-names(full_data)[names(full_data) == "Aantal personenautoâs rijdend op overige brandstof"] <- "Aantal personenautos rijdend op overige brandstof"
+# names(full_data)[names(full_data) == "Aantal vestigingen financiÃ«le diensten, onroerend goed"] <- "Aantal vestigingen financiele diensten, onroerend goed"
+# names(full_data)[names(full_data) == "Aantal personenautoâs rijdend op benzine"] <- "Aantal personenautos rijdend op benzine"
+# names(full_data)[names(full_data) == "Aantal personenautoâs rijdend op overige brandstof"] <- "Aantal personenautos rijdend op overige brandstof"
 
 #simplify full_data to load map faster
 full_data <- rmapshaper::ms_simplify(full_data, keep = 0.05, keep_shapes = TRUE)
@@ -201,10 +197,10 @@ full_data <- rename(full_data, c("Stedelijkheid (1=zeer sterk stedelijk, 5=niet 
                                  "Aantal warenhuizen binnen 5 km" = AV5_WARENH,
                                  "Aantal warenhuizen binnen 10 km" = AV10WARENH,
                                  "Aantal warenhuizen binnen 20 km" = AV20WARENH,
-                                 "Afstand tot café (km)" = AF_CAFE,
-                                 "Aantal cafés binnen 1 km" = AV1_CAFE,
-                                 "Aantal cafés binnen 3 km" = AV3_CAFE,
-                                 "Aantal cafés binnen 5 km" = AV5_CAFE,
+                                 "Afstand tot cafe (km)" = AF_CAFE,
+                                 "Aantal cafes binnen 1 km" = AV1_CAFE,
+                                 "Aantal cafes binnen 3 km" = AV3_CAFE,
+                                 "Aantal cafes binnen 5 km" = AV5_CAFE,
                                  "Afstand tot cafetaria (km)" = AF_CAFTAR,
                                  "Aantal cafetaria's binnen 1 km" = AV1_CAFTAR,
                                  "Aantal cafetaria's binnen 3 km" = AV3_CAFTAR,
@@ -267,7 +263,11 @@ full_data <- rename(full_data, c("Stedelijkheid (1=zeer sterk stedelijk, 5=niet 
                                  "Aantal musea binnen 10 km" = AV10MUSEUM,
                                  "Aantal musea binnen 20 km" = AV20MUSEUM))
 
-write_rds(full_data, "../Data/full_data.rds")
+names(full_data)[names(full_data) == "Afstand tot café (km)"] <- "Afstand tot cafe (km)"
+names(full_data)[names(full_data) == "Aantal cafés binnen 1 km"] <- "Aantal cafes binnen 1 km"
+names(full_data)[names(full_data) == "Aantal cafés binnen 3 km"] <- "Aantal cafes binnen 3 km"
+names(full_data)[names(full_data) == "Aantal cafés binnen 5 km"] <- "Aantal cafes binnen 5 km"
 
+write_rds(full_data, "Data/full_data.rds")
 
 
