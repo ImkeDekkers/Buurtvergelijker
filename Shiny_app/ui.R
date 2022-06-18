@@ -220,8 +220,7 @@ ui <- dashboardPage(
                                        ), # Conditional panel 3 buurten
                                        selectInput("jaar", "Jaar:", c("2020" = "2020",
                                                                        "2019" = "2019",
-                                                                       "2018" = "2018",
-                                                                       "2017" = "2017"
+                                                                       "2018" = "2018"
                                                                        )), # Select input jaar
                                        selectInput("subthema_incidents", "Subthema:", c("Afloop" = "AP3_OMS",
                                                                                "Weersgesteldheid" = "WGD_CODE_1",

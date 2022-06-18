@@ -76,13 +76,6 @@ ongevallen_transformed <- ongevallen_sf %>% st_transform("EPSG:4326")
 
 write_rds(ongevallen_transformed, "Data/ongevallen_W84.rds")
 
-# Full_data used from main branche
-all_polygons <- full_data %>% 
-  select(BU_CODE, BU_NAAM, WK_CODE, WK_NAAM, GM_CODE, GM_NAAM,
-         geometry, centroid, Niveau, centroidx, centroidy, `Stedelijkheid (1=zeer sterk stedelijk, 5=niet stedelijk)`)
-
-write_rds(all_polygons, "Data/all_polygons.rds")
-
 # Already calculate all intersections of points an polygons
 intersection <- st_intersection(x = all_polygons, y = ongevallen_transformed)
 

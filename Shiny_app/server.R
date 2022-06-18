@@ -300,7 +300,7 @@ shinyServer(function(input, output, session) {
                                                   input$gemeente_2_incidents, input$wijken_2_incidents, 
                                                   input$gemeente_3_incidents, input$wijken_3_incidents, input$buurten_3_incidents)$stedelijkheid_num
       
-      list_ongevallen_return <- list("pol_select" = pol_select,                  # Dataset with selected polygon/area 
+      list_ongevallen_return <- list("pol_select" = pol_select,                    # Dataset with selected polygon/area 
                                      "intersection_select" = intersection_select,  # All point data of selected area in selected year
                                      "number_incidents" = number_incidents,        # Number of incidents in selected area and year 
                                      "stedelijkheid_num" = stedelijkheid_num       # Stedelijkheid number for valuebox
@@ -312,10 +312,11 @@ shinyServer(function(input, output, session) {
     
     # Value box with degree of urbanization
     output$stedelijkheid_num <- renderValueBox(
-      valueBox(list_selected_pol()$stedelijkheid_num, HTML("Het stedelijkheidsniveau van het door u geselecteerde gebied. <br>
-               1 = zeer stedelijk, 5 = niet stedelijk"),
-               icon = icon("city", class = "fa-solid fa-city", lib = "font-awesome"),
-               color = "red") # Valuebox
+      valueBox(list_selected_pol()$stedelijkheid_num, 
+      HTML("Het stedelijkheidsniveau van het door u geselecteerde gebied. <br>
+           1 = zeer stedelijk, 5 = niet stedelijk"),
+      icon = icon("city", class = "fa-solid fa-city", lib = "font-awesome"),
+      color = "red") # Valuebox
     )
     
     # Data for trend line
@@ -344,7 +345,7 @@ shinyServer(function(input, output, session) {
     
     # Reaction on subthema input with the correct dataset
     list_charts_subthema <- eventReactive(input$action_incidents, {
-      intersection_select <- list_selected_pol()$intersection_select                                        # Points in selected polygon (filtered on niveau, naam and year)
+      intersection_select <- list_selected_pol()$intersection_select                                # Points in selected polygon (filtered on niveau, naam and year)
       if (input$subthema_incidents == "WGD_CODE_1"){
         subthema <- intersection_select$WGD_CODE_1                                                  # Set subthema that can be used for color map
         subthema_char <-"Weersgesteldheid"                                                          # Character of subthema for title
@@ -633,6 +634,7 @@ shinyServer(function(input, output, session) {
     })
     
     # Create function for number of incidents in selected area
+    # Uses top5_incidents function from generate_data_incidents file
     top_incidents <- eventReactive(input$action_incidents, {
       
       top5_incidents <- top5_incidents(intersection,
