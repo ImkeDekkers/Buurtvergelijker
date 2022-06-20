@@ -74,7 +74,7 @@ make_map <- function(dataset, variable, input_niveau_facilities, theme){
         lng = map_data$centroidxx, 
         lat = map_data$centroidyy,
         label = label_content,
-        labelOptions = labelOptions(noHide = T)) %>%
+        labelOptions = labelOptions(noHide = T, textsize = "12px")) %>%
       addAwesomeMarkers(data = top5_distances_theme(dataset, input_niveau_facilities, theme),
                         lng = ~centroidx,
                         lat = ~centroidy,
@@ -99,7 +99,7 @@ make_map <- function(dataset, variable, input_niveau_facilities, theme){
         lng = map_data$centroidxx, 
         lat = map_data$centroidyy,
         label = label_content,
-        labelOptions = labelOptions(noHide = T)) %>% 
+        labelOptions = labelOptions(noHide = T, textsize = "12px")) %>% 
       addAwesomeMarkers(data = top5_distances_theme(dataset, input_niveau_facilities, theme),
                         lng = ~centroidx,
                         lat = ~centroidy,

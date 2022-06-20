@@ -166,8 +166,17 @@ histogram <- function(data, subtheme, norm_age_hist, categorie_hist, spec_age_hi
   }
   
   selected_area_line <- df %>% filter(CODE == selected_area_code) %>%pull(column)
+  mean_line <- round(mean(df$column, na.rm = T), digits = 1)
+  selected_area_label <- df[1, "selected_area_label"]
   
-  ggplot(df, aes(column)) + geom_histogram(fill= "steelblue3", color='#e9ecef', bins=20) + geom_vline(xintercept = selected_area_line)  +
+  ggplot(df, aes(column)) + geom_histogram(fill= "steelblue3", color='#e9ecef', bins=20) + 
+    geom_vline(xintercept = selected_area_line, color = "#F8766D", size = 1.5) +
+    geom_vline(xintercept = mean_line, color = "#00BA38", size = 1.5) +
+    annotate(x = selected_area_line, y = +Inf, 
+             geom = "label", label = paste0(df$selected_area_label, ": ", as.character(selected_area_line)), 
+             vjust = 2, color = "#F8766D", size = 4.3) +
+    annotate(x = mean_line, y = +Inf, geom = "label", label = paste0("Gemiddelde", ": ", as.character(mean_line)), 
+             vjust = 3, color = "#00BA38", size = 4.3) +
     labs(x=column, y = "Aantal gebieden") +
     theme(text = element_text(size=14),axis.text = element_text(size = 12))
 }
