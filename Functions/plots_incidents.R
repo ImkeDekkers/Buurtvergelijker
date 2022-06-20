@@ -22,7 +22,9 @@ incidents_histogram <- function(incidents_all_inclu_niveau,
   geom_vline(xintercept = count_incidents_niveau, color = "blue", size = 1.5) +
   geom_vline(xintercept = incidents_mean, color = "green4", size = 1.5) +
   annotate(x = count_incidents_niveau, y = +Inf, 
-           geom = "label", label = "Geselecteerd gebied", vjust = 2, color = "blue")+
+           geom = "label", label = "Geselecteerd gebied", vjust = 2, color = "blue") +
+  annotate(x = count_incidents_niveau, y = +Inf, 
+             geom = "label", label = as.character(count_incidents_niveau), vjust = 3, color = "blue") +
   annotate(x = incidents_mean, y = +Inf, 
            geom = "label", label = "Gemiddelde", vjust = 4, color = "green4") +
   annotate(x = incidents_mean, y = +Inf, 
