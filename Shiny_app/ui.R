@@ -121,8 +121,12 @@ ui <- dashboardPage(
                           fluidRow(
                             column(width = 3,
                                    box(title = "Uitleg app", width = NULL, status = "primary", solidHeader = T, collapsible = T, collapsed = T,
-                                       "In deze app kunt u informatie vinden over de gezondheid in een gebied.", br(),
+                                       "In deze app kunt u informatie vinden over de gezondheid in een gebied. Dit is gebaseerd op data van het RIVM 
+                                       (te vinden op: statline.rivm.nl/RIVM/nl/dataset/50090NED). 
+                                       Deze data zijn schattingen gebaseerd op vragenlijsten die door meer dan 500.000 mensen zijn ingevuld. 
+                                       Voor 95% zekerheidsintervallen kunt u de originele data bekijken.", br(),
                                        br(),
+                                       strong("Uitleg werking app:"),br(),
                                        "Als eerste moet de box “Niveau en gebied selecteren” worden ingevuld. Hier kan een niveau geselecteerd worden,
                                         een gebied, en met welke andere gebieden u wilt vergelijken. 
                                         Als u tevreden bent met uw keuze, druk dan op “Zoeken”.", br(),

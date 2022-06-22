@@ -1142,7 +1142,7 @@ shinyServer(function(input, output, session) {
                  ),
                  box(title="Histogram", width=6, status="warning", solidHeader = T,
                      "In onderstaande histogram is de frequentieverdeling voor het gekozen subthema  te zien.
-                      De roze verticale lijn is de waarde van het gekozen gebied. De groene verticale lijn is de waarde van het gemiddelde.
+                      De roze verticale lijn is voor het gekozen gebied. De groene verticale lijn is voor het gemiddelde.
                       Hiermee kunt u zien hoe uw gebied het doet ten opzichte van de andere gebieden waarmee wordt vergeleken.", br(),
                      br(),
                      selectInput("norm_age_hist", "Leeftijd:", c("18-65"="18-65", "65+"="65+","18+"="18+")),
@@ -1187,7 +1187,7 @@ shinyServer(function(input, output, session) {
          fluidRow(
                  box(title="Histogram", width=6, status="warning", solidHeader = T,
                      "In onderstaande histogram is de frequentieverdeling voor de gekozen categorie  te zien. 
-                      De roze verticale lijn is de waarde van het gekozen gebied. De groene verticale lijn is de waarde van het gemiddelde.
+                      De roze verticale lijn is voor het gekozen gebied. De groene verticale lijn is voor het gemiddelde.
                       Hiermee kunt u zien hoe uw gebied het doet ten opzichte van de andere gebieden waarmee wordt vergeleken.", br(),
                      br(),
                      selectInput("spec_age_hist", "Leeftijd:", c("18-65"="18-65", "65+"="65+","18+"="18+")),
