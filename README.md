@@ -30,10 +30,11 @@ Shiny_app: ../Buurtvergelijker/Shiny_app
 - scales
 - RColorBrewer
 - readxl
+- reshape2
 
 ## Original datasets 
 * Amenities: https://opendata.cbs.nl/statline/#/CBS/nl/dataset/84953NED/table?ts=1654785777075
 * Postal codes: https://www.cbs.nl/nl-nl/dossier/nederland-regionaal/geografische-data/gegevens-per-postcode
 * Traffic incidents: https://nationaalgeoregister.nl/geonetwork/srv/dut/catalog.search#/metadata/4gqrs90k-vobr-5t59-x726-4x2unrs1vawz?tab=relations
 * Health: For the health tab, the unpreprocessed data is available on GitHub. There are three different folders of health data: RIVM_Gezondheid2012, RIVM_Gezondheid2016, RIVMGezondheid2020. These can be found in the Data folder.
-* Crime: 
+* Crime: https://politieopendata.cbs.nl/portal.html?_la=nl&_catalog=Politie&graphtype=Table&tableId=47018NED&_theme=97
