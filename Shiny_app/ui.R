@@ -126,7 +126,7 @@ ui <- dashboardPage(
                                        actionButton("action_crime", "Zoeken"))), 
                             column(width = 6, 
                                    box(title = "Grafiek met misdrijven over tijd", status = "warning", solidHeader = T, width = NULL,
-                                       plotOutput("crime_plot"))), 
+                                       shinycssloaders::withSpinner(plotOutput("crime_plot")))), 
                             column(width = 3, 
                                    box(title = "Uitleg geselecteerde misdaad", status = "warning", solidHeader = T, width = NULL,
                                        textOutput("info_crime")))
@@ -145,7 +145,7 @@ ui <- dashboardPage(
                                        selectInput("jaar_crime", "Jaar:", choices = c("2012", "2013", "2014", "2015", "2016", "2017", "2018", "2019", "2020", "2021")))), 
                             column(width = 6, 
                                    box(title = "Kaart met misdrijven", status = "warning", solidHeader = T, width = NULL,
-                                       leafletOutput("crime_map"))),
+                                       shinycssloaders::withSpinner(leafletOutput("crime_map")))),
                             column(width =3, 
                                    uiOutput("top5_crime")
                                    #box(title = "Top 5 criminaliteit", background = "red", width = NULL,
