@@ -1,0 +1,775 @@
+---
+title: "Crime_prep_full"
+author: "Sara Kellij"
+date: "25-5-2022"
+output: html_document
+---
+
+```{r}
+library(readr)
+library(dplyr)
+library(sf)
+library("readxl")
+library(leaflet)
+library(tidyverse)
+library('rmapshaper')
+library(reshape2)
+```
+
+```{r}
+#load different sheets 
+library(readxl)
+path <-"Map1.xlsx"
+sheetnames <- excel_sheets(path)
+mylist <- lapply(excel_sheets(path), read_excel, path = path)
+
+# name the dataframes
+names(mylist) <- sheetnames
+
+#make objects of lists
+list2env(mylist ,.GlobalEnv)
+```
+
+```{r}
+#lapply(mylist, function(x) {dcast(x, WijkenEnBuurten ~ SoortMisdrijf, value.var = "GeregistreerdeMisdrijven_1")})
+```
+
+```{r}
+#copy data 
+copy_2012 <- `2012`
+copy_2013 <- `2013`
+copy_2014 <- `2014`
+copy_2015 <- `2015`
+copy_2016 <- `2016`
+copy_2017 <- `2017`
+copy_2018 <- `2018`
+copy_2019 <- `2019`
+copy_2020 <- `2020`
+copy_2021 <- `2021`
+```
+
+```{r}
+#transform to right shape 
+copy_2012 <- dcast(copy_2012, WijkenEnBuurten ~ SoortMisdrijf, value.var = "GeregistreerdeMisdrijven_1")
+copy_2013 <- dcast(copy_2013, WijkenEnBuurten ~ SoortMisdrijf, value.var = "GeregistreerdeMisdrijven_1")
+copy_2014 <- dcast(copy_2014, WijkenEnBuurten ~ SoortMisdrijf, value.var = "GeregistreerdeMisdrijven_1")
+copy_2015 <- dcast(copy_2015, WijkenEnBuurten ~ SoortMisdrijf, value.var = "GeregistreerdeMisdrijven_1")
+copy_2016 <- dcast(copy_2016, WijkenEnBuurten ~ SoortMisdrijf, value.var = "GeregistreerdeMisdrijven_1")
+copy_2017 <- dcast(copy_2017, WijkenEnBuurten ~ SoortMisdrijf, value.var = "GeregistreerdeMisdrijven_1")
+copy_2018 <- dcast(copy_2018, WijkenEnBuurten ~ SoortMisdrijf, value.var = "GeregistreerdeMisdrijven_1")
+copy_2019 <- dcast(copy_2019, WijkenEnBuurten ~ SoortMisdrijf, value.var = "GeregistreerdeMisdrijven_1")
+copy_2020 <- dcast(copy_2020, WijkenEnBuurten ~ SoortMisdrijf, value.var = "GeregistreerdeMisdrijven_1")
+copy_2021 <- dcast(copy_2021, WijkenEnBuurten ~ SoortMisdrijf, value.var = "GeregistreerdeMisdrijven_1")
+```
+
+
+```{r}
+#rename misdrijven 
+copy_2012 <- rename(copy_2012,
+    "Totaal misdrijven" = "0.0.0", 
+    "Diefstal/inbraak woning" = "1.1.1", 
+    "Diefstal/inbraak box/garage/schuur" = "1.1.2", 
+    "Diefstal uit/vanaf motorvoertuigen" = "1.2.1",
+    "Diefstal van motorvoertuigen" = "1.2.2",
+    "Diefstal van brom-, snor-, fietsen" = "1.2.3",
+    "Zakkenrollerij" = "1.2.4", 
+    "Diefstal af/uit/van overige voertuigen" = "1.2.5", 
+    "Ongevallen (weg)" = "1.3.1", 
+    "Zedenmisdrijf" = "1.4.1", 
+    "Moord, doodslag" = "1.4.2", 
+    "Openlijk geweld (persoon)" = "1.4.3", 
+    "Bedreiging" = "1.4.4", 
+    "Mishandeling" = "1.4.5", 
+    "Straatroof" = "1.4.6", 
+    "Overval" = "1.4.7", 
+    "Diefstallen (water)" = "1.5.2", 
+    "Brand/ontploffing" = "1.6.1", 
+    "Overige vermogensdelicten" = "1.6.2",
+    "Mensenhandel" = "1.6.3",
+    "Drugs/drankoverlast" = "2.1.1", 
+    "Vernieling cq. zaakbeschadiging" = "2.2.1", 
+    "Burengerucht (relatieproblemen)" = "2.4.1", 
+    "Huisvredebreuk" = "2.4.2", 
+    "Diefstal/inbraak bedrijven" = "2.5.1", 
+    "Winkeldiefstal" = "2.5.2", 
+    "Inrichting Wet Milieubeheer" = "2.6.1", 
+    "Bodem" = "2.6.2",
+    "Water" = "2.6.3", 
+    "Afval" = "2.6.4", 
+    "Bouwstoffen" = "2.6.5", 
+    "Mest" = "2.6.7", 
+    "Transport gevaarlijke stoffen" = "2.6.8", 
+    "Vuurwerk" = "2.6.9", 
+    "Bestrijdingsmiddelen" = "2.6.10", 
+    "Natuur en landschap" = "2.6.11", 
+    "Ruimtelijke ordening" = "2.6.12", 
+    "Dieren" = "2.6.13", 
+    "Voedselveiligheid" = "2.6.14", 
+    "Bijzondere wetten" = "2.7.2", 
+    "Leefbaarheid (overig)" = "2.7.3", 
+    "Drugshandel" = "3.1.1", 
+    "Mensensmokkel" = "3.1.2", 
+    "Wapenhandel" = "3.1.3", 
+    "Kinderporno" = "3.2.1", 
+    "Kinderprostitutie" = "3.2.2", 
+    "Onder invloed (lucht)" = "3.3.2", 
+    "Lucht (overig)" = "3.3.5", 
+    "Onder invloed (water)" = "3.4.2", 
+    "Onder invloed (weg)" = "3.5.2", 
+    "Weg (overig)" = "3.5.5", 
+    "Aantasting openbare orde" = "3.6.4", 
+    "Discriminatie" = "3.7.1", 
+    "Vreemdelingenzorg" = "3.7.2", 
+    "Maatschappelijke intergriteit (overig)" = "3.7.3", 
+    "Cybercrime" = "3.7.4", 
+    "Horizontale fraude" = "3.9.1", 
+    "Verticale fraude" = "3.9.2", 
+    "Fraude (overig)" = "3.9.3"
+    )
+
+copy_2013 <- rename(copy_2013,
+    "Totaal misdrijven" = "0.0.0", 
+    "Diefstal/inbraak woning" = "1.1.1", 
+    "Diefstal/inbraak box/garage/schuur" = "1.1.2", 
+    "Diefstal uit/vanaf motorvoertuigen" = "1.2.1",
+    "Diefstal van motorvoertuigen" = "1.2.2",
+    "Diefstal van brom-, snor-, fietsen" = "1.2.3",
+    "Zakkenrollerij" = "1.2.4", 
+    "Diefstal af/uit/van overige voertuigen" = "1.2.5", 
+    "Ongevallen (weg)" = "1.3.1", 
+    "Zedenmisdrijf" = "1.4.1", 
+    "Moord, doodslag" = "1.4.2", 
+    "Openlijk geweld (persoon)" = "1.4.3", 
+    "Bedreiging" = "1.4.4", 
+    "Mishandeling" = "1.4.5", 
+    "Straatroof" = "1.4.6", 
+    "Overval" = "1.4.7", 
+    "Diefstallen (water)" = "1.5.2", 
+    "Brand/ontploffing" = "1.6.1", 
+    "Overige vermogensdelicten" = "1.6.2",
+    "Mensenhandel" = "1.6.3",
+    "Drugs/drankoverlast" = "2.1.1", 
+    "Vernieling cq. zaakbeschadiging" = "2.2.1", 
+    "Burengerucht (relatieproblemen)" = "2.4.1", 
+    "Huisvredebreuk" = "2.4.2", 
+    "Diefstal/inbraak bedrijven" = "2.5.1", 
+    "Winkeldiefstal" = "2.5.2", 
+    "Inrichting Wet Milieubeheer" = "2.6.1", 
+    "Bodem" = "2.6.2",
+    "Water" = "2.6.3", 
+    "Afval" = "2.6.4", 
+    "Bouwstoffen" = "2.6.5", 
+    "Mest" = "2.6.7", 
+    "Transport gevaarlijke stoffen" = "2.6.8", 
+    "Vuurwerk" = "2.6.9", 
+    "Bestrijdingsmiddelen" = "2.6.10", 
+    "Natuur en landschap" = "2.6.11", 
+    "Ruimtelijke ordening" = "2.6.12", 
+    "Dieren" = "2.6.13", 
+    "Voedselveiligheid" = "2.6.14", 
+    "Bijzondere wetten" = "2.7.2", 
+    "Leefbaarheid (overig)" = "2.7.3", 
+    "Drugshandel" = "3.1.1", 
+    "Mensensmokkel" = "3.1.2", 
+    "Wapenhandel" = "3.1.3", 
+    "Kinderporno" = "3.2.1", 
+    "Kinderprostitutie" = "3.2.2", 
+    "Onder invloed (lucht)" = "3.3.2", 
+    "Lucht (overig)" = "3.3.5", 
+    "Onder invloed (water)" = "3.4.2", 
+    "Onder invloed (weg)" = "3.5.2", 
+    "Weg (overig)" = "3.5.5", 
+    "Aantasting openbare orde" = "3.6.4", 
+    "Discriminatie" = "3.7.1", 
+    "Vreemdelingenzorg" = "3.7.2", 
+    "Maatschappelijke intergriteit (overig)" = "3.7.3", 
+    "Cybercrime" = "3.7.4", 
+    "Horizontale fraude" = "3.9.1", 
+    "Verticale fraude" = "3.9.2", 
+    "Fraude (overig)" = "3.9.3"
+    )
+
+copy_2014 <- rename(copy_2014,
+    "Totaal misdrijven" = "0.0.0", 
+    "Diefstal/inbraak woning" = "1.1.1", 
+    "Diefstal/inbraak box/garage/schuur" = "1.1.2", 
+    "Diefstal uit/vanaf motorvoertuigen" = "1.2.1",
+    "Diefstal van motorvoertuigen" = "1.2.2",
+    "Diefstal van brom-, snor-, fietsen" = "1.2.3",
+    "Zakkenrollerij" = "1.2.4", 
+    "Diefstal af/uit/van overige voertuigen" = "1.2.5", 
+    "Ongevallen (weg)" = "1.3.1", 
+    "Zedenmisdrijf" = "1.4.1", 
+    "Moord, doodslag" = "1.4.2", 
+    "Openlijk geweld (persoon)" = "1.4.3", 
+    "Bedreiging" = "1.4.4", 
+    "Mishandeling" = "1.4.5", 
+    "Straatroof" = "1.4.6", 
+    "Overval" = "1.4.7", 
+    "Diefstallen (water)" = "1.5.2", 
+    "Brand/ontploffing" = "1.6.1", 
+    "Overige vermogensdelicten" = "1.6.2",
+    "Mensenhandel" = "1.6.3",
+    "Drugs/drankoverlast" = "2.1.1", 
+    "Vernieling cq. zaakbeschadiging" = "2.2.1", 
+    "Burengerucht (relatieproblemen)" = "2.4.1", 
+    "Huisvredebreuk" = "2.4.2", 
+    "Diefstal/inbraak bedrijven" = "2.5.1", 
+    "Winkeldiefstal" = "2.5.2", 
+    "Inrichting Wet Milieubeheer" = "2.6.1", 
+    "Bodem" = "2.6.2",
+    "Water" = "2.6.3", 
+    "Afval" = "2.6.4", 
+    "Bouwstoffen" = "2.6.5", 
+    "Mest" = "2.6.7", 
+    "Transport gevaarlijke stoffen" = "2.6.8", 
+    "Vuurwerk" = "2.6.9", 
+    "Bestrijdingsmiddelen" = "2.6.10", 
+    "Natuur en landschap" = "2.6.11", 
+    "Ruimtelijke ordening" = "2.6.12", 
+    "Dieren" = "2.6.13", 
+    "Voedselveiligheid" = "2.6.14", 
+    "Bijzondere wetten" = "2.7.2", 
+    "Leefbaarheid (overig)" = "2.7.3", 
+    "Drugshandel" = "3.1.1", 
+    "Mensensmokkel" = "3.1.2", 
+    "Wapenhandel" = "3.1.3", 
+    "Kinderporno" = "3.2.1", 
+    "Kinderprostitutie" = "3.2.2", 
+    "Onder invloed (lucht)" = "3.3.2", 
+    "Lucht (overig)" = "3.3.5", 
+    "Onder invloed (water)" = "3.4.2", 
+    "Onder invloed (weg)" = "3.5.2", 
+    "Weg (overig)" = "3.5.5", 
+    "Aantasting openbare orde" = "3.6.4", 
+    "Discriminatie" = "3.7.1", 
+    "Vreemdelingenzorg" = "3.7.2", 
+    "Maatschappelijke intergriteit (overig)" = "3.7.3", 
+    "Cybercrime" = "3.7.4", 
+    "Horizontale fraude" = "3.9.1", 
+    "Verticale fraude" = "3.9.2", 
+    "Fraude (overig)" = "3.9.3"
+    )
+
+copy_2015 <- rename(copy_2015,
+    "Totaal misdrijven" = "0.0.0", 
+    "Diefstal/inbraak woning" = "1.1.1", 
+    "Diefstal/inbraak box/garage/schuur" = "1.1.2", 
+    "Diefstal uit/vanaf motorvoertuigen" = "1.2.1",
+    "Diefstal van motorvoertuigen" = "1.2.2",
+    "Diefstal van brom-, snor-, fietsen" = "1.2.3",
+    "Zakkenrollerij" = "1.2.4", 
+    "Diefstal af/uit/van overige voertuigen" = "1.2.5", 
+    "Ongevallen (weg)" = "1.3.1", 
+    "Zedenmisdrijf" = "1.4.1", 
+    "Moord, doodslag" = "1.4.2", 
+    "Openlijk geweld (persoon)" = "1.4.3", 
+    "Bedreiging" = "1.4.4", 
+    "Mishandeling" = "1.4.5", 
+    "Straatroof" = "1.4.6", 
+    "Overval" = "1.4.7", 
+    "Diefstallen (water)" = "1.5.2", 
+    "Brand/ontploffing" = "1.6.1", 
+    "Overige vermogensdelicten" = "1.6.2",
+    "Mensenhandel" = "1.6.3",
+    "Drugs/drankoverlast" = "2.1.1", 
+    "Vernieling cq. zaakbeschadiging" = "2.2.1", 
+    "Burengerucht (relatieproblemen)" = "2.4.1", 
+    "Huisvredebreuk" = "2.4.2", 
+    "Diefstal/inbraak bedrijven" = "2.5.1", 
+    "Winkeldiefstal" = "2.5.2", 
+    "Inrichting Wet Milieubeheer" = "2.6.1", 
+    "Bodem" = "2.6.2",
+    "Water" = "2.6.3", 
+    "Afval" = "2.6.4", 
+    "Bouwstoffen" = "2.6.5", 
+    "Mest" = "2.6.7", 
+    "Transport gevaarlijke stoffen" = "2.6.8", 
+    "Vuurwerk" = "2.6.9", 
+    "Bestrijdingsmiddelen" = "2.6.10", 
+    "Natuur en landschap" = "2.6.11", 
+    "Ruimtelijke ordening" = "2.6.12", 
+    "Dieren" = "2.6.13", 
+    "Voedselveiligheid" = "2.6.14", 
+    "Bijzondere wetten" = "2.7.2", 
+    "Leefbaarheid (overig)" = "2.7.3", 
+    "Drugshandel" = "3.1.1", 
+    "Mensensmokkel" = "3.1.2", 
+    "Wapenhandel" = "3.1.3", 
+    "Kinderporno" = "3.2.1", 
+    "Kinderprostitutie" = "3.2.2", 
+    "Onder invloed (lucht)" = "3.3.2", 
+    "Lucht (overig)" = "3.3.5", 
+    "Onder invloed (water)" = "3.4.2", 
+    "Onder invloed (weg)" = "3.5.2", 
+    "Weg (overig)" = "3.5.5", 
+    "Aantasting openbare orde" = "3.6.4", 
+    "Discriminatie" = "3.7.1", 
+    "Vreemdelingenzorg" = "3.7.2", 
+    "Maatschappelijke intergriteit (overig)" = "3.7.3", 
+    "Cybercrime" = "3.7.4", 
+    "Horizontale fraude" = "3.9.1", 
+    "Verticale fraude" = "3.9.2", 
+    "Fraude (overig)" = "3.9.3"
+    )
+
+copy_2016 <- rename(copy_2016,
+    "Totaal misdrijven" = "0.0.0", 
+    "Diefstal/inbraak woning" = "1.1.1", 
+    "Diefstal/inbraak box/garage/schuur" = "1.1.2", 
+    "Diefstal uit/vanaf motorvoertuigen" = "1.2.1",
+    "Diefstal van motorvoertuigen" = "1.2.2",
+    "Diefstal van brom-, snor-, fietsen" = "1.2.3",
+    "Zakkenrollerij" = "1.2.4", 
+    "Diefstal af/uit/van overige voertuigen" = "1.2.5", 
+    "Ongevallen (weg)" = "1.3.1", 
+    "Zedenmisdrijf" = "1.4.1", 
+    "Moord, doodslag" = "1.4.2", 
+    "Openlijk geweld (persoon)" = "1.4.3", 
+    "Bedreiging" = "1.4.4", 
+    "Mishandeling" = "1.4.5", 
+    "Straatroof" = "1.4.6", 
+    "Overval" = "1.4.7", 
+    "Diefstallen (water)" = "1.5.2", 
+    "Brand/ontploffing" = "1.6.1", 
+    "Overige vermogensdelicten" = "1.6.2",
+    "Mensenhandel" = "1.6.3",
+    "Drugs/drankoverlast" = "2.1.1", 
+    "Vernieling cq. zaakbeschadiging" = "2.2.1", 
+    "Burengerucht (relatieproblemen)" = "2.4.1", 
+    "Huisvredebreuk" = "2.4.2", 
+    "Diefstal/inbraak bedrijven" = "2.5.1", 
+    "Winkeldiefstal" = "2.5.2", 
+    "Inrichting Wet Milieubeheer" = "2.6.1", 
+    "Bodem" = "2.6.2",
+    "Water" = "2.6.3", 
+    "Afval" = "2.6.4", 
+    "Bouwstoffen" = "2.6.5", 
+    "Mest" = "2.6.7", 
+    "Transport gevaarlijke stoffen" = "2.6.8", 
+    "Vuurwerk" = "2.6.9", 
+    "Bestrijdingsmiddelen" = "2.6.10", 
+    "Natuur en landschap" = "2.6.11", 
+    "Ruimtelijke ordening" = "2.6.12", 
+    "Dieren" = "2.6.13", 
+    "Voedselveiligheid" = "2.6.14", 
+    "Bijzondere wetten" = "2.7.2", 
+    "Leefbaarheid (overig)" = "2.7.3", 
+    "Drugshandel" = "3.1.1", 
+    "Mensensmokkel" = "3.1.2", 
+    "Wapenhandel" = "3.1.3", 
+    "Kinderporno" = "3.2.1", 
+    "Kinderprostitutie" = "3.2.2", 
+    "Onder invloed (lucht)" = "3.3.2", 
+    "Lucht (overig)" = "3.3.5", 
+    "Onder invloed (water)" = "3.4.2", 
+    "Onder invloed (weg)" = "3.5.2", 
+    "Weg (overig)" = "3.5.5", 
+    "Aantasting openbare orde" = "3.6.4", 
+    "Discriminatie" = "3.7.1", 
+    "Vreemdelingenzorg" = "3.7.2", 
+    "Maatschappelijke intergriteit (overig)" = "3.7.3", 
+    "Cybercrime" = "3.7.4", 
+    "Horizontale fraude" = "3.9.1", 
+    "Verticale fraude" = "3.9.2", 
+    "Fraude (overig)" = "3.9.3"
+    )
+
+copy_2017 <- rename(copy_2017,
+    "Totaal misdrijven" = "0.0.0", 
+    "Diefstal/inbraak woning" = "1.1.1", 
+    "Diefstal/inbraak box/garage/schuur" = "1.1.2", 
+    "Diefstal uit/vanaf motorvoertuigen" = "1.2.1",
+    "Diefstal van motorvoertuigen" = "1.2.2",
+    "Diefstal van brom-, snor-, fietsen" = "1.2.3",
+    "Zakkenrollerij" = "1.2.4", 
+    "Diefstal af/uit/van overige voertuigen" = "1.2.5", 
+    "Ongevallen (weg)" = "1.3.1", 
+    "Zedenmisdrijf" = "1.4.1", 
+    "Moord, doodslag" = "1.4.2", 
+    "Openlijk geweld (persoon)" = "1.4.3", 
+    "Bedreiging" = "1.4.4", 
+    "Mishandeling" = "1.4.5", 
+    "Straatroof" = "1.4.6", 
+    "Overval" = "1.4.7", 
+    "Diefstallen (water)" = "1.5.2", 
+    "Brand/ontploffing" = "1.6.1", 
+    "Overige vermogensdelicten" = "1.6.2",
+    "Mensenhandel" = "1.6.3",
+    "Drugs/drankoverlast" = "2.1.1", 
+    "Vernieling cq. zaakbeschadiging" = "2.2.1", 
+    "Burengerucht (relatieproblemen)" = "2.4.1", 
+    "Huisvredebreuk" = "2.4.2", 
+    "Diefstal/inbraak bedrijven" = "2.5.1", 
+    "Winkeldiefstal" = "2.5.2", 
+    "Inrichting Wet Milieubeheer" = "2.6.1", 
+    "Bodem" = "2.6.2",
+    "Water" = "2.6.3", 
+    "Afval" = "2.6.4", 
+    "Bouwstoffen" = "2.6.5", 
+    "Mest" = "2.6.7", 
+    "Transport gevaarlijke stoffen" = "2.6.8", 
+    "Vuurwerk" = "2.6.9", 
+    "Bestrijdingsmiddelen" = "2.6.10", 
+    "Natuur en landschap" = "2.6.11", 
+    "Ruimtelijke ordening" = "2.6.12", 
+    "Dieren" = "2.6.13", 
+    "Voedselveiligheid" = "2.6.14", 
+    "Bijzondere wetten" = "2.7.2", 
+    "Leefbaarheid (overig)" = "2.7.3", 
+    "Drugshandel" = "3.1.1", 
+    "Mensensmokkel" = "3.1.2", 
+    "Wapenhandel" = "3.1.3", 
+    "Kinderporno" = "3.2.1", 
+    "Kinderprostitutie" = "3.2.2", 
+    "Onder invloed (lucht)" = "3.3.2", 
+    "Lucht (overig)" = "3.3.5", 
+    "Onder invloed (water)" = "3.4.2", 
+    "Onder invloed (weg)" = "3.5.2", 
+    "Weg (overig)" = "3.5.5", 
+    "Aantasting openbare orde" = "3.6.4", 
+    "Discriminatie" = "3.7.1", 
+    "Vreemdelingenzorg" = "3.7.2", 
+    "Maatschappelijke intergriteit (overig)" = "3.7.3", 
+    "Cybercrime" = "3.7.4", 
+    "Horizontale fraude" = "3.9.1", 
+    "Verticale fraude" = "3.9.2", 
+    "Fraude (overig)" = "3.9.3"
+    )
+
+copy_2018 <- rename(copy_2018,
+    "Totaal misdrijven" = "0.0.0", 
+    "Diefstal/inbraak woning" = "1.1.1", 
+    "Diefstal/inbraak box/garage/schuur" = "1.1.2", 
+    "Diefstal uit/vanaf motorvoertuigen" = "1.2.1",
+    "Diefstal van motorvoertuigen" = "1.2.2",
+    "Diefstal van brom-, snor-, fietsen" = "1.2.3",
+    "Zakkenrollerij" = "1.2.4", 
+    "Diefstal af/uit/van overige voertuigen" = "1.2.5", 
+    "Ongevallen (weg)" = "1.3.1", 
+    "Zedenmisdrijf" = "1.4.1", 
+    "Moord, doodslag" = "1.4.2", 
+    "Openlijk geweld (persoon)" = "1.4.3", 
+    "Bedreiging" = "1.4.4", 
+    "Mishandeling" = "1.4.5", 
+    "Straatroof" = "1.4.6", 
+    "Overval" = "1.4.7", 
+    "Diefstallen (water)" = "1.5.2", 
+    "Brand/ontploffing" = "1.6.1", 
+    "Overige vermogensdelicten" = "1.6.2",
+    "Mensenhandel" = "1.6.3",
+    "Drugs/drankoverlast" = "2.1.1", 
+    "Vernieling cq. zaakbeschadiging" = "2.2.1", 
+    "Burengerucht (relatieproblemen)" = "2.4.1", 
+    "Huisvredebreuk" = "2.4.2", 
+    "Diefstal/inbraak bedrijven" = "2.5.1", 
+    "Winkeldiefstal" = "2.5.2", 
+    "Inrichting Wet Milieubeheer" = "2.6.1", 
+    "Bodem" = "2.6.2",
+    "Water" = "2.6.3", 
+    "Afval" = "2.6.4", 
+    "Bouwstoffen" = "2.6.5", 
+    "Mest" = "2.6.7", 
+    "Transport gevaarlijke stoffen" = "2.6.8", 
+    "Vuurwerk" = "2.6.9", 
+    "Bestrijdingsmiddelen" = "2.6.10", 
+    "Natuur en landschap" = "2.6.11", 
+    "Ruimtelijke ordening" = "2.6.12", 
+    "Dieren" = "2.6.13", 
+    "Voedselveiligheid" = "2.6.14", 
+    "Bijzondere wetten" = "2.7.2", 
+    "Leefbaarheid (overig)" = "2.7.3", 
+    "Drugshandel" = "3.1.1", 
+    "Mensensmokkel" = "3.1.2", 
+    "Wapenhandel" = "3.1.3", 
+    "Kinderporno" = "3.2.1", 
+    "Kinderprostitutie" = "3.2.2", 
+    "Onder invloed (lucht)" = "3.3.2", 
+    "Lucht (overig)" = "3.3.5", 
+    "Onder invloed (water)" = "3.4.2", 
+    "Onder invloed (weg)" = "3.5.2", 
+    "Weg (overig)" = "3.5.5", 
+    "Aantasting openbare orde" = "3.6.4", 
+    "Discriminatie" = "3.7.1", 
+    "Vreemdelingenzorg" = "3.7.2", 
+    "Maatschappelijke intergriteit (overig)" = "3.7.3", 
+    "Cybercrime" = "3.7.4", 
+    "Horizontale fraude" = "3.9.1", 
+    "Verticale fraude" = "3.9.2", 
+    "Fraude (overig)" = "3.9.3"
+    )
+
+copy_2019 <- rename(copy_2019,
+    "Totaal misdrijven" = "0.0.0", 
+    "Diefstal/inbraak woning" = "1.1.1", 
+    "Diefstal/inbraak box/garage/schuur" = "1.1.2", 
+    "Diefstal uit/vanaf motorvoertuigen" = "1.2.1",
+    "Diefstal van motorvoertuigen" = "1.2.2",
+    "Diefstal van brom-, snor-, fietsen" = "1.2.3",
+    "Zakkenrollerij" = "1.2.4", 
+    "Diefstal af/uit/van overige voertuigen" = "1.2.5", 
+    "Ongevallen (weg)" = "1.3.1", 
+    "Zedenmisdrijf" = "1.4.1", 
+    "Moord, doodslag" = "1.4.2", 
+    "Openlijk geweld (persoon)" = "1.4.3", 
+    "Bedreiging" = "1.4.4", 
+    "Mishandeling" = "1.4.5", 
+    "Straatroof" = "1.4.6", 
+    "Overval" = "1.4.7", 
+    "Diefstallen (water)" = "1.5.2", 
+    "Brand/ontploffing" = "1.6.1", 
+    "Overige vermogensdelicten" = "1.6.2",
+    "Mensenhandel" = "1.6.3",
+    "Drugs/drankoverlast" = "2.1.1", 
+    "Vernieling cq. zaakbeschadiging" = "2.2.1", 
+    "Burengerucht (relatieproblemen)" = "2.4.1", 
+    "Huisvredebreuk" = "2.4.2", 
+    "Diefstal/inbraak bedrijven" = "2.5.1", 
+    "Winkeldiefstal" = "2.5.2", 
+    "Inrichting Wet Milieubeheer" = "2.6.1", 
+    "Bodem" = "2.6.2",
+    "Water" = "2.6.3", 
+    "Afval" = "2.6.4", 
+    "Bouwstoffen" = "2.6.5", 
+    "Mest" = "2.6.7", 
+    "Transport gevaarlijke stoffen" = "2.6.8", 
+    "Vuurwerk" = "2.6.9", 
+    "Bestrijdingsmiddelen" = "2.6.10", 
+    "Natuur en landschap" = "2.6.11", 
+    "Ruimtelijke ordening" = "2.6.12", 
+    "Dieren" = "2.6.13", 
+    "Voedselveiligheid" = "2.6.14", 
+    "Bijzondere wetten" = "2.7.2", 
+    "Leefbaarheid (overig)" = "2.7.3", 
+    "Drugshandel" = "3.1.1", 
+    "Mensensmokkel" = "3.1.2", 
+    "Wapenhandel" = "3.1.3", 
+    "Kinderporno" = "3.2.1", 
+    "Kinderprostitutie" = "3.2.2", 
+    "Onder invloed (lucht)" = "3.3.2", 
+    "Lucht (overig)" = "3.3.5", 
+    "Onder invloed (water)" = "3.4.2", 
+    "Onder invloed (weg)" = "3.5.2", 
+    "Weg (overig)" = "3.5.5", 
+    "Aantasting openbare orde" = "3.6.4", 
+    "Discriminatie" = "3.7.1", 
+    "Vreemdelingenzorg" = "3.7.2", 
+    "Maatschappelijke intergriteit (overig)" = "3.7.3", 
+    "Cybercrime" = "3.7.4", 
+    "Horizontale fraude" = "3.9.1", 
+    "Verticale fraude" = "3.9.2", 
+    "Fraude (overig)" = "3.9.3"
+    )
+
+copy_2020 <- rename(copy_2020,
+    "Totaal misdrijven" = "0.0.0", 
+    "Diefstal/inbraak woning" = "1.1.1", 
+    "Diefstal/inbraak box/garage/schuur" = "1.1.2", 
+    "Diefstal uit/vanaf motorvoertuigen" = "1.2.1",
+    "Diefstal van motorvoertuigen" = "1.2.2",
+    "Diefstal van brom-, snor-, fietsen" = "1.2.3",
+    "Zakkenrollerij" = "1.2.4", 
+    "Diefstal af/uit/van overige voertuigen" = "1.2.5", 
+    "Ongevallen (weg)" = "1.3.1", 
+    "Zedenmisdrijf" = "1.4.1", 
+    "Moord, doodslag" = "1.4.2", 
+    "Openlijk geweld (persoon)" = "1.4.3", 
+    "Bedreiging" = "1.4.4", 
+    "Mishandeling" = "1.4.5", 
+    "Straatroof" = "1.4.6", 
+    "Overval" = "1.4.7", 
+    "Diefstallen (water)" = "1.5.2", 
+    "Brand/ontploffing" = "1.6.1", 
+    "Overige vermogensdelicten" = "1.6.2",
+    "Mensenhandel" = "1.6.3",
+    "Drugs/drankoverlast" = "2.1.1", 
+    "Vernieling cq. zaakbeschadiging" = "2.2.1", 
+    "Burengerucht (relatieproblemen)" = "2.4.1", 
+    "Huisvredebreuk" = "2.4.2", 
+    "Diefstal/inbraak bedrijven" = "2.5.1", 
+    "Winkeldiefstal" = "2.5.2", 
+    "Inrichting Wet Milieubeheer" = "2.6.1", 
+    "Bodem" = "2.6.2",
+    "Water" = "2.6.3", 
+    "Afval" = "2.6.4", 
+    "Bouwstoffen" = "2.6.5", 
+    "Mest" = "2.6.7", 
+    "Transport gevaarlijke stoffen" = "2.6.8", 
+    "Vuurwerk" = "2.6.9", 
+    "Bestrijdingsmiddelen" = "2.6.10", 
+    "Natuur en landschap" = "2.6.11", 
+    "Ruimtelijke ordening" = "2.6.12", 
+    "Dieren" = "2.6.13", 
+    "Voedselveiligheid" = "2.6.14", 
+    "Bijzondere wetten" = "2.7.2", 
+    "Leefbaarheid (overig)" = "2.7.3", 
+    "Drugshandel" = "3.1.1", 
+    "Mensensmokkel" = "3.1.2", 
+    "Wapenhandel" = "3.1.3", 
+    "Kinderporno" = "3.2.1", 
+    "Kinderprostitutie" = "3.2.2", 
+    "Onder invloed (lucht)" = "3.3.2", 
+    "Lucht (overig)" = "3.3.5", 
+    "Onder invloed (water)" = "3.4.2", 
+    "Onder invloed (weg)" = "3.5.2", 
+    "Weg (overig)" = "3.5.5", 
+    "Aantasting openbare orde" = "3.6.4", 
+    "Discriminatie" = "3.7.1", 
+    "Vreemdelingenzorg" = "3.7.2", 
+    "Maatschappelijke intergriteit (overig)" = "3.7.3", 
+    "Cybercrime" = "3.7.4", 
+    "Horizontale fraude" = "3.9.1", 
+    "Verticale fraude" = "3.9.2", 
+    "Fraude (overig)" = "3.9.3"
+    )
+
+copy_2021 <- rename(copy_2021,
+    "Totaal misdrijven" = "0.0.0", 
+    "Diefstal/inbraak woning" = "1.1.1", 
+    "Diefstal/inbraak box/garage/schuur" = "1.1.2", 
+    "Diefstal uit/vanaf motorvoertuigen" = "1.2.1",
+    "Diefstal van motorvoertuigen" = "1.2.2",
+    "Diefstal van brom-, snor-, fietsen" = "1.2.3",
+    "Zakkenrollerij" = "1.2.4", 
+    "Diefstal af/uit/van overige voertuigen" = "1.2.5", 
+    "Ongevallen (weg)" = "1.3.1", 
+    "Zedenmisdrijf" = "1.4.1", 
+    "Moord, doodslag" = "1.4.2", 
+    "Openlijk geweld (persoon)" = "1.4.3", 
+    "Bedreiging" = "1.4.4", 
+    "Mishandeling" = "1.4.5", 
+    "Straatroof" = "1.4.6", 
+    "Overval" = "1.4.7", 
+    "Diefstallen (water)" = "1.5.2", 
+    "Brand/ontploffing" = "1.6.1", 
+    "Overige vermogensdelicten" = "1.6.2",
+    "Mensenhandel" = "1.6.3",
+    "Drugs/drankoverlast" = "2.1.1", 
+    "Vernieling cq. zaakbeschadiging" = "2.2.1", 
+    "Burengerucht (relatieproblemen)" = "2.4.1", 
+    "Huisvredebreuk" = "2.4.2", 
+    "Diefstal/inbraak bedrijven" = "2.5.1", 
+    "Winkeldiefstal" = "2.5.2", 
+    "Inrichting Wet Milieubeheer" = "2.6.1", 
+    "Bodem" = "2.6.2",
+    "Water" = "2.6.3", 
+    "Afval" = "2.6.4", 
+    "Bouwstoffen" = "2.6.5", 
+    "Mest" = "2.6.7", 
+    "Transport gevaarlijke stoffen" = "2.6.8", 
+    "Vuurwerk" = "2.6.9", 
+    "Bestrijdingsmiddelen" = "2.6.10", 
+    "Natuur en landschap" = "2.6.11", 
+    "Ruimtelijke ordening" = "2.6.12", 
+    "Dieren" = "2.6.13", 
+    "Voedselveiligheid" = "2.6.14", 
+    "Bijzondere wetten" = "2.7.2", 
+    "Leefbaarheid (overig)" = "2.7.3", 
+    "Drugshandel" = "3.1.1", 
+    "Mensensmokkel" = "3.1.2", 
+    "Wapenhandel" = "3.1.3", 
+    "Kinderporno" = "3.2.1", 
+    "Kinderprostitutie" = "3.2.2", 
+    "Onder invloed (lucht)" = "3.3.2", 
+    "Lucht (overig)" = "3.3.5", 
+    "Onder invloed (water)" = "3.4.2", 
+    "Onder invloed (weg)" = "3.5.2", 
+    "Weg (overig)" = "3.5.5", 
+    "Aantasting openbare orde" = "3.6.4", 
+    "Discriminatie" = "3.7.1", 
+    "Vreemdelingenzorg" = "3.7.2", 
+    "Maatschappelijke intergriteit (overig)" = "3.7.3", 
+    "Cybercrime" = "3.7.4", 
+    "Horizontale fraude" = "3.9.1", 
+    "Verticale fraude" = "3.9.2", 
+    "Fraude (overig)" = "3.9.3"
+    )
+
+
+```
+
+```{r}
+#Change column names 
+
+#2012
+colnames(copy_2012) <-  sub("^", "2012 ", colnames(copy_2012))
+names(copy_2012)[names(copy_2012) == "2012 WijkenEnBuurten"] <- "CODE"
+
+#2013
+colnames(copy_2013) <-  sub("^", "2013 ", colnames(copy_2013))
+names(copy_2013)[names(copy_2013) == "2013 WijkenEnBuurten"] <- "CODE"
+
+#2014
+colnames(copy_2014) <-  sub("^", "2014 ", colnames(copy_2014))
+names(copy_2014)[names(copy_2014) == "2014 WijkenEnBuurten"] <- "CODE"
+
+#2015
+colnames(copy_2015) <-  sub("^", "2015 ", colnames(copy_2015))
+names(copy_2015)[names(copy_2015) == "2015 WijkenEnBuurten"] <- "CODE"
+
+#2016
+colnames(copy_2016) <-  sub("^", "2016 ", colnames(copy_2016))
+names(copy_2016)[names(copy_2016) == "2016 WijkenEnBuurten"] <- "CODE"
+
+#2017
+colnames(copy_2017) <-  sub("^", "2017 ", colnames(copy_2017))
+names(copy_2017)[names(copy_2017) == "2017 WijkenEnBuurten"] <- "CODE"
+
+#2018
+colnames(copy_2018) <-  sub("^", "2018 ", colnames(copy_2018))
+names(copy_2018)[names(copy_2018) == "2018 WijkenEnBuurten"] <- "CODE"
+
+#2019
+colnames(copy_2019) <-  sub("^", "2019 ", colnames(copy_2019))
+names(copy_2019)[names(copy_2019) == "2019 WijkenEnBuurten"] <- "CODE"
+
+#2020
+colnames(copy_2020) <-  sub("^", "2020 ", colnames(copy_2020))
+names(copy_2020)[names(copy_2020) == "2020 WijkenEnBuurten"] <- "CODE"
+
+#2021
+colnames(copy_2021) <-  sub("^", "2021 ", colnames(copy_2021))
+names(copy_2021)[names(copy_2021) == "2021 WijkenEnBuurten"] <- "CODE"
+
+```
+
+```{r}
+#join with full_data 
+full_data2 <- select(full_data, -centroid)
+full_data3 <- merge(x = full_data2, y = copy_2012, by = "CODE", all = TRUE)
+full_data3 <- merge(x = full_data3, y = copy_2013, by = "CODE", all = TRUE)
+full_data3 <- merge(x = full_data3, y = copy_2014, by = "CODE", all = TRUE)
+full_data3 <- merge(x = full_data3, y = copy_2015, by = "CODE", all = TRUE)
+full_data3 <- merge(x = full_data3, y = copy_2016, by = "CODE", all = TRUE)
+full_data3 <- merge(x = full_data3, y = copy_2017, by = "CODE", all = TRUE)
+full_data3 <- merge(x = full_data3, y = copy_2018, by = "CODE", all = TRUE)
+full_data3 <- merge(x = full_data3, y = copy_2019, by = "CODE", all = TRUE)
+full_data3 <- merge(x = full_data3, y = copy_2020, by = "CODE", all = TRUE)
+full_data3 <- merge(x = full_data3, y = copy_2021, by = "CODE", all = TRUE)
+
+```
+
+```{r}
+#write rds
+write_rds(full_data3, "Data/full_data3.rds")
+```
+
+
+```{r}
+#normalize data per 1000 inhabitants 
+full_data4 <- as.data.frame(full_data3)
+full_data4 <- full_data4 %>% mutate_at(vars(195:784), funs(round(./(full_data4[ , "Aantal inwoners"]/1000))))
+```
+
+```{r}
+#sf file 
+full_data4 <-  st_as_sf(full_data4)
+```
+
+```{r}
+#make rds file
+write_rds(full_data4, "Data/full_data4.rds")
+```
+
+
+

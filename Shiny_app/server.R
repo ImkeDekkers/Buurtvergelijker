@@ -1,3 +1,4 @@
+
 # Load data
 # Facilities
 postcodes_final <- readRDS("../Data/postcodes_final.rds")
@@ -7,6 +8,7 @@ source("../Functions/create_map_facilities.R")
 source("../Functions/top5_facilities.R")
 source("../Functions/postcode_lookup.R")
 source("../Functions/Dataset.R")
+
 
 # Health 
 gezondheid_all <-readRDS("../Data/gezondheid_all.rds")
@@ -21,6 +23,10 @@ intersection <- readRDS("../Data/intersection.rds")
 source("../Functions/incidents_map.R")
 source("../Functions/plots_incidents.R")
 source("../Functions/generate_data_incidents.R")
+
+#Crime 
+#full_data_crime <- readRDS("../Data/full_data3.rds")
+#full_data_crime_norm <- readRDS("../Data/full_data4.rds")
 
 # Shiny server
 shinyServer(function(input, output, session) {
@@ -917,6 +923,7 @@ shinyServer(function(input, output, session) {
           stedelijkheid_num <- df %>% filter(WK_NAAM == input$wijken2_gez & GM_NAAM == input$gemeente2_gez) %>% pull(`Stedelijkheid (1=zeer sterk stedelijk, 5=niet stedelijk)`)
           stedelijkheid_num <- stedelijkheid_num[1]
           comparable_df <- df[df$`Stedelijkheid (1=zeer sterk stedelijk, 5=niet stedelijk)`== stedelijkheid_num, ]
+
           comparable_df <- comparable_df %>% drop_na(CODE)
           output$error_vergelijkbaarheid_gez <- renderText(
             print("")
@@ -1214,5 +1221,482 @@ shinyServer(function(input, output, session) {
       }
     })
 
-})
+#})
+
+  
+  ## CRIME ##
+  
+  # Make selection dependent on previous input
+  observeEvent(input$gemeente_crime2, {
+    updateSelectInput(session, 'wijken_crime2',
+                      choices = unique(postcodes_final$wijknaam2020[postcodes_final$Gemeentenaam2020 == input$gemeente_crime2]))  # Only display that are in the selected gemeente
+  })
+  observeEvent(input$gemeente_crime3, {
+    updateSelectInput(session, 'wijken_crime3',
+                      choices = unique(postcodes_final$wijknaam2020[postcodes_final$Gemeentenaam2020 == input$gemeente_crime3]))  # Only display that are in the selected gemeente
+  })
+  observeEvent(input$wijken_crime3,{
+    updateSelectInput(session, 'buurten_crime3',
+                      choices = unique(postcodes_final$buurtnaam2020[postcodes_final$Gemeentenaam2020 == input$gemeente_crime3 & 
+                                                                       postcodes_final$wijknaam2020==input$wijken_crime3]))       # Only display buurten that are in the selected wijk
+  }) 
+  
+  #select right input based on input at thema_crime
+  observeEvent(input$thema_crime, {
+    if (input$thema_crime == "Totaal misdrijven") {
+      updateSelectInput(session, 'soort_crime', 
+                        choices = c("Totaal misdrijven"))
+    }else if (input$thema_crime == "Vermogensdelicten") {
+      updateSelectInput(session, 'soort_crime', 
+                        choices = c("Diefstal/inbraak woning", "Diefstal/inbraak box/garage/schuur", "Diefstal uit/vanaf motorvoertuigen","Diefstal van motorvoertuigen","Diefstal van brom-, snor-, fietsen",
+                                    "Zakkenrollerij", "Diefstal af/uit/van overige voertuigen", "Horizontale fraude", "Verticale fraude", "Fraude (overig)","Diefstal/inbraak bedrijven", "Winkeldiefstal", 
+                                    "Diefstallen (water)", "Overige vermogensdelicten"))
+    }else if (input$thema_crime == "Gewelds- en seksuele misdrijven") {
+      updateSelectInput(session, 'soort_crime', 
+                        choices = c("Zedenmisdrijf","Moord, doodslag", "Openlijk geweld (persoon)", "Bedreiging", "Mishandeling", "Straatroof", "Overval", "Kinderporno", "Kinderprostitutie"))
+    }else if (input$thema_crime == "Vernielingen en misdrijven tegen openbare orde en gezag") {
+      updateSelectInput(session, 'soort_crime', 
+                        choices = c("Aantasting openbare orde", "Discriminatie", "Brand/ontploffing","Vernieling cq. zaakbeschadiging","Huisvredebreuk", "Leefbaarheid (overig)", "Vreemdelingenzorg", 
+                                    "Maatschappelijke intergriteit (overig)", "Cybercrime", "Burengerucht (relatieproblemen)"))
+    }else if (input$thema_crime == "Verkeersmisdrijven") {
+      updateSelectInput(session, 'soort_crime', 
+                        choices = c("Onder invloed (lucht)", "Lucht (overig)", "Onder invloed (water)", "Onder invloed (weg)", "Weg (overig)", "Ongevallen (weg)"))
+    }else if (input$thema_crime == "Misdrijven omgeving en milieu") {
+      updateSelectInput(session, 'soort_crime', 
+                        choices = c("Inrichting Wet Milieubeheer", "Bodem","Water", "Afval", "Bouwstoffen", "Mest", "Transport gevaarlijke stoffen", "Vuurwerk", "Bestrijdingsmiddelen", 
+                                    "Natuur en landschap", "Ruimtelijke ordening", "Dieren", "Voedselveiligheid")) 
+    }else if (input$thema_crime == "Overige misdrijven") {
+      updateSelectInput(session, 'soort_crime', 
+                        choices = c("Mensenhandel","Drugs/drankoverlast", "Drugshandel","Mensensmokkel", "Wapenhandel", "Bijzondere wetten" ))
+    }
+  })
+  
+  #select right dataset based on aantallen 
+  crime_data <- eventReactive(input$aantal_crime,{
+    if (input$aantal_crime == "Aantal misdrijven"){
+      crime_data <- full_data_crime
+    } else if (input$aantal_crime == "Aantallen per 1000 inwoners"){
+      crime_data <- full_data_crime_norm
+    } 
+  }
+  )
+  
+  ###
+  #vergelijkbaarheid
+  ###
+  
+  #make used data reactive on the selected niveau
+  datasetInputCrime <- eventReactive(input$action_crime,{
+    df <- as.data.frame(crime_data())
+    df <- df[df$Niveau == input$niveau_crime,]
+    df <- df %>% drop_na("CODE")
+    if(input$niveau_crime == 'Gemeenten'){
+      if(input$vergelijkbaar_crime1 == "Stedelijkheidsniveau"){
+        stedelijkheid_num <- df[df$GM_NAAM == input$gemeente_crime1, "Stedelijkheid (1=zeer sterk stedelijk, 5=niet stedelijk)"]
+        comparable_df <- df[df$`Stedelijkheid (1=zeer sterk stedelijk, 5=niet stedelijk)`== stedelijkheid_num, ]
+      }else if (input$vergelijkbaar_crime1 == "Inkomensniveau"){
+        inkomen_num <- df[df$GM_NAAM == input$gemeente_crime1, 'inkomengroep']
+        comparable_df <- df[df$inkomengroep == inkomen_num, ]
+      }else if (input$vergelijkbaar_crime1 == "Opleidingsniveau"){
+        opleiding_num <- df[df$GM_NAAM == input$gemeente_crime1, 'opleidingsgroep']
+        comparable_df <- df[df$opleidingsgroep == opleiding_num, ]
+      } else if(input$vergelijkbaar_crime1 == "Nederland"){
+        comparable_df <- df
+      }
+      comparable_df$selected_area_code <- comparable_df %>% filter(GM_NAAM == input$gemeente_crime1) %>% pull(CODE)
+      comparable_df$selected_area_label <- comparable_df %>% filter(GM_NAAM == input$gemeente_crime1) %>% pull(NAAM)
+      selected_polygon <- comparable_df %>% filter(GM_NAAM == input$gemeente_crime1)
+      row_num_selected <- which(comparable_df$GM_NAAM == input$gemeente_crime1)
+    }else if(input$niveau_crime == 'Wijken'){
+      if(input$vergelijkbaar_crime2 == "Stedelijkheidsniveau"){
+        stedelijkheid_num <- df[df$WK_NAAM == input$wijken_crime2 & df$GM_NAAM == input$gemeente_crime2, "Stedelijkheid (1=zeer sterk stedelijk, 5=niet stedelijk)"]
+        comparable_df <- df[df$`Stedelijkheid (1=zeer sterk stedelijk, 5=niet stedelijk)`== stedelijkheid_num, ]
+        comparable_df <- comparable_df %>% drop_na(CODE)
+        output$ink_vergelijkbaarheid <- renderText(
+          print("")
+        )
+        output$opl_vergelijkbaarheid <- renderText(
+          print("")
+        )
+      }else if (input$vergelijkbaar_crime2 == "Inkomensniveau"){
+        inkomen_num <- df[df$WK_NAAM == input$wijken_crime2 & df$GM_NAAM == input$gemeente_crime2, 'inkomengroep']
+        if(is.na(inkomen_num)){
+          comparable_df <- df[df$Niveau == input$niveau_crime,]
+          output$ink_vergelijkbaarheid <- renderText(
+            print("Let op, door een missende waarde van het inkomensniveau voor uw wijk, wordt er nu met heel Nederland vergeleken.")
+          )
+        }else{
+          comparable_df <- df[df$inkomengroep == inkomen_num, ]
+          comparable_df <- comparable_df %>% drop_na(CODE)
+          output$ink_vergelijkbaarheid <- renderText(
+            print("")
+          )
+        }
+      }else if (input$vergelijkbaar_crime2 == "Opleidingsniveau"){
+        opleiding_num <- df[df$WK_NAAM == input$wijken_crime2 & df$GM_NAAM == input$gemeente_crime2, 'opleidingsgroep']
+        if(is.na(opleiding_num)){
+          comparable_df <- df[df$Niveau == input$niveau_crime,]
+          output$opl_vergelijkbaarheid <- renderText(
+            print("Let op, door een missende waarde van het opleidingsniveau voor uw wijk, wordt er nu met heel Nederland vergeleken.")
+          )
+        }else{
+          comparable_df <- df[df$opleidingsgroep == opleiding_num, ]
+          comparable_df <- comparable_df %>% drop_na(CODE)
+          output$opl_vergelijkbaarheid <- renderText(
+            print("")
+          )
+        }
+      } else if(input$vergelijkbaar_crime2 == "Nederland"){
+        comparable_df <- df
+        output$ink_vergelijkbaarheid <- renderText(
+          print("")
+        )
+        output$opl_vergelijkbaarheid <- renderText(
+          print("")
+        )
+      }
+      comparable_df$selected_area_code <- comparable_df %>% filter(GM_NAAM == input$gemeente_crime2 & WK_NAAM == input$wijken_crime2) %>%pull(CODE)
+      comparable_df$selected_area_label <- comparable_df %>% filter(GM_NAAM == input$gemeente_crime2 & WK_NAAM == input$wijken_crime2) %>%pull(NAAM)
+      selected_polygon <- comparable_df %>% filter(GM_NAAM == input$gemeente_crime2 & WK_NAAM == input$wijken_crime2)
+      row_num_selected <- which(comparable_df$GM_NAAM == input$gemeente_crime2 & comparable_df$WK_NAAM == input$wijken_crime2)
+    }else if(input$niveau_crime == 'Buurten'){
+      if(input$vergelijkbaar_crime3 == "Stedelijkheidsniveau"){
+        stedelijkheid_num <- df[df$BU_NAAM==input$buurten_crime3 & df$GM_NAAM == input$gemeente_crime3 & df$WK_NAAM == input$wijken_crime3, "Stedelijkheid (1=zeer sterk stedelijk, 5=niet stedelijk)"]
+        comparable_df <- df[df$`Stedelijkheid (1=zeer sterk stedelijk, 5=niet stedelijk)`== stedelijkheid_num, ]
+        comparable_df <- comparable_df %>% drop_na(CODE)
+      } else if(input$vergelijkbaar_crime3 == "Nederland"){
+        comparable_df <- df
+      }
+      comparable_df$selected_area_code <- comparable_df %>% filter(GM_NAAM == input$gemeente_crime3 & WK_NAAM == input$wijken_crime3 & BU_NAAM == input$buurten_crime3) %>%pull(CODE)
+      comparable_df$selected_area_label <- comparable_df %>% filter(GM_NAAM == input$gemeente_crime3 & WK_NAAM == input$wijken_crime3 & BU_NAAM == input$buurten_crime3) %>%pull(NAAM)
+      selected_polygon <- comparable_df %>% filter(GM_NAAM == input$gemeente_crime3 & WK_NAAM == input$wijken_crime3 & BU_NAAM == input$buurten_crime3)
+      row_num_selected <- which(comparable_df$GM_NAAM == input$gemeente_crime3 & comparable_df$WK_NAAM == input$wijken_crime3 & comparable_df$BU_NAAM == input$buurten_crime3)
+    } 
+    comparable_df$centroidxx <- comparable_df[row_num_selected, 'centroidx']
+    comparable_df$centroidyy <- comparable_df[row_num_selected, 'centroidy']
+    dataset <- st_as_sf(comparable_df)
+    
+    list_return <- list("dataset" = dataset, "selected_polygon" = selected_polygon)
+    return(list_return)
+  })
+  
+  
+  ########
+  #Plot
+  ########
+  
+  output$crime_plot <- renderPlot({
+    make_crime_plot(input$soort_crime)
+  })
+  
+  make_crime_plot <- function(type_of_crime){
+    
+    #plot output for selected area 
+    df <- as.data.frame(datasetInputCrime()$selected_polygon)
+    selected_area_label <- df[1, "selected_area_label"]
+    df_selected <- select(df, ends_with(type_of_crime))
+    df_selected[df_selected == Inf] <- 0 #if number is too small assign 0
+    df_selected <- rownames_to_column(df_selected)
+    #df_selected <- na.omit(df_selected)
+    df_selected <- df_selected[,-1]
+    colnames(df_selected) <- gsub("([A-Za-z]+).*", "", colnames(df_selected))
+    df_selected$group <- selected_area_label
+    
+    #plot output mean for the selected vergelijkbare gebieden
+    df_comp <- as.data.frame(datasetInputCrime()$dataset)
+    df_comp <- select(df_comp, ends_with(type_of_crime))
+    df_comp[df_comp == Inf] <- 0    #if number is too small assign 0 
+    df_means <- as.data.frame(round(colMeans(df_comp, na.rm = TRUE)))
+    df_means <- rownames_to_column(df_means)
+    df_means <- melt(df_means)
+    df_means <- dcast(df_means, variable ~ rowname, var.value=value)
+    df_means <- df_means[,-1]
+    colnames(df_means) <- gsub("([A-Za-z]+).*", "", colnames(df_means))
+    df_means$group <- "Gemiddelde van de vergeleken gebieden"
+    
+    #combine plot output 
+    df_total <- rbind(df_selected, df_means)
+    df_total$group <- as.character(df_total$group)
+    df_total$group <- factor(df_total$group, levels=unique(df_total$group))
+    df_total <- melt(df_total)
+    
+    #define plot details 
+    ggplot(data = df_total, aes(x= variable, y=value, color = group, group = group)) + ggtitle(type_of_crime) + geom_point(size = 3)+ geom_line(size = 0.75)+
+      labs(x = "Jaartal", y = "Aantal") + theme_minimal() +  
+      theme(text = element_text(size = 14),legend.title = element_blank()) 
+  }
+  
+  
+  #Function that makes map of the selected variable 
+  make_crime_map <- function(year, variable){
+    
+    #get input for the map
+    map_data <- datasetInputCrime()$dataset
+    selected_map_data <- select(map_data, ends_with(variable))          #select crime
+    selected_map_data <- select(selected_map_data, starts_with(year))   #select year
+    #selected_map_data[selected_map_data == Inf] <- 0                    #if number is too small assign 0 
+    colnames(selected_map_data) <- "selected_variable"
+    map_data$variable <- selected_map_data[["selected_variable"]] 
+    
+    #define colors for polygons and legend 
+    pal <- colorBin("YlOrRd", domain = map_data$variable)
+    qpal <- colorQuantile("YlOrRd", map_data$variable, n = 6)
+    #for the colors in the map, colorQuantile is used, unless an error is given, then we use colorBin
+    coloring <- tryCatch({
+      qpal(map_data$variable)
+    } , error = function(e) {
+      pal(map_data$variable)
+    } )
+    legend_title <- as.character(variable)
+    labels <- sprintf("%s: %g", map_data$NAAM, map_data$variable) %>% 
+      lapply(htmltools::HTML)
+    label_content <- sprintf("%s: %g <br/> %s: %g", 
+                             map_data$selected_area_label, map_data$variable[map_data$CODE == map_data$selected_area_code], "Gemiddelde vergelijkbare gebieden", round(mean(map_data$variable, na.rm=TRUE), digits = 1))%>% lapply(htmltools::HTML)
+    
+    #selected_area_code <- df[1, "selected_area_code"]
+    
+    #map
+    output_map <- tryCatch({
+      leaflet(map_data)%>%
+        addPolygons(fillColor = ~coloring, color = "black", weight = 0.5, fillOpacity = 0.7,
+                    highlightOptions = highlightOptions(color='white',weight=0.5,fillOpacity = 0.7, bringToFront = TRUE), label = labels)%>%
+        addProviderTiles(providers$CartoDB.Positron)%>%
+        addMarkers(
+          lng = map_data$centroidxx, lat = map_data$centroidyy,
+          label = label_content,
+          labelOptions = labelOptions(noHide = T))%>%
+        #addCircleMarkers(lng = map_data$centroidxx, lat = map_data$centroidyy, color = "black", weight = 3, opacity = 0.75, fillOpacity = 0)%>%
+        leaflet::addLegend(pal = qpal, values = ~map_data$variable, opacity = 0.7, title = legend_title, position = "bottomright", labFormat = function(type, cuts, p) {      #labformat function makes sure the actual values instead of the quantiles are displayed in the legend
+          n = length(cuts)
+          paste0(round(cuts[-n],0), " &ndash; ", round(cuts[-1],0))
+        }#, labFormat = labelFormat(digits = 0)
+        )
+      
+    }, error = function(e) {
+      leaflet(map_data) %>%
+        addPolygons(fillColor = ~ coloring, color = "black", weight = 0.5, fillOpacity = 0.7,
+                    highlightOptions = highlightOptions(color='white',weight=0.5,fillOpacity = 0.7, bringToFront = TRUE), label = labels) %>%
+        addProviderTiles(providers$CartoDB.Positron) %>% 
+        addMarkers(
+          lng = map_data$centroidxx, lat = map_data$centroidyy,
+          label = label_content,
+          labelOptions = labelOptions(noHide = T))%>% 
+        
+        #addCircleMarkers(lng = map_data$centroidx, lat = map_data$centroidy, color = "black", weight = 3, opacity = 0.75, fillOpacity = 0)%>%
+        leaflet::addLegend(pal = pal, values = ~map_data$variable, opacity = 0.7, title = legend_title, position = "bottomright")
+    })
+    
+    return(output_map)
+    
+  }
+  output$crime_map <- renderLeaflet({
+    make_crime_map(input$jaar_crime, input$soort_crime)
+  })
+  
+  ### TOP5 ####
+  
+  top5_crime <- function(type_of_crime, year){
+    df <- as.data.frame(datasetInputCrime()$dataset)
+    df_selected_area <- as.data.frame(datasetInputCrime()$selected_polygon)
+    
+    if (input$niveau_crime == "Gemeenten"){
+      df_var <- select(df,CODE, NAAM, ends_with(type_of_crime))     #select crime
+      df_var_year <- select(df_var, CODE, NAAM, starts_with(year))  #select year
+      df_var_year[df_var_year == Inf] <- 0                          #if number is too small assign 0 
+      names(df_var_year) <- c("CODE", "Gemeentenaam", "Aantal")
+    }else if (input$niveau_crime == "Wijken"){
+      df_var <- select(df, CODE, NAAM, GM_NAAM, ends_with(type_of_crime))
+      df_var_year <- select(df_var, CODE, NAAM, GM_NAAM, starts_with(year))
+      df_var_year[df_var_year == Inf] <- 0    
+      names(df_var_year) <- c("CODE", "Wijk", "Gemeentenaam", "Aantal")
+    }else if (input$niveau_crime == "Buurten"){
+      df_var <- select(df, CODE, NAAM, GM_NAAM, ends_with(type_of_crime))
+      df_var_year <- select(df_var, CODE, NAAM, GM_NAAM, starts_with(year))
+      df_var_year[df_var_year == Inf] <- 0   
+      names(df_var_year) <- c("CODE", "Buurt", "Gemeentenaam", "Aantal")
+    }
+    
+    x <- ncol(df_var_year)                                      #get number of last column 
+    df_top5 <- arrange(df_var_year, desc(df_var_year[ ,x]))     #arrange by the number of the last column
+    df_top5$Rank <- 1:nrow(df_top5)                             #give ranknumber
+    df_top5_selected_area <- df_top5[df_top5$CODE == df_selected_area$CODE,]  #select the selected area
+    df_top5_5 <- df_top5 %>% slice(1:5)                         #select the top5
+    df_top5 <- rbind(df_top5_5, df_top5_selected_area)          #bind together top5 and selected area
+    df_top5 <- df_top5 %>% distinct(CODE, .keep_all = TRUE)
+    df_top5$CODE <- NULL
+    df_top5 <- df_top5 %>% select("Rank", everything())         #make rank first column
+    df_top5$Aantal <- round(df_top5$Aantal, digits = 0)
+    return(df_top5)
+  }
+  
+  output$top5_crime2 <- renderTable(
+    top5_crime(input$soort_crime, input$jaar_crime)
+  )
+  
+  output$top5_crime = renderUI({
+    title <- paste0("Top 5 ",input$soort_crime, " ", input$jaar_crime)
+    box(title = title, width = NULL, background = "red",
+        "Top 5 waar misdrijf het meest voorkomt",
+        #"Hier komt de top 5 van vergelijkbare g/w/b voor een bepaald thema",
+        tableOutput("top5_crime2")) 
+  })
+  
+  #information on the type of crime
+  output$info_crime <- renderText({
+    if (input$soort_crime == "Totaal misdrijven"){
+      "Totaal van alle misdrijven"
+    } else if (input$soort_crime == "Diefstal/inbraak woning"){
+      "Diefstal d.m.v. of zonder braak, verbreking, inklimming, valse sleutel, valse order of vals kostuum in/uit een ruimte waar men
+          woont alsmede de schuren, boxen, garages, bergingen, etc. die men rechtstreeks vanuit de woning kan betreden. Eventueel vergezeld of
+          gevolgd door (bedreiging met) geweld gericht tegen personen in/uit een ruimte waar men woont alsmede de
+          schuren, boxen, garages, bergingen, etc. die men rechtstreeks vanuit de woning kan betreden."
+    } else if (input$soort_crime == "Diefstal/inbraak box/garage/schuur"){
+      "Diefstal d.m.v.of zonder braak, verbreking, inklimming, valse sleutel, valse order of vals kostuum uit particuliere
+          schuren/boxen/garages/tuinhuisjes die niet rechtstreeks verbonden zijn met een woning. Eventueel vergezeld of
+            gevolgd door (bedreiging met) geweld gericht tegen personen uit particuliere schuren/boxen/garages/tuinhuisjes
+              die niet rechtstreeks verbonden zijn met een woning."
+    } else if (input$soort_crime == "Diefstal uit/vanaf motorvoertuigen"){
+      "De diefstal (ook d.m.v. braak, verbreking, inklimming, valse sleutel, valse order of vals kostuum) van voorwerpen of
+            onderdelen, gepleegd vanaf of uit een personenauto.Eventueel vergezeld of gevolgd door (bedreiging met) geweld gericht tegen personen uit/vanaf een personenauto op de
+              openbare weg of een voor het publiek vrij toegankelijke plaats. De personenauto moet zich bevinden op een locatie waarvoor
+              geen specifieke andere maatschappelijke klasse beschikbaar is. De personenauto dient zich te bevinden op of aan
+                de openbare weg of openbaar toegankelijke cq niet fysiek afgeschermde plaats. "
+    }else if (input$soort_crime == "Diefstal van motorvoertuigen"){
+      "Diefstal van een personenauto/motorfiets/auto voor vrachtvervoer op de openbare weg of een voor het publiek vrij toegankelijke plaats. Eventueel vergezeld of gevolgd door geweld (gericht tegen personen) van een personenauto/motorfiets/auto voor vrachtvervoer die
+          gepleegd is op of aan de openbare weg of openbaar toegankelijke plaats"
+    }else if (input$soort_crime == "Diefstal van brom-, snor-, fietsen"){
+      "Diefstal van een fiets/bromfiets/snorfiets op de openbare weg of een voor het publiek vrij toegankelijke plaats. Eventueel vergezeld of gevolgd door geweld (gericht tegen personen) van een fiets/bromfiets/snorfiets die gepleegd is op
+          of aan de openbare weg of openbaar toegankelijke plaats."
+    }else if (input$soort_crime == "Zakkenrollerij"){
+      "Heimenlijk (dus zonder geweld of bedreiging met geweld) wegnemen van geld en/of andere goederen op of aan het
+        lichaam gedragen of uit kleding die door het slachtoffer gedragen wordt. Voor tassenrollerij dient het weggenomen
+        goed in een (rug-/plastic-/of andere) tas gezeten te hebben. Die tas moet gedragen zijn door de betrokkene."
+    }else if (input$soort_crime == "Diefstal af/uit/van overige voertuigen"){
+      "De diefstal (ook d.m.v. braak, verbreking, inklimming, valse sleutel, valse order of vals kostuum) van voorwerpen of
+          onderdelen vanaf of uit een vervoermiddel met wielen of glijvlakken voor het vervoer over land van personen en/of goederen (niet zijnde een personenauto,
+          motor, fiets, bromfiets/snorfiets, vrachtauto en bestelauto). Dit vervoermiddel dient zich
+          te bevinden op of aan de openbare weg of openbaar toegankelijke cq niet fysiek afgeschermde plaats.Eventueel , vergezeld of gevolgd door geweld (gericht tegen personen) van een vervoermiddel met
+          wielen of glijvlakken voor het vervoer over land van personen en/of goederen (niet zijnde een personenauto,
+          motor, fiets, bromfiets/snorfiets, vrachtauto en bestelauto), die gepleegd is op of aan de openbare weg of openbaar
+          toegankelijke plaats. "
+    }else if (input$soort_crime == "Ongevallen (weg)"){
+      "Een gebeurtenis die verband houdt met het verkeer op een openbare weg voor het rijverkeer en ander verkeer, ten gevolge waarvan bij een of meerdere weggebruikers letsel bij personen ontstaat waarbij een medische behandeling noodzakelijk is of ten gevolge waarvan een of meerdere weggebruikers zijn overleden en (schade ontstaat aan objecten) waarbij minstens een rijdend voertuig is betrokken. Of een verkeerssituatie waarbij een van de betrokkenen met opzet, wetende dat er een verkeersongeval heeft plaatsgevonden, de plaats van ongeval heeft verlaten zonder daarbij anderen de gelegenheid te bieden tot het vaststellen van diens identiteit."
+    }else if (input$soort_crime == "Zedenmisdrijf"){
+      "Hieronder vallen openbare schennis der eerbaarheid, verkrachting, aanranding, overige zedenmisdrijven, pornografie, seksueel misbruik (incest) afhankelijkheidsrelatie of wilsonbekwame, seksueel misbruik kinderen (geen incest), sexting, grooming"
+    }else if (input$soort_crime == "Moord, doodslag"){
+      "Hieronder vallen doodslag/moord, euthanasie, overige misdrijven tegen het leven, illegale abortus en behulpzaam bij zelfdoding."
+    }else if (input$soort_crime == "Openlijk geweld (persoon)"){
+      " Het openlijk in vereniging plegen van geweld tegen personen"
+    }else if (input$soort_crime == "Bedreiging"){
+      "Hieronder vallen bedreiging, overige misdrijven tegen de persoonlijke vrijheid, grijzeling/ontvoering en stalking."
+    }else if (input$soort_crime == "Mishandeling"){
+      "Iemand opzettelijk (zwaar) lichamelijk letsel toebrengen."
+    }else if (input$soort_crime == "Straatroof"){
+      "Het met geweld of onder bedreiging met geweld (voorafgegaan, vergezeld of gevolgd) wegnemen of afpersen van
+        geld of goederen, gepleegd tegen een of meer personen op de openbare weg, m.u.v. geplande
+        professionele/particuliere geld/waarde transporten. Hieronder vallen ook de berovingen gepleegd in een lift, galerij,
+        binnenstraat, portiek of trapportaal."
+    }else if (input$soort_crime == "Overval"){
+      "Het met geweld of onder bedreiging van geweld (voorafgegaan, vergezeld of gevolgd), wegnemen of afpersen van
+        enig goed, gepleegd tegen personen die zich in een woning of besloten pand of een professionele- en particuliere geld- en/of
+        waardentransporten bevinden of op een gepland/georganiseerd (waarde-) transport."
+    }else if (input$soort_crime == "Diefstallen (water)"){
+      "De diefstal (ook d.m.v. braak, verbreking, inklimming, valse sleutel, valse order of vals kostuum) van voorwerpen of
+        onderdelen vanaf of uit het vervoermiddel waarmee je je op of onder het water kunt verplaatsen of van een vervoermiddel waarmee je je op of onder het water kunt verplaatsen (niet zijnde een
+        woonboot). Het vervoermiddel dient zich te bevinden op of aan het openbaar water of openbaar toegankelijke cq niet fysiek afgeschermde plaats. Eventueel vergezeld of gevolgd door (bedreiging met) geweld gericht tegen personen uit/vanaf/van een vervoermiddel waarmee je
+        je op of onder het water kunt verplaatsen (niet zijnde een woonboot)"
+    }else if (input$soort_crime == "Brand/ontploffing"){
+      "Het opzettelijk in brand steken van een goed, een ontploffing teweegbrengen of een overstroming veroorzaken of het  opzettelijk met behulp van springstof een of meerdere mensen te verwonden of te doden of om objecten te
+        beschadigen of te vernietigen."
+    } else if (input$soort_crime == "Overige vermogensdelicten"){
+      "Hieronder vallen diefstal in/uit andere gebouwen (eventueel met geweld), diefstal dier, verduistering, heling, chantage/afpersing, overige (eenvoudige) diefstal (met geweld)."
+    } else if (input$soort_crime == "Mensenhandel"){
+      "Iemand bewegen of ertoe brengen tot het verrichten van arbeid of seksuele handelingen met of voor een derde tegen
+        betaling. Of iemand criminele activiteiten laten verrichten, of iemand onder dwang diens organen ter beschikking te laten stellen of laten verwijderen, of overige vormen van uitbuiting"
+    } else if (input$soort_crime == "Drugs/drankoverlast"){
+      "Overige drugsdelicten, met name in- en uitvoer van middelen genoemd in de Opiumwet."
+    } else if (input$soort_crime == "Vernieling cq. zaakbeschadiging"){
+      "Hieronder vallen vernieling van/aan auto, vernieling van/aan openbaar vervoer/abri, vernieling van/aan openbaar gebouw, vernieling overige objecten en openlijke geweldpleging tegen goederen"
+    } else if (input$soort_crime == "Burengerucht (relatieproblemen)"){
+      "Het overtreden van een opgelegd huisverbod, dat wil zeggen het zich bevinden op/in de locatie waarvoor het
+        huisverbod geldt, waaronder het zoeken van contact, o.a. ook email en telefonisch contact"
+    } else if (input$soort_crime == "Huisvredebreuk"){
+      "Wederrechtelijk binnendringen in een woning of besloten lokaal of erf bij een ander in gebruik, of, wederrechtelijk
+        aldaar vertoevende, zich niet op eerste vordering van de rechthebbende verwijderen uit die woning."
+    } else if (input$soort_crime == "Diefstal/inbraak bedrijven en instellingen"){
+      "Diefstal zonder of d.m.v. braak, verbreking, inklimming, valse sleutel, valse order of vals kostuum in/uit winkel die op dat
+        moment niet voor publiek geopend was/een bedrijf of kantoor/een sportcomplex/een hotel of pension/een school. vergezeld of
+        gevolgd door (bedreiging met) geweld gericht tegen personen in of uit het bedrijf/de instellingen."
+    } else if (input$soort_crime == "Winkeldiefstal"){
+      "Diefstal van uitgestalde, voor de verkoop bestemde goederen uit of nabij een winkel gedurende de openingstijden.Eventueel vergezeld of gevolgd door (bedreiging met) geweld gericht tegen personen, van uitgestalde,
+        voor de verkoop bestemde goederen uit of nabij een winkel gedurende de openingstijden"
+    } else if (input$soort_crime == "Inrichting Wet Milieubeheer"){
+      "Alle strafbare handelingen met betrekking tot inrichtingen aangaande de Wet milieubeheer. Alle strafbare handelingen m.b.t. vuurwerk gerelateerde inrichtingen."
+    } else if (input$soort_crime == "Bestrijdingsmiddelen"){
+      "Het gebruik en toepassen van bestrijdingsmiddelen, in strijd met Bestrijdingsmiddelenwet/besluit. Of Het opgeslagen hebben/ het opgeslagen houden en het voorhanden hebben van bestrijdingsmiddelen in strijd met
+        het Bestrijdingsmiddelenwet/besluit. "
+    } else if (input$soort_crime == "Bodem"){
+      "Hieronder vallen het op/in de bodem brengen van afvalstoffen, afval van drugslab, bodemverontreiniging en ontgrondingen."
+    } else if (input$soort_crime == "Water"){
+      "Hieronder vallen het verontreiningen of de onttrekking van oppervlaktewater en slootdemping"
+    } else if (input$soort_crime == "Afval"){
+      "Hieronder vallen misdaden met betrekking tot afvaltransport, afval verbranden, wrak (milieu), afvallozing in riool, afvalstoffen inzamelen, asbest."
+    } else if (input$soort_crime == "Bouwstoffen"){
+      "Hieronder vallen misdaden met betrekking tot bouw- en sloopafval, bouwstoffen op of in de bodem, bouwstoffen in oppervlaktewater."
+    } else if (input$soort_crime == "Mest"){
+      "Hieronder vallen misdaden met betrekking tot het uitrijden van mest, de opslag van mest en het vervoer van mest."
+    } else if (input$soort_crime == "Transport gevaarlijke stoffen"){
+      "Hieronder vallen misdaden met betrekking tot transport van gevaarlijke stoffen over de weg, over binnenwater, over de Rijn, over zee, over het spoor, door de lucht, en met betrekking tot CFK's en koelinstallaties."
+    } else if (input$soort_crime == "Vuurwerk"){
+      "Misdaden met betrekking tot het transport van vuurwerk, vuurwerkevenementen of het bezitten/vervaardigen/voorhanden hebben/afleveren van vuurwerk."
+    } else if (input$soort_crime == "Bijzondere wetten"){
+      "Hieronder vallen misdrijven van de wet op de kansspelen, de telecommunicatiewet, misdrijven die niet onder een specifieke klasse vallen en witwassen."
+    } else if (input$soort_crime == "Leefbaarheid overig"){
+      "Hieronder vallen bijtincidenten met dieren en lokaalvredebreuk."
+    } else if (input$soort_crime == "Drugshandel"){
+      "Het bezit, de handel en het vervaardigen van hard- en softdrugs."
+    } else if (input$soort_crime == "Mensensmokkel"){
+      "Het onwettig en georganiseerd smokkelen van mensen over internationale grenzen heen."
+    } else if (input$soort_crime == "Wapenhandel"){
+      "Het bezit en de handel van vuurwapens en overige wapens."
+    } else if (input$soort_crime == "Kinderporno"){
+      "Het verspreiden, openlijk tentoonstellen, vervaardigen, invoeren, doorvoeren, uitvoeren of in bezit hebben van een
+        afbeelding van een seksuele gedraging, waarbij een minderjarig kind is betrokken of schijnbaar is betrokken."
+    } else if (input$soort_crime == "Kinderprostitutie"){
+      "Elk gebruik van een kind bij sexuele activiteiten tegen vergoeding of elke andere vorm van beloning."
+    } else if (input$soort_crime == "Onder invloed (lucht)"){
+      "Vliegen onder invloed van drugs/medicijnen/alcohol, het weigeren van een bloedproef of een vervangend (urine)onderzoek."
+    } else if (input$soort_crime == "Lucht overig"){
+      "Overtreding luchtvaartwet"
+    } else if (input$soort_crime == "Onder invloed (water)"){
+      "Varen onder invloed drugs/medicijnen/alcohol, weigeren ademanalyse/bloedproef/vervangend (urine)onderzoek."
+    } else if (input$soort_crime == "Onder invloed (weg)"){
+      "Rijden onder invloed van drugs/geneesmiddelen/alcohol, weigeren ademanalyse/bloedproef/vervangend (urine)onderzoek."
+    } else if (input$soort_crime == "Weg overig"){
+      "Hieronder vallen rijden tijdens een rijverbod, rijden terwijl rijbewijs is ingevorderd, rijden tijdens ontzegging rijbevoegdheid, rijden met ongeldig verklaard rijbewijs, joyriding, vals kenteken/valse kenteken platen en overige verkeersmisdrijven."
+    } else if (input$soort_crime == "Aantasting openbare orde"){
+      "Hieronder vallen de overige delicten openbare orde, wederspanningheid (verzet tegen ambtenaar in functie), niet voldoen aan bevel/vordering, overige misdrijven tegen het openbaar gezag."
+    } else if (input$soort_crime == "Discriminatie"){
+      "Elke vorm van onderscheid, elke uitsluiting, beperking of voorkeur, die ten doel heeft of ten gevolge kan hebben dat
+        de erkenning, het genot of de uitoefening op voet van gelijkheid van de rechten van de mens en de fundamentele
+        vrijheden op politiek, economisch, sociaal of cultureel terrein of op andere terreinen van het openbare leven, wordt
+        teniet gedaan of aangetast."
+    } else if (input$soort_crime == "Vreemdelingenzorg"){
+      "Zich als ongewenst verklaarde vreemdeling in Nederland bevinden"
+    } else if (input$soort_crime == "Maatschappelijke intergriteit (overig)"){
+      "Hieronder vallen belediging en ontucht met dieren/dierenporno"
+    } else if (input$soort_crime == "Cybercrime"){
+      "Alle vormen van bezitsaantasting waarbij de computer zowel het middel als het doel is."
+    } else if (input$soort_crime == "Horizontale fraude"){
+      "Fraude die gericht is tegen burgers, bedrijven en financiele instellingen.Hieronder vallen fraude met betaalproducten, IE-fraude/namaakgoederen, identiteitsfraude, verzekeringsfraude of assurantiefraude, faillissementsfraude, krediet-, hypotheek- en depotfraude, acquisitiefraude, vastgoedfraude, fraude met kilometertellers, fraude in de zorg, fraude met online handel, voorschotfraude, telecomfraude, beleggingsfraude en overige horizontale fraude"
+    } else if (input$soort_crime == "Verticale fraude"){
+      "Fraude die gericht is tegen de overheid. Hieronder vallen uitkeringsfraude, subsidiefraude en overige verticale fraude"
+    } else if (input$soort_crime == "Overige fraude"){
+      "Hieronder vallen vals geld maken, vals geld uitgeven en een valse aangifte."
+    }
+  }) #tab info_crime 
+  
+  
+}) # Shiny server
+
 

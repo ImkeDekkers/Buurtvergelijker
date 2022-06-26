@@ -8,6 +8,7 @@ library(tidyverse)
 library(shinythemes)
 library(shinydashboard)
 library(htmltools)
+library(reshape2)
 
 library(scales)
 library(RColorBrewer)
@@ -23,10 +24,12 @@ ui <- dashboardPage(
   dashboardSidebar(
     sidebarMenu(
 
+
       menuItem("Voorzieningen", tabName = "Voorzieningen", icon = icon("building", class = "fa-solid fa-building", lib = "font-awesome")),
       menuItem("Gezondheid", tabName = "Gezondheid", icon = icon("briefcase-medical", class = "fa-solid fa-briefcase-medical", lib = "font-awesome")),
       menuItem("Verkeersongevallen", tabName = "Verkeersongevallen", icon = icon("car-side", class = "fa-solid fa-car-side", lib = "font-awesome")),
-      menuItem("Criminaliteit", tabName = "Criminaliteit", icon = icon("th")))
+      menuItem("Criminaliteit", tabName = "Criminaliteit", icon = icon("handcuffs", class = "fa-solid fa-handcuffs", lib = "font-awesome")))
+
   ), # Dashboard sidebar
   dashboardBody(tags$head(tags$style(HTML('.box{box-shadow: none;border-style: none;}.content-wrapper { overflow: auto; }.leaflet-top, .leaflet-bottom {
     z-index: unset !important;
@@ -36,6 +39,7 @@ ui <- dashboardPage(
                     tabName = "Voorzieningen",
 
                     h2("Dashboard nabijheid voorzieningen op gemeente-, wijk- of buurtniveau"),
+
 
                     fluidRow(
                       column(width = 3,
@@ -64,6 +68,7 @@ ui <- dashboardPage(
                                  textOutput("postcode_info")), # Box postcode zoeken
                              box(title = "Kies een niveau", width = NULL, status = "primary", solidHeader = T,
                                  "Kies het gewenste niveau, gebied en waar u mee wilt vergelijken en druk op 'zoeken' om door te gaan.",
+
                                  selectInput("niveau", "Niveau:", c("Gemeenten" = "Gemeenten",
                                                                     "Wijken" = "Wijken",
                                                                     "Buurten" = "Buurten")), # Select input niveau
@@ -73,6 +78,7 @@ ui <- dashboardPage(
                                    selectInput("vergelijkbaar1", "Vergelijken met:", c("Alle gebieden in Nederland" = "Nederland", 
                                                                                        "Gebieden met dezelfde stedelijkheid" = "Stedelijkheidsniveau",
                                                                                        "Gebieden met ongeveer hetzelfde inkomen" = "Inkomensniveau")) # Select input vergelijkbaar1
+
                                  ), # Conditional panel 1 gemeenten
                                  conditionalPanel(
                                    condition = "input.niveau == 'Wijken'",
@@ -81,6 +87,7 @@ ui <- dashboardPage(
                                    selectInput("vergelijkbaar2", "Vergelijken met:", c("Alle gebieden in Nederland" = "Nederland", 
                                                                                        "Gebieden met dezelfde stedelijkheid" = "Stedelijkheidsniveau",
                                                                                        "Gebieden met ongeveer hetzelfde inkomen" = "Inkomensniveau")) # Select input vergelijkbaar 2
+
                                  ), # Conditional panel 2 wijken
                                  conditionalPanel(
                                    condition = "input.niveau == 'Buurten'",
@@ -96,6 +103,7 @@ ui <- dashboardPage(
                       uiOutput("info_box"), # Box informatie
                       uiOutput("kaart_box"), # Box geselecteerde plek
                       uiOutput("top5_all") # Box top 5 algemeen
+
                     ), # Fluid row 1 postcode, thema, algemene top 5, niveau, geselecteerde plek
                     fluidRow(
                       column(width = 2,
@@ -105,6 +113,7 @@ ui <- dashboardPage(
                                                                   "Vrije tijd en cultuur")), 
                                  selectInput("subthema", "Subthema:", choices = NULL),
                                  actionButton("action_theme", "Zoeken")), # Box thema
+
                              uiOutput("top5"), # Box top 5 thema
                       ),
                       uiOutput("kaartNL"), # Box kaart
@@ -266,10 +275,75 @@ ui <- dashboardPage(
                           ), # Fluid row 3 vergelijkbaarheid
                           "Bron data: Bestand geRegistreerde Ongevallen in Nederland, Rijkswaterstaat (2011-2020)"
                   ), # Tab Item verkeersveiligheid
-
+                  
+                  
+                  #### START CRIMINALITEIT
+                  
                   tabItem(tabName = "Criminaliteit",
-                          h2("Eventueel voor Criminaliteitscijfers")
-                  ) # Tab Item criminaliteit
+                          h2("Criminaliteit: Dashboard misdrijven op gemeente-, wijk-, en buurtniveau"),
+                          fluidRow(
+                            column(width = 3, 
+                                   box(title = "Selecteer niveau", status = "primary", solidHeader = T, width = NULL,
+                                       selectInput("niveau_crime", "Niveau:", choices = c("Gemeenten", "Wijken", "Buurten")),
+                                       conditionalPanel(
+                                         condition = "input.niveau_crime == 'Gemeenten'",
+                                         selectInput("gemeente_crime1", "Gemeente:", choices = unique(gemeenten$GM_NAAM)),
+                                         selectInput("vergelijkbaar_crime1", "Vergelijken met:", c("Alle gebieden in Nederland" = "Nederland", 
+                                                                                                   "Gebieden met hetzelfde stedelijkheidsniveau" = "Stedelijkheidsniveau",
+                                                                                                   "Gebieden met hetzelfde inkomensniveau" = "Inkomensniveau"))),
+                                       conditionalPanel(
+                                         condition = "input.niveau_crime == 'Wijken'", 
+                                         selectInput("gemeente_crime2", "Gemeente:", choices = unique(gemeenten$GM_NAAM)),
+                                         selectInput("wijken_crime2", "Wijk:", choices = NULL), 
+                                         selectInput("vergelijkbaar_crime2", "Vergelijken met:", c("Alle gebieden in Nederland" = "Nederland", 
+                                                                                                   "Gebieden met hetzelfde stedelijkheidsniveau" = "Stedelijkheidsniveau",
+                                                                                                   "Gebieden met hetzelfde inkomensniveau" = "Inkomensniveau"))),
+                                       conditionalPanel(
+                                         condition = "input.niveau_crime == 'Buurten'", 
+                                         selectInput("gemeente_crime3", "Gemeente:", choices = unique(gemeenten$GM_NAAM)), 
+                                         selectInput("wijken_crime3", "Wijk:", choices = NULL),
+                                         selectInput("buurten_crime3", "Buurt:", choices = NULL), 
+                                         selectInput("vergelijkbaar_crime3", "Vergelijken met:", c("Alle gebieden in Nederland" = "Nederland", 
+                                                                                                   "Gebieden met hetzelfde stedelijkheidsniveau" = "Stedelijkheidsniveau"))),
+                                       
+                                       selectInput("aantal_crime", "Aantallen:", choices = c("Aantal misdrijven", "Aantallen per 1000 inwoners")), 
+                                       actionButton("action_crime", "Zoeken"))), 
+                            column(width = 6, 
+                                   box(title = "Grafiek met misdrijven over tijd", status = "warning", solidHeader = T, width = NULL,
+                                       shinycssloaders::withSpinner(plotOutput("crime_plot")))), 
+                            column(width = 3, 
+                                   box(title = "Uitleg geselecteerde misdaad", status = "warning", solidHeader = T, width = NULL,
+                                       textOutput("info_crime")))
+                          ),
+                          fluidRow(
+                            column(width = 3, 
+                                   box(title = "Selecteer thema", status = "primary", solidHeader = T, width= NULL,
+                                       selectInput("thema_crime", "Thema misdrijf", choices = c("Totaal misdrijven",
+                                                                                                "Vermogensdelicten",
+                                                                                                "Gewelds- en seksuele misdrijven", 
+                                                                                                "Vernielingen en misdrijven tegen openbare orde en gezag", 
+                                                                                                "Verkeersmisdrijven", 
+                                                                                                "Misdrijven omgeving en milieu", 
+                                                                                                "Overige misdrijven")),
+                                       selectInput("soort_crime", "Soort misdrijf:", choices = NULL), 
+                                       selectInput("jaar_crime", "Jaar:", choices = c("2012", "2013", "2014", "2015", "2016", "2017", "2018", "2019", "2020", "2021")))), 
+                            column(width = 6, 
+                                   box(title = "Kaart met misdrijven", status = "warning", solidHeader = T, width = NULL,
+                                       shinycssloaders::withSpinner(leafletOutput("crime_map")))),
+                            column(width =3, 
+                                   uiOutput("top5_crime")
+                                   #box(title = "Top 5 criminaliteit", background = "red", width = NULL,
+                                   #"Top 5 met de meeste geselecteerde criminaliteit",
+                                   #"Hier komt de algemene top 5 zonder geselecteerd thema",
+                                   #tableOutput('top5_crime2'))
+                                   
+                            )
+                          )
+                  ) # Tab item criminaliteit
+                  
                 ) # TabItems
   ) # Dashboard body
 ) # Dashboard page
+
+
+
