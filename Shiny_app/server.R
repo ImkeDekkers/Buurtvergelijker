@@ -3,26 +3,26 @@
 # Facilities
 postcodes_final <- readRDS("../Data/postcodes_final.rds")
 full_data <- readRDS("../Data/full_data.rds")
-source("../Functions/plot4_facilities.R")
-source("../Functions/create_map_facilities.R")
-source("../Functions/top5_facilities.R")
-source("../Functions/postcode_lookup.R")
-source("../Functions/Dataset.R")
+source("../Facilities/plot4_facilities.R")
+source("../Facilities/create_map_facilities.R")
+source("../Facilities/top5_facilities.R")
+source("../Facilities/postcode_lookup.R")
+source("../Facilities/Dataset.R")
 
 
 # Health 
 gezondheid_all <-readRDS("../Data/gezondheid_all.rds")
-source("../Functions/SimilarAgeDistribution.R")
-source("../Functions/HealthPlots.R")
+source("../Health/SimilarAgeDistribution.R")
+source("../Health/HealthPlots.R")
 
 # Traffic incidents
 all_polygons <- full_data %>% 
   select(BU_CODE, BU_NAAM, WK_CODE, WK_NAAM, GM_CODE, GM_NAAM, geometry, 
          centroid, Niveau, centroidx, centroidy, `Stedelijkheid (1=zeer sterk stedelijk, 5=niet stedelijk)`)
 intersection <- readRDS("../Data/intersection.rds")
-source("../Functions/incidents_map.R")
-source("../Functions/plots_incidents.R")
-source("../Functions/generate_data_incidents.R")
+source("../Incidents/incidents_map.R")
+source("../Incidents/plots_incidents.R")
+source("../Incidents/generate_data_incidents.R")
 
 #Crime 
 #full_data_crime <- readRDS("../Data/full_data3.rds")
