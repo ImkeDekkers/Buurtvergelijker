@@ -12,6 +12,7 @@ source("../Facilities/Dataset.R")
 
 # Health 
 gezondheid_all <-readRDS("../Data/gezondheid_all.rds")
+source("../Health/Dataset_health.R")
 source("../Health/SimilarAgeDistribution.R")
 source("../Health/HealthPlots.R")
 
@@ -30,6 +31,8 @@ source("../Incidents/generate_data_incidents.R")
 
 # Shiny server
 shinyServer(function(input, output, session) {
+  
+    ### Facilities ###
   
     # Finding gemeente, wijk and buurt name based on the input postcode
     # Uses function postcode_lookup from file postcode_lookup
@@ -736,7 +739,7 @@ shinyServer(function(input, output, session) {
     )                 
     
     
-    ######START GEZONDHEID
+    ### HEALTH ###
     
     
     
@@ -887,144 +890,35 @@ shinyServer(function(input, output, session) {
                  "Risico op angststoornis of depressie", "Beperkt vanwege gezondheid")
 
     
-    #make used GEZONDHEID data reactive on the selected niveau
+    # Used data for the other visualizations, depends on selected level, area and comparable areas
+    # Uses function dataset_gez from the file Dataset_health
     Gez_datasetInput <- eventReactive(input$action_gez,{
-      df <- as.data.frame(gezondheid_all)
-      df <- df[df$Niveau == input$niveau_gez,]
-      if(input$niveau_gez == 'Gemeenten'){
-        if(input$vergelijkbaar1_gez == "Stedelijkheidsniveau"){
-          stedelijkheid_num <- df %>% filter(GM_NAAM == input$gemeente1_gez) %>% pull(`Stedelijkheid (1=zeer sterk stedelijk, 5=niet stedelijk)`)
-          stedelijkheid_num <- stedelijkheid_num[1]
-          comparable_df <- df[df$`Stedelijkheid (1=zeer sterk stedelijk, 5=niet stedelijk)`== stedelijkheid_num, ]
-        }else if (input$vergelijkbaar1_gez == "Inkomensniveau"){
-          inkomen_num <- df %>% filter(GM_NAAM == input$gemeente1_gez) %>% pull(`inkomengroep`)         
-          inkomen_num<-inkomen_num[1]
-          comparable_df <- df[df$inkomengroep == inkomen_num, ]
-        }else if(input$vergelijkbaar1_gez == "Nederland"){
-          comparable_df <- df
-        }else if(input$vergelijkbaar1_gez == "age_distribution"){
-          comparable_df <- df
-        }
-        selected_area_code <- comparable_df %>% filter(GM_NAAM == input$gemeente1_gez) %>% pull(CODE)
-        comparable_df$selected_area_code <- selected_area_code[1]
-        if(input$vergelijkbaar1_gez=="age_distribution"){
-          comparable_df <- similar_age(comparable_df, input$niveau_gez)
-          selected_area_code <- comparable_df %>% filter(GM_NAAM == input$gemeente1_gez) %>% pull(CODE)
-          comparable_df$selected_area_code <- selected_area_code[1]
-        }
-        selected_area_label <- comparable_df %>% filter(GM_NAAM == input$gemeente1_gez) %>% pull(NAAM)
-        comparable_df$selected_area_label <- selected_area_label[1]
-        selected_polygon <- comparable_df %>% filter(GM_NAAM == input$gemeente1)
-        selected_polygon <- selected_polygon[1,]
-        row_num_selected <- which(comparable_df$GM_NAAM == input$gemeente1_gez)
-        row_num_selected <-row_num_selected[1]
-      }else if(input$niveau_gez == 'Wijken'){
-        if(input$vergelijkbaar2_gez == "Stedelijkheidsniveau"){
-          stedelijkheid_num <- df %>% filter(WK_NAAM == input$wijken2_gez & GM_NAAM == input$gemeente2_gez) %>% pull(`Stedelijkheid (1=zeer sterk stedelijk, 5=niet stedelijk)`)
-          stedelijkheid_num <- stedelijkheid_num[1]
-          comparable_df <- df[df$`Stedelijkheid (1=zeer sterk stedelijk, 5=niet stedelijk)`== stedelijkheid_num, ]
-
-          comparable_df <- comparable_df %>% drop_na(CODE)
-          output$error_vergelijkbaarheid_gez <- renderText(
-            print("")
-          )
-        }else if (input$vergelijkbaar2_gez == "Inkomensniveau"){
-          inkomen_num <-df %>% filter(WK_NAAM == input$wijken2_gez & GM_NAAM == input$gemeente2_gez) %>% pull(`inkomengroep`)
-          inkomen_num<-inkomen_num[1]
-          if(is.na(inkomen_num)){
-            comparable_df <- df[df$Niveau == input$niveau_gez,]
-            output$error_vergelijkbaarheid_gez <- renderText(
-              print("Let op, door een missende waarde van het inkomensniveau voor uw wijk, wordt er nu met heel Nederland vergeleken.")
-            )
-          }else{
-            comparable_df <- df[df$inkomengroep == inkomen_num, ]
-            comparable_df <- comparable_df %>% drop_na(CODE)
-            output$error_vergelijkbaarheid_gez <- renderText(
-              print("")
-            )
-          }
-        }else if(input$vergelijkbaar2_gez == "Nederland"){
-          comparable_df <- df
-          output$error_vergelijkbaarheid_gez <- renderText(
-            print("")
-          )
-        }else if(input$vergelijkbaar2_gez == "age_distribution"){
-          comparable_df <- df
-        }
-        selected_area_code <- comparable_df %>% filter(GM_NAAM == input$gemeente2_gez & WK_NAAM == input$wijken2_gez) %>%pull(CODE)
-        comparable_df$selected_area_code <- selected_area_code[1]
-        if(input$vergelijkbaar2_gez == "age_distribution"){
-          comparable_df <- similar_age(comparable_df, input$niveau_gez)
-          if(any(is.na(comparable_df$`Personen 0 tot 15 jaar (%)`))){
-            comparable_df <- df 
-            output$error_vergelijkbaarheid_gez <- renderText(
-              print("Let op, door missende gegevens over de leeftijdsopbouw voor uw wijk, wordt er nu met heel Nederland vergeleken.")
-            )
-          }else{
-            comparable_df <- comparable_df
-            output$error_vergelijkbaarheid_gez <- renderText(
-              print("")
-            )
-          }
-          selected_area_code <- comparable_df %>% filter(GM_NAAM == input$gemeente2_gez & WK_NAAM == input$wijken2_gez) %>%pull(CODE)
-          comparable_df$selected_area_code <- selected_area_code[1]
-        }
-        selected_area_label <- comparable_df %>% filter(GM_NAAM == input$gemeente2_gez & WK_NAAM == input$wijken2_gez) %>%pull(NAAM)
-        comparable_df$selected_area_label <- selected_area_label[1]
-        selected_polygon <- comparable_df %>% filter(GM_NAAM == input$gemeente2_gez & WK_NAAM == input$wijken2_gez)
-        selected_polygon <- selected_polygon[1,]
-        row_num_selected <- which(comparable_df$GM_NAAM == input$gemeente2_gez & comparable_df$WK_NAAM == input$wijken2_gez)
-        row_num_selected <-row_num_selected[1]
-      }else if(input$niveau_gez == 'Buurten'){
-        if(input$vergelijkbaar3_gez == "Stedelijkheidsniveau"){
-          stedelijkheid_num <- df%>% filter(BU_NAAM==input$buurten3_gez & GM_NAAM == input$gemeente3_gez & WK_NAAM == input$wijken3_gez) %>% pull(`Stedelijkheid (1=zeer sterk stedelijk, 5=niet stedelijk)`)
-          stedelijkheid_num <- stedelijkheid_num[1]
-          comparable_df <- df[df$`Stedelijkheid (1=zeer sterk stedelijk, 5=niet stedelijk)`== stedelijkheid_num, ]
-          comparable_df <- comparable_df %>% drop_na(CODE)
-          output$error_vergelijkbaarheid_gez <- renderText(
-            print("")
-          )
-        } else if(input$vergelijkbaar3_gez == "Nederland"){
-          comparable_df <- df
-          output$error_vergelijkbaarheid_gez <- renderText(
-            print("")
-          )
-        }else if(input$vergelijkbaar3_gez == "age_distribution"){
-          comparable_df <- df
-        }
-        selected_area_code <- comparable_df %>% filter(GM_NAAM == input$gemeente3_gez & WK_NAAM == input$wijken3_gez & BU_NAAM == input$buurten3_gez) %>%pull(CODE)
-        comparable_df$selected_area_code <- selected_area_code[1]
-        if(input$vergelijkbaar3_gez == "age_distribution"){
-          comp_df <- similar_age(comparable_df, input$niveau_gez)
-          if(any(is.na(comp_df$`Personen 0 tot 15 jaar (%)`))){
-            comparable_df <- df 
-            output$error_vergelijkbaarheid_gez <- renderText(
-              print("Let op, door missende gegevens over de leeftijdsopbouw voor uw buurt, wordt er nu met heel Nederland vergeleken.")
-            )
-          }else{
-            comparable_df <- comp_df
-            output$error_vergelijkbaarheid_gez <- renderText(
-              print("")
-            )
-          }
-          selected_area_code <- comparable_df %>% filter(GM_NAAM == input$gemeente3_gez & WK_NAAM == input$wijken3_gez & BU_NAAM == input$buurten3_gez) %>%pull(CODE)
-          comparable_df$selected_area_code <- selected_area_code[1]
-        }
-        selected_area_label <- comparable_df %>% filter(GM_NAAM == input$gemeente3_gez & WK_NAAM == input$wijken3_gez & BU_NAAM == input$buurten3_gez) %>%pull(NAAM)
-        comparable_df$selected_area_label <- selected_area_label[1]
-        selected_polygon <- comparable_df %>% filter(GM_NAAM == input$gemeente3_gez & WK_NAAM == input$wijken3_gez & BU_NAAM == input$buurten3_gez)
-        selected_polygon <- selected_polygon[1,]
-        row_num_selected <- which(comparable_df$GM_NAAM == input$gemeente3_gez & comparable_df$WK_NAAM == input$wijken3_gez & comparable_df$BU_NAAM == input$buurten3_gez)
-        row_num_selected <-row_num_selected[1]
-        
-      }
-      comparable_df$centroidxx <- comparable_df[row_num_selected, 'centroidx']
-      comparable_df$centroidyy <- comparable_df[row_num_selected, 'centroidy']
-      dataset <- st_as_sf(comparable_df)
+      dataset <- dataset_gez(gezondheid_all, input$niveau_gez, input$vergelijkbaar1_gez,  input$gemeente1_gez,
+                             input$vergelijkbaar2_gez, input$gemeente2_gez, input$wijken2_gez,
+                             input$vergelijkbaar3_gez, input$gemeente3_gez, input$wijken3_gez, input$buurten3_gez)$dataset
+      selected_polygon <- dataset_gez(gezondheid_all, input$niveau_gez, input$vergelijkbaar1_gez,  input$gemeente1_gez,
+                                      input$vergelijkbaar2_gez, input$gemeente2_gez, input$wijken2_gez,
+                                      input$vergelijkbaar3_gez, input$gemeente3_gez, input$wijken3_gez, input$buurten3_gez)$selected_polygon
+      ink_age_level <- dataset_gez(gezondheid_all, input$niveau_gez, input$vergelijkbaar1_gez,  input$gemeente1_gez,
+                                   input$vergelijkbaar2_gez, input$gemeente2_gez, input$wijken2_gez,
+                                   input$vergelijkbaar3_gez, input$gemeente3_gez, input$wijken3_gez, input$buurten3_gez)$ink_age_level
+      if (ink_age_level=="ink_onbekend"){
+        output$error_vergelijkbaarheid_gez <- renderText(
+          print("Let op, door een missende waarde van het inkomensniveau voor uw wijk, wordt er nu met heel Nederland vergeleken.")
+        )}
+      else if (ink_age_level=="age_onbekend"){
+        output$error_vergelijkbaarheid_gez <- renderText(
+          print("Let op, door missende gegevens over de leeftijdsopbouw voor uw gebied, wordt er nu met heel Nederland vergeleken.")
+        )}
+      else if(ink_age_level=="bekend"){
+        output$error_vergelijkbaarheid_gez <- renderText(
+          print("")
+        )}
       
-      list_return <- list("dataset" = dataset, "selected_polygon" = selected_polygon)
+      list_return <- list("dataset" = dataset,
+                          "selected_polygon" = selected_polygon)
       return(list_return)
-    })
+})
     
     # Get information about selected area in table
     output$info_area_gez <- renderTable({

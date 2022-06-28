@@ -35,6 +35,8 @@ ui <- dashboardPage(
     z-index: unset !important;
   }'))),
                 tabItems(
+                  ### Facilities ###
+                  
                   tabItem(
                     tabName = "Voorzieningen",
 
@@ -123,7 +125,7 @@ ui <- dashboardPage(
                   ), # Tab item voorzieningen
                   
 
-                  #####Start gezondheid   
+                  ### Health ###   
                   
                   tabItem(tabName = "Gezondheid",
                           h2("Dashboard gezondheid op  gemeente-, wijk-, of buurtniveau"),

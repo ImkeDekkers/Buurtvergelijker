@@ -1,4 +1,4 @@
-source("../Functions/SimilarAgeDistribution.R")
+source("../Health/SimilarAgeDistribution.R")
 
 # Function that filters the data gezondheid_all such that only the right areas remain in the dataset
 # What the right areas are depend on the selected level, area and what the user wants to compare with
