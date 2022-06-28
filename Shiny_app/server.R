@@ -26,8 +26,8 @@ source("../Incidents/plots_incidents.R")
 source("../Incidents/generate_data_incidents.R")
 
 #Crime 
-#full_data_crime <- readRDS("../Data/full_data3.rds")
-#full_data_crime_norm <- readRDS("../Data/full_data4.rds")
+full_data_crime <- readRDS("../Data/full_data_crime.rds")
+full_data_crime_norm <- readRDS("../Data/full_crime_norm.rds")
 
 # Shiny server
 shinyServer(function(input, output, session) {
