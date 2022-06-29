@@ -56,5 +56,5 @@ Data/gezondheid_all.rds
 Data/all_polygons.rds
 Data/intersection.rds
 Data/ongevallen_W84.rds
-Data/full_data_crime
-Data/full_data_crime_norm
+Data/full_data_crime.rds
+Data/full_data_crime_norm.rds
