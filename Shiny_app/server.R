@@ -710,9 +710,9 @@ shinyServer(function(input, output, session) {
           ), # Column kaart
           column(width = 6,
                  tabBox(width = NULL, id="tabset1",
-                        tabPanel("Staafdiagram", "Dit staafdiagram geeft het aantal ongelukken in een bepaalde categorie weer.", 
+                        tabPanel("Staafdiagram", "Dit staafdiagram geeft het aantal ongelukken binnen een een categorie van een bepaald thema weer.", 
                                  plotOutput("bar_chart")),
-                        tabPanel("Taartdiagram", "Dit taartdiagram geeft de verhouding van het aantal ongelukken in een bepaalde categorie weer", 
+                        tabPanel("Taartdiagram", "Dit taartdiagram geeft de verhouding van het aantal ongelukken binnen een categorie in een bepaald thema weer", 
                                  plotOutput("pie_chart"))
                  ) # Tabbox diagram
           ) # Column diagram variabele
@@ -736,9 +736,27 @@ shinyServer(function(input, output, session) {
       incidents_histogram(top_incidents()$incidents_all_inclu_niveau,
                           top_incidents()$count_incidents_niveau,
                           top_incidents()$incidents_mean)
-    )                 
+    )    
     
-    
+    # Render explanation for each subtheme 
+    output$explanation_incidents <- renderText({
+      if (input$subthema_incidents == "AP3_OMS"){
+        "De afloop van het verkeersongeval."
+      } else if (input$subthema_incidents == "WGD_CODE_1"){
+        "De weersomstandigheden ten tijde van het verkeersongeval."
+      } else if (input$subthema_incidents == "AOL_OMS"){
+        "De aard van het verkeersongeval. Daarbij gaat het vooral om de ernst van het ongeluk en wie of wat geraakt is op welke plek. "
+      } else if (input$subthema_incidents == "OTE_OMS"){
+        "Het soort object of voorwerp van datgene dat geraakt is met het verkeersongeval."
+      } else if (input$subthema_incidents == "WSE_OMS"){
+        "De bijzondere eigenschappen van de weg waar het ongeval heeft plaatsgevonden."
+      } else if (input$subthema_incidents == "MAXSNELHD"){
+        "De maximum toegestane snelheid op de plaats van het ongeval. "
+      } else if (input$subthema_incidents == "ANTL_PTJ"){
+        "Het aantal betrokken partijen bij het verkeersongeval. Het gaat dan om het aantal betrokkenen die het verkeersongeval hebben veroorzaakt of die daarvan slachtoffer zijn."
+      }
+    })
+
     ### HEALTH ###
     
     

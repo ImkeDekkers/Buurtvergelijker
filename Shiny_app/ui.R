@@ -205,7 +205,7 @@ ui <- dashboardPage(
                   ), # tab item gezondheidszorg
                   
                   
-                  #### START VERKEERSONGEVALLEN
+                  ### TRAFFIC INCIDENTS ###
 
                   tabItem(tabName = "Verkeersongevallen",
                           h2("Verkeersongevallen in gemeenten, wijken en buurten van Nederland"),
@@ -243,7 +243,9 @@ ui <- dashboardPage(
                                                                                "Maximum snelheid" = "MAXSNELHD",
                                                                                "Aantal betrokken partijen" = "ANTL_PTJ")),
                                    actionButton("action_incidents", "Zoeken")
-                                   ) # Box input
+                                   ), # Box input
+                                   box(title = "Uitleg van subthema", width = NULL, status = "primary", solidHeader = T,
+                                       textOutput("explanation_incidents"))
                             ), # Column 1
                             column(width = 5,
                                    box(title = "Algemene trend", width = NULL, status = "danger", solidHeader = T,
@@ -261,15 +263,15 @@ ui <- dashboardPage(
                           fluidRow(
                             column(width = 4,
                                    box(title = "Top-5 incidenten in vergelijkbare gebieden", width = NULL, status = "success", solidHeader = T,
-                                       HTML("In deze tabel wordt de top-5 van gebieden met de meeste incidenten weergegeven. <br>
-                                            Staat uw wijk niet in de top-5? Dan ziet u onderaan de tabel op welke rank het geselecteerde gebied staat."),
+                                       HTML("In deze tabel wordt de top-5 van gebieden met de meeste incidenten weergegeven. Alleen gebieden met hetzelfde stedelijkheidsniveau worden vergeleken met het geselecteerde gebied <br>
+                                            Staat het door u geselecteerde gebied niet in de top-5? Dan ziet u onderaan de tabel op welke rank het geselecteerde gebied staat."),
                                        tableOutput("count_incidents")) # Box top 5
                                    ), # Column top 5
                             column(width = 6,
                                    box(title = "Vergelijking met andere gebieden", width = NULL, status = "success", solidHeader = T,
                                        HTML("In deze grafiek wordt getoond bij hoeveel gebieden een bepaald aantal ongelukken plaatsvindt. <br>
                                             De blauwe lijn is het door u geselecteerde gebied. De groene lijn is een gemiddelde van vergelijkbare gebieden. <br>
-                                            Als de blauwe lijn links van de groene lijn staat, dan doet het geselecteerde gebied het goed ten opzichte van het gemiddelde."),
+                                            Als de blauwe lijn links van de groene lijn staat, dan doet het geselecteerde gebied het goed ten opzichte van het gemiddelde van gebieden met hetzelfde stedelijkheidsniveau."),
                                        plotOutput("histogram_incidents")) # Box grafieken of diagram
                             ) # Column vergelijking buurt
                           ), # Fluid row 3 vergelijkbaarheid
