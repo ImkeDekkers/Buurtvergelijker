@@ -39,3 +39,5 @@ Shiny_app: ../Buurtvergelijker/Shiny_app
 * Traffic incidents: https://nationaalgeoregister.nl/geonetwork/srv/dut/catalog.search#/metadata/4gqrs90k-vobr-5t59-x726-4x2unrs1vawz?tab=relations
 * Health: For the health tab, the unpreprocessed data is available on GitHub. There are three different folders of health data: RIVM_Gezondheid2012, RIVM_Gezondheid2016, RIVMGezondheid2020. These can be found in the Data folder. (Downloaded from https://statline.rivm.nl/portal.html?_la=nl&_catalog=RIVM&tableId=50090NED&_theme=86)
 * Crime: https://politieopendata.cbs.nl/portal.html?_la=nl&_catalog=Politie&graphtype=Table&tableId=47018NED&_theme=97
+
+These datasets are last accessed on July 1st 2022.
