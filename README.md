@@ -1,5 +1,5 @@
 # Buurtvergelijker
-The R Shiny dashboard is designed to give insights into open data published by several Dutch governmental institutions. The dashboard contains four different tabs for different subjects, namely amenities, health, crime and traffic incidents. It is designed for Dutch citizens who want to gain more insights into their own neighborhood and to be able to compare their neighborhood to comparable neighborhoods. Comparable neighborhoods can be selected using the same degree of urbanization or income. 
+The R Shiny dashboard is designed to give insights into open data published by several Dutch governmental institutions. The dashboard contains four different tabs for different subjects, namely amenities, health, crime and traffic incidents. It is designed for Dutch citizens who want to gain more insights into their own neighborhood and to be able to compare their neighborhood to similar neighborhoods. Comparable neighborhoods can be selected using the same degree of urbanization or income. 
 
 ## Included visualizations
 - Leaflet maps
@@ -7,7 +7,7 @@ The R Shiny dashboard is designed to give insights into open data published by s
 - Top 5 most similar areas 
 
 ## How to get the R Shiny dashboard to work
-The preprocessed data cannot be uploaded on GitHub because of its size. Therefore, some of the original dataset need to be retrieved from the supplier. After downloading the data, the data prep(aration) files can be run to prepare the data for use in the dashboard. 
+The preprocessed data cannot be uploaded on GitHub because of its size. Therefore, some of the original dataset need to be retrieved from the supplier. After downloading the data, the data prep(aration) files can be run to prepare the data for use in the dashboard. Please take into consideration that preprocessing this amount of data takes quite some time and may add up to more than an hour!
 
 After doing so, please make sure to store the data properly. The data-folder should be in the same folder as the Shiny_app.
 
