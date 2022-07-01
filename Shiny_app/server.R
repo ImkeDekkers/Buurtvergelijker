@@ -258,7 +258,7 @@ shinyServer(function(input, output, session) {
       }
     })
                          
-    # ONGEVALLEN/TRAFFIC INCIDENTS
+    ### ONGEVALLEN/TRAFFIC INCIDENTS ###
     # Make selection dependent on previous input
     observeEvent(input$gemeente_2_incidents, {
       updateSelectInput(session, 'wijken_2_incidents',
@@ -274,7 +274,7 @@ shinyServer(function(input, output, session) {
                                                                          postcodes_final$wijknaam2020==input$wijken_3_incidents]))       # Only display buurten that are in the selected wijk
     })
     
-    # REACTION ON ACTION_INCIDENTS  
+    # Reaction on action_incidents
     # Create input dataset for further analysis
     # Uses list_selected_pol_info function from generate_data_incidents file
     list_selected_pol <- eventReactive(input$action_incidents, {

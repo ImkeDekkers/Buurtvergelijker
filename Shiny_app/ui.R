@@ -9,11 +9,9 @@ library(shinythemes)
 library(shinydashboard)
 library(htmltools)
 library(reshape2)
-
 library(scales)
 library(RColorBrewer)
 library(ggrepel)
-options(scipen=999)
 library(shinyWidgets)
 
 gemeenten <- readRDS("../Data/gemeenten.rds")
