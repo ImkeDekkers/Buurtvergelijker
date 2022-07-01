@@ -12,6 +12,7 @@ The preprocessed data cannot be uploaded on GitHub because of its size. Therefor
 After doing so, please make sure to store the data properly. The data-folder should be in the same folder as the Shiny_app.
 
 Data: ../Buurtvergelijker/Data
+
 Shiny_app: ../Buurtvergelijker/Shiny_app
 
 ## Needed packages
